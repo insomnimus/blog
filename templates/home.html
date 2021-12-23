@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Recent Posts</h1>
+<ul id="recent-posts">
+{% for post in self.recent(5) %}
+	<li><a href="/posts/{{ post.url_title|safe }}">{{ post.title }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}
