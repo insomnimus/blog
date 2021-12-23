@@ -3,7 +3,10 @@ pub use anyhow::{
 	Result,
 };
 pub use askama::Template;
-pub use axum::http::StatusCode;
+pub use axum::{
+	http::StatusCode,
+	response::Html,
+};
 pub use chrono::{
 	DateTime,
 	TimeZone,
