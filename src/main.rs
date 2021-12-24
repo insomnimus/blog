@@ -2,6 +2,7 @@ mod app;
 mod home;
 mod post;
 mod prelude;
+mod response_ext;
 
 use std::{
 	env,

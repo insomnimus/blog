@@ -25,16 +25,7 @@ impl Home {
 
 		let home_handler = {
 			let home = Arc::clone(&home);
-			move || async move {
-				home.read()
-					.await
-					.render()
-					.map_err(|e| {
-						error!("error rendering home: {}", e);
-						StatusCode::INTERNAL_SERVER_ERROR
-					})
-					.map(Html)
-			}
+			move || async move { home.read().await.render().or_503().html() }
 		};
 
 		let posts_handler = {
@@ -42,14 +33,7 @@ impl Home {
 			move |path: axum::extract::Path<String>| async move {
 				match home.read().await.posts.get(&path.0) {
 					None => Err(StatusCode::NOT_FOUND),
-					Some(p) => p
-						.render()
-						.await
-						.map_err(|e| {
-							error!("failed to render {}: {}", &p.title, e);
-							StatusCode::INTERNAL_SERVER_ERROR
-						})
-						.map(Html),
+					Some(p) => p.render().await.or_503().html(),
 				}
 			}
 		};

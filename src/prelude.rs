@@ -21,4 +21,5 @@ pub use log::{
 pub use crate::{
 	home::Home,
 	post::Post,
+	response_ext::*,
 };
