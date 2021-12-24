@@ -1,10 +1,4 @@
-use std::{
-	path::{
-		Path,
-		PathBuf,
-	},
-	sync::Arc,
-};
+use std::sync::Arc;
 
 use axum::{
 	http::StatusCode,
@@ -13,45 +7,21 @@ use axum::{
 		Router,
 	},
 };
-use indexmap::IndexMap;
-use tokio::sync::RwLock;
+use notify::Watcher;
+use tokio::{
+	sync::{
+		mpsc,
+		RwLock,
+	},
+	task,
+};
 
 use crate::prelude::*;
 
-pub struct App {
-	home: Home,
-	posts_dir: PathBuf,
-	cache_dir: PathBuf,
-}
-
-impl App {
-	pub fn new(posts_dir: &Path, cache_dir: &Path) -> Result<Self> {
-		let mut posts = posts_dir
-			.read_dir()?
-			.filter_map(|res| match res.map(|entry| entry.path()) {
-				Err(e) => Some(Err(anyhow::Error::from(e))),
-				Ok(p) if p.extension().map_or(false, |ext| ext.eq("md")) => {
-					Some(Post::new(&p, cache_dir).map(|post| (post.url_title.clone(), post)))
-				}
-				_ => None,
-			})
-			.collect::<Result<IndexMap<_, _>, _>>()?;
-
-		posts.sort_by(|_, a, _, b| b.date.cmp(&a.date));
-
-		let home = Home { posts };
-		Ok(Self {
-			posts_dir: posts_dir.to_path_buf(),
-			cache_dir: cache_dir.to_path_buf(),
-			home,
-		})
-	}
-}
-
-impl App {
-	pub fn build(self) -> Router {
-		let Self { home, .. } = self;
-		let home = Arc::new(RwLock::new(home));
+impl Home {
+	pub async fn build_app(self) -> Result<Router> {
+		let home = Arc::new(RwLock::new(self));
+		start_watching(Arc::clone(&home)).await?;
 
 		let home_handler = {
 			let home = Arc::clone(&home);
@@ -68,7 +38,7 @@ impl App {
 		};
 
 		let posts_handler = {
-			let home = Arc::clone(&home);
+			// let home = Arc::clone(&home);
 			move |path: axum::extract::Path<String>| async move {
 				match home.read().await.posts.get(&path.0) {
 					None => Err(StatusCode::NOT_FOUND),
@@ -84,8 +54,51 @@ impl App {
 			}
 		};
 
-		Router::new()
+		Ok(Router::new()
 			.route("/", get(home_handler))
-			.route("/posts/:post", get(posts_handler))
+			.route("/posts/:post", get(posts_handler)))
 	}
+}
+
+async fn start_watching(home: Arc<RwLock<Home>>) -> Result<()> {
+	use notify::{
+		event::EventKind,
+		RecommendedWatcher,
+		RecursiveMode,
+	};
+
+	let (tx, mut rx) = mpsc::unbounded_channel();
+
+	let mut watcher = RecommendedWatcher::new(move |res| match res {
+		Ok(ev) => tx.send(ev).unwrap(),
+		Err(e) => error!("watch: {}", e),
+	})?;
+	let posts_dir = home.read().await.posts_dir.clone();
+	watcher.watch(&posts_dir, RecursiveMode::Recursive)?;
+	std::mem::forget(watcher);
+
+	/*
+	task::spawn_blocking({
+		let posts_dir = home.read().await.posts_dir.clone();
+		move || {
+			watcher.watch(&posts_dir, RecursiveMode::Recursive)
+		}
+	});
+	*/
+
+	task::spawn(async move {
+		while let Some(ev) = rx.recv().await {
+			if matches!(
+				ev.kind,
+				EventKind::Create(_) | EventKind::Modify(_) | EventKind::Remove(_)
+			) {
+				let mut home = home.write().await;
+				if let Err(e) = home.reload().await {
+					error!("failed reloading files: {}", e);
+				}
+			}
+		}
+		info!("the watcher is dropped");
+	});
+	Ok(())
 }

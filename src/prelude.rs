@@ -1,5 +1,6 @@
 pub use anyhow::{
 	anyhow,
+	Error,
 	Result,
 };
 pub use askama::Template;
@@ -12,7 +13,10 @@ pub use chrono::{
 	TimeZone,
 	Utc,
 };
-pub use log::error;
+pub use log::{
+	error,
+	info,
+};
 
 pub use crate::{
 	home::Home,

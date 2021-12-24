@@ -58,6 +58,7 @@ impl Post {
 			let opts = Options::all();
 			let mut buf = String::new();
 			html::push_html(&mut buf, Parser::new_ext(&md, opts));
+
 			fs::write(&self.cached_path, &buf).await?;
 			self.cached.store(true, Ordering::SeqCst);
 			buf
