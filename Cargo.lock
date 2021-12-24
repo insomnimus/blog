@@ -135,6 +135,7 @@ dependencies = [
  "notify",
  "pulldown-cmark",
  "tokio",
+ "tower",
 ]
 
 [[package]]
