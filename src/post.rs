@@ -3,6 +3,7 @@ use std::{
 		Path,
 		PathBuf,
 	},
+	str::FromStr,
 	sync::atomic::{
 		AtomicBool,
 		Ordering,
@@ -22,9 +23,7 @@ pub struct Post {
 	path: PathBuf,
 	cached_path: PathBuf,
 	cached: AtomicBool,
-	pub title: String,
-	pub url_title: String,
-	pub date: DateTime<Utc>,
+	pub metadata: Metadata,
 }
 
 impl Post {
@@ -32,18 +31,12 @@ impl Post {
 		let file_stem = path
 			.file_stem()
 			.ok_or_else(|| anyhow!("the path does not have a base name"))?;
+		let metadata = file_stem.to_string_lossy().parse::<Metadata>()?;
 
-		let file_stem_str = file_stem.to_string_lossy();
-		let (title, date) = split_title_date(&file_stem_str)?;
-
-		let title = title.to_string();
 		let mut cached_path = cache_dir.join(file_stem);
 		cached_path.set_extension("html");
-		let url_title = title.replace(' ', "_");
 		Ok(Self {
-			date,
-			title,
-			url_title,
+			metadata,
 			cached: AtomicBool::new(false),
 			path: path.to_path_buf(),
 			cached_path,
@@ -64,8 +57,7 @@ impl Post {
 			buf
 		};
 		PostBody {
-			title: self.title.as_str(),
-			date: self.date,
+			metadata: &self.metadata,
 			html: body.as_str(),
 		}
 		.render()
@@ -76,20 +68,73 @@ impl Post {
 #[derive(Template)]
 #[template(path = "post.html")]
 struct PostBody<'a, 'b> {
-	title: &'a str,
-	date: DateTime<Utc>,
+	metadata: &'a Metadata,
 	html: &'b str,
 }
 
-fn split_title_date(s: &str) -> Result<(&str, DateTime<Utc>)> {
-	let (title, date) = s
-		.rsplit_once(|c: char| c.is_whitespace())
-		.ok_or_else(|| anyhow!("the file name contains no spaces so can't be split"))?;
-	let title = title.trim();
-	if title.is_empty() {
-		anyhow::bail!("title is empty");
+impl<'a, 'b> PostBody<'a, 'b> {
+	fn date(&self) -> String {
+		self.metadata.date_str()
 	}
-	Utc.datetime_from_str(date, "%Y-%m-%d-%H-%M")
-		.map(|dt| (title, dt))
-		.map_err(|e| e.into())
+
+	fn updated(&self) -> Option<String> {
+		self.metadata.updated_str()
+	}
+}
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Metadata {
+	pub title: String,
+	pub url_title: String,
+	pub date: DateTime<Utc>,
+	pub updated: Option<DateTime<Utc>>,
+}
+
+impl Metadata {
+	pub fn cmp_dates(&self, other: &Self) -> std::cmp::Ordering {
+		self.updated
+			.unwrap_or(self.date)
+			.cmp(&other.updated.unwrap_or(other.date))
+	}
+
+	pub fn date_str(&self) -> String {
+		self.date.format("%Y-%m-%dT%H:%MZ").to_string()
+	}
+
+	pub fn updated_str(&self) -> Option<String> {
+		self.updated
+			.map(|d| d.format("%Y-%m-%dT%H:%MZ").to_string())
+	}
+}
+
+impl FromStr for Metadata {
+	type Err = crate::prelude::Error;
+
+	fn from_str(s: &str) -> Result<Self> {
+		let (title, date) = s
+			.rsplit_once(|c: char| c.is_whitespace())
+			.ok_or_else(|| anyhow!("the file name contains no spaces so can't be split"))?;
+		let title = title.trim();
+		if title.is_empty() {
+			anyhow::bail!("title is empty");
+		}
+		let date = Utc.datetime_from_str(date, "%Y-%m-%d-%H-%M")?;
+		Ok(title
+			.rsplit_once(' ')
+			.and_then(|(left, maybe_date)| {
+				Utc.datetime_from_str(maybe_date, "%Y-%m-%d-%H-%M")
+					.ok()
+					.map(|original_date| Self {
+						title: left.trim().into(),
+						url_title: left.trim().replace(|c: char| c.is_whitespace(), "_"),
+						date: original_date,
+						updated: Some(date),
+					})
+			})
+			.unwrap_or_else(|| Self {
+				title: title.to_string(),
+				url_title: title.replace(|c: char| c.is_whitespace(), "_"),
+				date,
+				updated: None,
+			}))
+	}
 }

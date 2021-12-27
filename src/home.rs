@@ -22,13 +22,14 @@ impl Home {
 			.read_dir()?
 			.filter_map(|res| match res.map(|entry| entry.path()) {
 				Err(e) => Some(Err(Error::from(e))),
-				Ok(p) if p.extension().map_or(false, |ext| ext.eq("md")) => {
-					Some(Post::new(&p, cache_dir).map(|post| (post.url_title.clone(), post)))
-				}
+				Ok(p) if p.extension().map_or(false, |ext| ext.eq("md")) => Some(
+					Post::new(&p, cache_dir).map(|post| (post.metadata.url_title.clone(), post)),
+				),
 				_ => None,
 			})
 			.collect::<Result<IndexMap<_, _>, _>>()?;
-		posts.sort_by(|_, a, _, b| b.date.cmp(&a.date));
+
+		posts.sort_by(|_, a, _, b| b.metadata.cmp_dates(&a.metadata));
 
 		Ok(Self {
 			posts,
@@ -47,7 +48,7 @@ impl Home {
 				Ok(p) if p.extension().map_or(false, |ext| ext.eq("md")) => {
 					match Post::new(&p, &self.cache_dir) {
 						Ok(post) => {
-							self.posts.insert(post.url_title.clone(), post);
+							self.posts.insert(post.metadata.url_title.clone(), post);
 						}
 						Err(e) => error!("{}", e),
 					};
@@ -55,7 +56,9 @@ impl Home {
 				_ => (),
 			};
 		}
-		self.posts.sort_by(|_, a, _, b| b.date.cmp(&a.date));
+
+		self.posts
+			.sort_by(|_, a, _, b| b.metadata.cmp_dates(&a.metadata));
 		Ok(())
 	}
 }
