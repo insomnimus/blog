@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS article (
 	article_id SERIAL UNIQUE,
-	kind SMALLINT NOT NULL,
 	title STRING PRIMARY KEY NOT NULL,
 	date_published TIMESTAMPTZ NOT NULL,
 	date_updated TIMESTAMPTZ,
