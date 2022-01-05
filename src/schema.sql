@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS article (
+	article_id SERIAL UNIQUE,
+	kind SMALLINT NOT NULL,
+	title STRING PRIMARY KEY NOT NULL,
+	date_published TIMESTAMPTZ NOT NULL,
+	date_updated TIMESTAMPTZ,
+	data TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS home_cache (
+	_home_id BOOL PRIMARY KEY DEFAULT TRUE,
+	data TEXT NOT NULL,
+	CONSTRAINT only_one_cache CHECK(_home_id)
+);

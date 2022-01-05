@@ -2,10 +2,10 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h1>Recent Posts</h1>
-<ul id="recent-posts">
-{% for post in self.recent(5) %}
-	<li><a href="/posts/{{ post.metadata.url_title|safe }}">{{ post.metadata.title }}</a></li>
+<h1>Recent Articles</h1>
+<ul id="recent-articles">
+{% for article in self.articles %}
+	<li><a href="/articles/{{ article.url_title()|safe }}">{{ article.title }}</a></li>
 {% endfor %}
 </ul>
 {% endblock %}

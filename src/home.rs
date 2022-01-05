@@ -1,70 +1,54 @@
-use std::path::{
-	Path,
-	PathBuf,
+use crate::{
+	article::ArticleInfo,
+	prelude::*,
 };
-
-use indexmap::IndexMap;
-use tokio::fs;
-
-use crate::prelude::*;
 
 #[derive(Template)]
 #[template(path = "home.html")]
-pub struct Home {
-	pub posts: IndexMap<String, Post>,
-	pub posts_dir: PathBuf,
-	pub cache_dir: PathBuf,
+struct Home {
+	articles: Vec<ArticleInfo>,
 }
 
-impl Home {
-	pub fn new(posts_dir: &Path, cache_dir: &Path) -> Result<Self> {
-		let mut posts = posts_dir
-			.read_dir()?
-			.filter_map(|res| match res.map(|entry| entry.path()) {
-				Err(e) => Some(Err(Error::from(e))),
-				Ok(p) if p.extension().map_or(false, |ext| ext.eq("md")) => Some(
-					Post::new(&p, cache_dir).map(|post| (post.metadata.url_title.clone(), post)),
-				),
-				_ => None,
-			})
-			.collect::<Result<IndexMap<_, _>, _>>()?;
+pub async fn handle_home() -> HtmlResponse {
+	let mut tx = db().begin().await.or_500()?;
+	let data = query!("SELECT data FROM home_cache")
+		.map(|row: PgRow| row.get::<String, _>("data"))
+		.fetch_optional(&mut tx)
+		.await
+		.or_500()?;
 
-		posts.sort_by(|_, a, _, b| b.metadata.cmp_dates(&a.metadata));
-
-		Ok(Self {
-			posts,
-			posts_dir: posts_dir.to_path_buf(),
-			cache_dir: cache_dir.to_path_buf(),
+	if let Some(data) = data {
+		tx.commit().await.or_500()?;
+		Ok(Html(data))
+	} else {
+		let articles = query!(
+			"SELECT title, date_published, date_updated FROM article
+	SORT BY COALESCE(date_updated, date_published) DESC
+	LIMIT 5",
+		)
+		.map(|row: PgRow| ArticleInfo {
+			title: row.get("title"),
+			published: row.get("date_published"),
+			updated: row.get("date_updated"),
 		})
-	}
+		.fetch_all(&mut tx)
+		.await
+		.or_500()?;
 
-	pub async fn reload(&mut self) -> Result<()> {
-		let mut posts = fs::read_dir(&self.posts_dir).await?;
+		let home = Home { articles };
 
-		self.posts.clear();
-		while let Some(res) = posts.next_entry().await.transpose() {
-			match res.map(|entry| entry.path()) {
-				Err(e) => error!("{}", e),
-				Ok(p) if p.extension().map_or(false, |ext| ext.eq("md")) => {
-					match Post::new(&p, &self.cache_dir) {
-						Ok(post) => {
-							self.posts.insert(post.metadata.url_title.clone(), post);
-						}
-						Err(e) => error!("{}", e),
-					};
-				}
-				_ => (),
-			};
-		}
-
-		self.posts
-			.sort_by(|_, a, _, b| b.metadata.cmp_dates(&a.metadata));
-		Ok(())
-	}
-}
-
-impl Home {
-	fn recent(&'_ self, n: usize) -> impl IntoIterator<Item = &'_ Post> {
-		self.posts.values().take(n)
+		let home = home.render().or_500()?;
+		query!(
+			"INSERT INTO home_cache(data)
+	VALUES($1)
+	ON CONFLICT DO UPDATE
+	SET data = $1",
+			home.as_str(),
+		)
+		.execute(&mut tx)
+		.await
+		.or_500()?;
+		tx.commit().await.or_500()?;
+		Ok(Html(home))
 	}
 }
