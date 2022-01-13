@@ -1,4 +1,7 @@
-use std::borrow::Cow;
+use std::{
+	borrow::Cow,
+	mem,
+};
 
 use axum::extract::Path;
 
@@ -25,20 +28,21 @@ impl ArticleInfo {
 
 pub async fn handle_article(Path(p): Path<String>) -> HtmlResponse<Article> {
 	let p = url_escape::decode(&p);
-	query_c!(
+	query!(
 		"SELECT title, date_published, date_updated, data FROM ARTICLE WHERE title = $1",
 		&p,
 	)
-	.map(|row| Article {
-		html: row.get("html"),
-		info: ArticleInfo {
-			title: row.get("title"),
-			published: row.get("date_published"),
-			updated: row.get("date_updated"),
-		},
-	})
 	.fetch_optional(db())
 	.await
 	.or_500()
-	.and_then(|opt| opt.or_404())
+	.and_then(|opt| {
+		opt.or_404().map(|mut x| Article {
+			html: mem::take(&mut x.data),
+			info: ArticleInfo {
+				published: x.date_published,
+				updated: x.date_updated,
+				title: mem::take(&mut x.title),
+			},
+		})
+	})
 }
