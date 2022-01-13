@@ -12,18 +12,19 @@ struct Home {
 pub async fn handle_home() -> HtmlResponse {
 	let mut tx = db().begin().await.or_500()?;
 	let data = query!("SELECT data FROM home_cache")
-		.map(|row: PgRow| row.get::<String, _>("data"))
+		// .map(|row: PgRow| row.get::<String, _>("data"))
 		.fetch_optional(&mut tx)
 		.await
-		.or_500()?;
+		.or_500()?
+		.map(|x| x.data);
 
 	if let Some(data) = data {
 		tx.commit().await.or_500()?;
 		Ok(Html(data))
 	} else {
-		let articles = query!(
+		let articles = query_c!(
 			"SELECT title, date_published, date_updated FROM article
-	SORT BY COALESCE(date_updated, date_published) DESC
+	ORDER BY COALESCE(date_updated, date_published) DESC
 	LIMIT 5",
 		)
 		.map(|row: PgRow| ArticleInfo {
@@ -41,7 +42,7 @@ pub async fn handle_home() -> HtmlResponse {
 		query!(
 			"INSERT INTO home_cache(data)
 	VALUES($1)
-	ON CONFLICT DO UPDATE
+	ON CONFLICT(_home_id) DO UPDATE
 	SET data = $1",
 			home.as_str(),
 		)

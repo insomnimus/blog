@@ -1,0 +1,22 @@
+{
+  "version": "3.9",
+  "volumes": {
+    "blog-db": null
+  },
+  "services": {
+    "db": {
+      "build": ".",
+      "volumes": [
+        "blog-db:/var/lib/postgresql/data"
+      ],
+      "ports": [
+      "59595:5432"
+      ],
+      "environment": {
+        "POSTGRES_USER": "blog",
+        "POSTGRES_PASSWORD": "blog",
+        "POSTGRES_DB": "blog"
+      }
+    }
+  }
+}

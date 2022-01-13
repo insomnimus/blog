@@ -25,12 +25,12 @@ impl ArticleInfo {
 
 pub async fn handle_article(Path(p): Path<String>) -> HtmlResponse<Article> {
 	let p = url_escape::decode(&p);
-	query!(
+	query_c!(
 		"SELECT title, date_published, date_updated, data FROM ARTICLE WHERE title = $1",
-		p,
+		&p,
 	)
 	.map(|row| Article {
-		html: row.get("data"),
+		html: row.get("html"),
 		info: ArticleInfo {
 			title: row.get("title"),
 			published: row.get("date_published"),
