@@ -1,7 +1,4 @@
-use std::{
-	borrow::Cow,
-	mem,
-};
+use std::borrow::Cow;
 
 use axum::extract::Path;
 

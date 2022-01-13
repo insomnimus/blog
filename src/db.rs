@@ -33,6 +33,7 @@ pub(crate) mod prelude {
 	pub use sqlx::{
 		postgres::PgRow,
 		query,
+		query_as,
 		Execute,
 		Row,
 	};
@@ -41,7 +42,7 @@ pub(crate) mod prelude {
 
 	pub type Result<T> = ::std::result::Result<T, sqlx::Error>;
 
-	macro_rules! query_c {
+	macro_rules! _query_c {
 	($q:expr) => {{
 		sqlx::query($q)
 	}};
@@ -51,5 +52,5 @@ pub(crate) mod prelude {
 	}};
 }
 
-	pub(crate) use query_c;
+	// pub(crate) use query_c;
 }

@@ -22,16 +22,12 @@ pub async fn handle_home() -> HtmlResponse {
 		tx.commit().await.or_500()?;
 		Ok(Html(data))
 	} else {
-		let articles = query_c!(
-			"SELECT title, date_published, date_updated FROM article
+		let articles = query_as!(
+			ArticleInfo,
+			"SELECT title, date_published as published, date_updated  as updated FROM article
 	ORDER BY COALESCE(date_updated, date_published) DESC
-	LIMIT 5",
+	LIMIT 5"
 		)
-		.map(|row: PgRow| ArticleInfo {
-			title: row.get("title"),
-			published: row.get("date_published"),
-			updated: row.get("date_updated"),
-		})
 		.fetch_all(&mut tx)
 		.await
 		.or_500()?;
