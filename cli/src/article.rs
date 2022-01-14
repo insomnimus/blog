@@ -33,7 +33,6 @@ impl ArticleCmd {
 			.setting(AppSettings::SubcommandRequiredElseHelp)
 			.arg(
 				arg!(-X --database <URL> "Database URL.")
-					.global(true)
 					.env("BLOG_DB_URL")
 					.hide_env_values(true),
 			)
@@ -58,13 +57,6 @@ impl ArticleCmd {
 			Self::Publish(x) => x.run(),
 		}
 	}
-}
-
-struct Article {
-	title: String,
-	published: DateTime<Utc>,
-	updated: Option<DateTime<Utc>>,
-	contents: ArticleContents,
 }
 
 struct ArticleContents {

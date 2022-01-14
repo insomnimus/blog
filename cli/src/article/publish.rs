@@ -11,9 +11,9 @@ pub struct Publish {
 impl Publish {
 	pub fn app() -> App<'static> {
 		App::new("publish").about("Publish a new article.").args(&[
-			arg!(-t --title <TITLE> "The articles title."),
+			arg!(-f --file <FILE> "The article."),
+			arg!(title: <TITLE> "The articles title."),
 			// arg!(-f --force "Overwrite any existing article with the same title."),
-			arg!(file: <FILE> "The article."),
 		])
 	}
 }

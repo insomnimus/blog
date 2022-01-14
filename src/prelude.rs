@@ -13,6 +13,7 @@ pub use sqlx::{
 	postgres::PgRow,
 	types::chrono::{
 		DateTime,
+		NaiveDateTime,
 		TimeZone,
 		Utc,
 	},

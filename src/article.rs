@@ -5,8 +5,8 @@ use crate::prelude::*;
 pub struct ArticleInfo {
 	pub title: String,
 	pub url_title: String,
-	pub published: DateTime<Utc>,
-	pub updated: Option<DateTime<Utc>>,
+	pub published: NaiveDateTime,
+	pub updated: Option<NaiveDateTime>,
 }
 
 #[derive(Template)]

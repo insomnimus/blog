@@ -1,5 +1,6 @@
 use sqlx::types::chrono::{
 	DateTime,
+	NaiveDateTime,
 	Utc,
 };
 
@@ -21,5 +22,21 @@ impl DateTimeExt for Option<DateTime<Utc>> {
 
 	fn format_utc(&self) -> Option<String> {
 		self.as_ref().map(|d| d.format_utc())
+	}
+}
+
+impl DateTimeExt for NaiveDateTime {
+	type Output = String;
+
+	fn format_utc(&self) -> String {
+		DateTime::from_utc(*self, Utc).format_utc()
+	}
+}
+
+impl DateTimeExt for Option<NaiveDateTime> {
+	type Output = Option<String>;
+
+	fn format_utc(&self) -> Option<String> {
+		self.map(|d| DateTime::from_utc(d, Utc).format_utc())
 	}
 }
