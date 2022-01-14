@@ -1,9 +1,12 @@
 CREATE TABLE article (
 	article_id SERIAL UNIQUE,
-	title TEXT PRIMARY KEY NOT NULL,
+	url_title TEXT PRIMARY KEY NOT NULL,
+	title TEXT NOT NULL,
 	date_published TIMESTAMPTZ NOT NULL,
 	date_updated TIMESTAMPTZ,
-	data TEXT NOT NULL
+	html TEXT NOT NULL,
+	markdown TEXT NOT NULL,
+	markdown_hash BYTEA NOT NULL
 );
 
 CREATE TABLE home_cache (

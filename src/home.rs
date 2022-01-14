@@ -24,7 +24,7 @@ pub async fn handle_home() -> HtmlResponse {
 	} else {
 		let articles = query_as!(
 			ArticleInfo,
-			"SELECT title, date_published as published, date_updated  as updated FROM article
+			"SELECT title, url_title, date_published as published, date_updated  as updated FROM article
 	ORDER BY COALESCE(date_updated, date_published) DESC
 	LIMIT 5"
 		)
