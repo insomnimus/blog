@@ -1,4 +1,9 @@
-pub use anyhow::Result;
+pub use std::mem;
+
+pub use anyhow::{
+	anyhow,
+	Result,
+};
 pub use clap::{
 	arg,
 	App,

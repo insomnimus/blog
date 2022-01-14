@@ -4,7 +4,6 @@ use super::ArticleContents;
 use crate::prelude::*;
 
 pub struct Publish {
-	db_url: String,
 	title: String,
 	file: PathBuf,
 }
@@ -21,14 +20,9 @@ impl Publish {
 
 impl Publish {
 	pub fn from_matches(m: &ArgMatches) -> Self {
-		let db_url = m.value_of("database").unwrap().to_string();
 		let title = m.value_of("title").unwrap().to_string();
 		let file = m.value_of("file").map(PathBuf::from).unwrap();
-		Self {
-			db_url,
-			title,
-			file,
-		}
+		Self { title, file }
 	}
 
 	pub fn run(&self) -> Result<()> {
@@ -40,7 +34,6 @@ impl Publish {
 		let url_title = encode_url_title(&self.title);
 
 		block!(async move {
-			let db = init_db(&self.db_url).await?;
 			query!(
 				"INSERT INTO article(title, url_title, markdown, html, markdown_hash)
 			VALUES($1, $2, $3, $4, $5)",
@@ -50,7 +43,7 @@ impl Publish {
 				html,
 				hash,
 			)
-			.execute(db)
+			.execute(db())
 			.await?;
 			Ok::<_, anyhow::Error>(())
 		})?;

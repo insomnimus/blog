@@ -1,3 +1,4 @@
+mod fetch;
 mod publish;
 
 use std::{
@@ -6,6 +7,7 @@ use std::{
 	path::Path,
 };
 
+use fetch::Fetch;
 use publish::Publish;
 use pulldown_cmark::{
 	html::push_html,
@@ -20,6 +22,7 @@ use sha2::{
 use crate::prelude::*;
 
 pub enum ArticleCmd {
+	Fetch(Fetch),
 	Publish(Publish),
 }
 
@@ -34,11 +37,16 @@ impl ArticleCmd {
 					.env("BLOG_DB_URL")
 					.hide_env_values(true),
 			)
-			.subcommands([Publish::app()])
+			.subcommands([Fetch::app(), Publish::app()])
 	}
 
 	pub fn from_matches(m: &ArgMatches) -> Self {
+		block!(async move { init_db(m.value_of("database").unwrap()).await }).unwrap_or_else(|e| {
+			eprintln!("error: {}", e);
+			std::process::exit(1);
+		});
 		match m.subcommand().unwrap() {
+			("fetch", m) => Self::Fetch(Fetch::from_matches(m)),
 			("publish", m) => Self::Publish(Publish::from_matches(m)),
 			_ => unreachable!(),
 		}
@@ -46,6 +54,7 @@ impl ArticleCmd {
 
 	pub fn run(self) -> Result<()> {
 		match self {
+			Self::Fetch(x) => x.run(),
 			Self::Publish(x) => x.run(),
 		}
 	}
