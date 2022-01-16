@@ -26,7 +26,7 @@ pub fn app() -> App<'static> {
 		.about("Manage articles.")
 		.setting(AppSettings::SubcommandRequiredElseHelp)
 		.arg(
-			arg!(-X --database <URL> "Database URL.")
+			arg!(-D --database <URL> "Database URL.")
 				.env("BLOG_DB_URL")
 				.hide_env_values(true),
 		)

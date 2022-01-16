@@ -27,6 +27,8 @@ use tokio::sync::OnceCell;
 
 pub use crate::display::*;
 
+pub type StdResult<T, E> = ::std::result::Result<T, E>;
+
 static DB: OnceCell<Pool> = OnceCell::const_new();
 
 pub fn encode_url_title(s: &str) -> String {
@@ -46,9 +48,7 @@ pub async fn init_db(url: &str) -> Result<&'static Pool> {
 	Ok(db())
 }
 
-pub fn validate<T: FromStr>(
-	msg: &'static str,
-) -> impl FnMut(&str) -> std::result::Result<(), String> {
+pub fn validate<T: FromStr>(msg: &'static str) -> impl FnMut(&str) -> StdResult<(), String> {
 	move |s| s.parse::<T>().map(|_| {}).map_err(|_| msg.to_string())
 }
 
