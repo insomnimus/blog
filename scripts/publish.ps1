@@ -8,7 +8,7 @@ foreach($entry in $articles.getEnumerator()) {
 	if($tags) {
 		$tags = @(
 			"--tags"
-			$tags | join-string -separator " "
+			$tags | join-string -separator ","
 		)
 	}
 	blog article publish $entry.name -f "$PSScriptRoot/$file" $tags
