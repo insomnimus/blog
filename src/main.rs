@@ -27,11 +27,14 @@ use tower::{
 use tower_http::services::ServeDir;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
 	if env::var_os("RUST_LOG").is_none() {
 		env::set_var("RUST_LOG", "blog=debug,tower_http=debug")
 	}
 	tracing_subscriber::fmt::init();
+
+	let db_url = env::var("BLOG_DB_URL")?;
+	db::init(&db_url).await?;
 
 	let static_handler =
 		get_service(ServeDir::new("static")).handle_error(|error: std::io::Error| async move {

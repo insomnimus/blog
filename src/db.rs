@@ -4,13 +4,6 @@ use sqlx::{
 };
 use tokio::sync::OnceCell;
 
-/*
-#[cfg(prod)]
-const SCHEMA: &str = include_str!("schema.sql");
-#[cfg(not(prod))]
-const SCHEMA: &str = "";
-*/
-
 static DB: OnceCell<Pool> = OnceCell::const_new();
 
 pub fn db() -> &'static Pool {
@@ -18,11 +11,9 @@ pub fn db() -> &'static Pool {
 }
 
 pub async fn init(url: &str) -> self::prelude::Result<()> {
-	// use sqlx::Executor;
 	let pool = Opts::new()
-		.max_connections(1)
-		.max_lifetime(std::time::Duration::from_secs(4 * 3600))
-		.idle_timeout(std::time::Duration::from_secs(3600))
+		.max_lifetime(std::time::Duration::from_secs(8 * 3600))
+		.idle_timeout(std::time::Duration::from_secs(2 * 3600))
 		.connect(url)
 		.await?;
 	DB.set(pool).expect("db::init called twice");
