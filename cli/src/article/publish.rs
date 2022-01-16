@@ -21,6 +21,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let url_title = encode_url_title(title);
 
+	let mut tx = db().begin().await?;
+
 	query!(
 		"INSERT INTO article(title, url_title, markdown, html, markdown_hash)
 			VALUES($1, $2, $3, $4, $5)",
@@ -30,8 +32,11 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		html,
 		hash,
 	)
-	.execute(db())
+	.execute(&mut tx)
 	.await?;
+
+	clear_home!().execute(&mut tx).await?;
+	tx.commit().await?;
 
 	println!("Success. Published new article titled {}", title);
 	Ok(())

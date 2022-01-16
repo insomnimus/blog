@@ -51,3 +51,11 @@ pub fn validate<T: FromStr>(
 ) -> impl FnMut(&str) -> std::result::Result<(), String> {
 	move |s| s.parse::<T>().map(|_| {}).map_err(|_| msg.to_string())
 }
+
+macro_rules! clear_home {
+	() => {
+		sqlx::query!("TRUNCATE home_cache")
+	};
+}
+
+pub(crate) use clear_home;
