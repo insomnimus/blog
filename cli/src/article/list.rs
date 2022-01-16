@@ -4,7 +4,6 @@ use crate::prelude::*;
 pub fn app() -> App<'static> {
 	App::new("list")
 		.about("List metadata about published articles.")
-		.alias("ls")
 		.args(&[
 			arg!(--oldest "Show oldest articles first."),
 			arg!(n: -n [N] "Show N articles, 0 for all.")
