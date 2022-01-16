@@ -1,3 +1,4 @@
+mod app;
 mod article;
 mod date_ext;
 mod db;
@@ -33,8 +34,8 @@ async fn main() -> anyhow::Result<()> {
 	}
 	tracing_subscriber::fmt::init();
 
-	let db_url = env::var("BLOG_DB_URL")?;
-	db::init(&db_url).await?;
+	let config = app::Config::from_args();
+	db::init(&config.db_url).await?;
 
 	let static_handler =
 		get_service(ServeDir::new("static")).handle_error(|error: std::io::Error| async move {
@@ -56,7 +57,7 @@ async fn main() -> anyhow::Result<()> {
 		.route("/", get(home::handle_home))
 		.route("/articles/:article", get(article::handle_article));
 
-	axum::Server::bind(&"0.0.0.0:3000".parse()?)
+	axum::Server::bind(&config.listen.parse()?)
 		.serve(app.into_make_service())
 		.await?;
 

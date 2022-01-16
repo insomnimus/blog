@@ -243,6 +243,7 @@ dependencies = [
  "askama",
  "askama_axum",
  "axum",
+ "clap",
  "log",
  "pulldown-cmark",
  "sqlx",

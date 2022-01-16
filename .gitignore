@@ -1,4 +1,4 @@
 /target
 _*
 .env
-/scripts
+/util
