@@ -1,61 +1,46 @@
 mod fetch;
+mod list;
 mod publish;
 
-use std::{
-	fs,
-	io,
-	path::Path,
-};
+use std::path::Path;
 
-use fetch::Fetch;
-use publish::Publish;
 use pulldown_cmark::{
 	html::push_html,
 	Options,
 	Parser,
 };
+use serde::Serialize;
 use sha2::{
 	Digest,
 	Sha256,
 };
+use tokio::{
+	fs,
+	io,
+};
 
 use crate::prelude::*;
 
-pub enum ArticleCmd {
-	Fetch(Fetch),
-	Publish(Publish),
+pub fn app() -> App<'static> {
+	App::new("article")
+		.about("Manage articles.")
+		.setting(AppSettings::SubcommandRequiredElseHelp)
+		.arg(
+			arg!(-X --database <URL> "Database URL.")
+				.env("BLOG_DB_URL")
+				.hide_env_values(true),
+		)
+		.subcommands([fetch::app(), list::app(), publish::app()])
 }
 
-impl ArticleCmd {
-	pub fn app() -> App<'static> {
-		App::new("article")
-			.about("Manage articles.")
-			.setting(AppSettings::SubcommandRequiredElseHelp)
-			.arg(
-				arg!(-X --database <URL> "Database URL.")
-					.env("BLOG_DB_URL")
-					.hide_env_values(true),
-			)
-			.subcommands([Fetch::app(), Publish::app()])
-	}
+pub async fn run(m: &ArgMatches) -> Result<()> {
+	init_db(m.value_of("database").unwrap()).await?;
 
-	pub fn from_matches(m: &ArgMatches) -> Self {
-		block!(async move { init_db(m.value_of("database").unwrap()).await }).unwrap_or_else(|e| {
-			eprintln!("error: {}", e);
-			std::process::exit(1);
-		});
-		match m.subcommand().unwrap() {
-			("fetch", m) => Self::Fetch(Fetch::from_matches(m)),
-			("publish", m) => Self::Publish(Publish::from_matches(m)),
-			_ => unreachable!(),
-		}
-	}
-
-	pub fn run(self) -> Result<()> {
-		match self {
-			Self::Fetch(x) => x.run(),
-			Self::Publish(x) => x.run(),
-		}
+	match m.subcommand().unwrap() {
+		("fetch", m) => fetch::run(m).await,
+		("list", m) => list::run(m).await,
+		("publish", m) => publish::run(m).await,
+		_ => unreachable!(),
 	}
 }
 
@@ -66,8 +51,8 @@ struct ArticleContents {
 }
 
 impl ArticleContents {
-	fn read_from_file<P: AsRef<Path>>(p: P) -> io::Result<Self> {
-		let data = fs::read_to_string(p.as_ref())?;
+	async fn read_from_file<P: AsRef<Path>>(p: P) -> io::Result<Self> {
+		let data = fs::read_to_string(p.as_ref()).await?;
 		let mut html = String::new();
 		let mut hasher = Sha256::new();
 		hasher.update(data.trim().as_bytes());
@@ -80,5 +65,34 @@ impl ArticleContents {
 			hash: hasher.finalize().to_vec(),
 			html,
 		})
+	}
+}
+
+#[derive(Serialize)]
+pub struct ArticleInfo {
+	id: i32,
+	title: String,
+	url_title: String,
+	published: String,
+	updated: Option<String>,
+	tags: Vec<String>,
+}
+
+impl Formattable for ArticleInfo {
+	fn human(&self) -> String {
+		format!("{} ({})", &self.title, &self.published,)
+	}
+}
+
+impl Tsv for ArticleInfo {
+	fn tsv(&self) -> String {
+		format!(
+			"{title}\t{published}\t{updated}\t{tags}\t{url_title}",
+			title = self.title.tsv(),
+			published = &self.published,
+			updated = self.updated.as_deref().tsv(),
+			tags = self.tags.tsv(),
+			url_title = self.url_title.tsv(),
+		)
 	}
 }
