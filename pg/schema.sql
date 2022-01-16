@@ -14,3 +14,13 @@ CREATE TABLE home_cache (
 	data TEXT NOT NULL,
 	CONSTRAINT only_one_cache CHECK(_home_id)
 );
+
+CREATE TABLE tag(
+	tag_name TEXT PRIMARY KEY
+);
+
+CREATE TABLE article_tag(
+	entry_id SERIAL PRIMARY KEY,
+	article_id INT NOT NULL REFERENCES article(article_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	tag_name TEXT NOT NULL REFERENCES tag(tag_name) ON DELETE CASCADE ON UPDATE CASCADE
+);

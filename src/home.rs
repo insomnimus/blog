@@ -24,9 +24,14 @@ pub async fn handle_home() -> HtmlResponse {
 	} else {
 		let articles = query_as!(
 			ArticleInfo,
-			"SELECT title, url_title, date_published as published, date_updated  as updated FROM article
+			r#"SELECT title,
+			url_title,
+			date_published published,
+			date_updated updated,
+			'{}' "tags!: Vec<String>"
+			FROM article
 	ORDER BY COALESCE(date_updated, date_published) DESC
-	LIMIT 5"
+	LIMIT 5"#
 		)
 		.fetch_all(&mut tx)
 		.await

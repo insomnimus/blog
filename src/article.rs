@@ -5,6 +5,7 @@ use crate::prelude::*;
 pub struct ArticleInfo {
 	pub title: String,
 	pub url_title: String,
+	pub tags: Vec<String>,
 	pub published: NaiveDateTime,
 	pub updated: Option<NaiveDateTime>,
 }
@@ -18,7 +19,15 @@ pub struct Article {
 
 pub async fn handle_article(Path(p): Path<String>) -> HtmlResponse<Article> {
 	query!(
-		"SELECT title, url_title, date_published, date_updated, html FROM ARTICLE WHERE url_title = $1",
+		"
+		SELECT a.title, a.url_title, a.date_published, a.date_updated, a.html,
+		ARRAY_AGG(t.tag_name) tags_array
+		FROM article a
+		LEFT JOIN article_tag t
+		ON a.article_id = t.article_id
+		WHERE url_title = $1
+		GROUP BY a.title, a.url_title
+		LIMIT 1",
 		&p,
 	)
 	.fetch_optional(db())
@@ -32,6 +41,7 @@ pub async fn handle_article(Path(p): Path<String>) -> HtmlResponse<Article> {
 				updated: x.date_updated,
 				title: mem::take(&mut x.title),
 				url_title: mem::take(&mut x.url_title),
+				tags: x.tags_array.take().unwrap_or_default(),
 			},
 		})
 	})
