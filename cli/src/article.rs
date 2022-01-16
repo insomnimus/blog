@@ -80,14 +80,15 @@ pub struct ArticleInfo {
 
 impl Formattable for ArticleInfo {
 	fn human(&self) -> String {
-		format!("{} ({})", &self.title, &self.published,)
+		format!("#{}> {} ({})", self.id, &self.title, &self.published,)
 	}
 }
 
 impl Tsv for ArticleInfo {
 	fn tsv(&self) -> String {
 		format!(
-			"{title}\t{published}\t{updated}\t{tags}\t{url_title}",
+			"{id}\t{title}\t{published}\t{updated}\t{tags}\t{url_title}",
+			id = self.id,
 			title = self.title.tsv(),
 			published = &self.published,
 			updated = self.updated.as_deref().tsv(),
