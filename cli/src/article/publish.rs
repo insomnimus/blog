@@ -18,6 +18,7 @@ pub fn app() -> App<'static> {
 		arg!(--"no-tags" "Permit omitting any tag.").conflicts_with("tags"),
 		Arg::new("tags")
 			.help("Comma separated list of tags.")
+			.long("tags")
 			.multiple_values(true)
 			.required_unless_present("no-tags")
 			.use_delimiter(true)
