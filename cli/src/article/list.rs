@@ -33,7 +33,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.values_of("tags")
 		.map(|i| i.map(String::from).collect())
 		.unwrap_or_default();
-	let filter = m.value_of("filter").unwrap_or_default();
+	let filter = m
+		.value_of("filter")
+		.map(str::to_lowercase)
+		.unwrap_or_default();
 	let n = m.value_of_t_or_exit::<i32>("n");
 	let n = if n == 0 { 30000_i64 } else { n as i64 };
 
@@ -44,7 +47,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	FROM article a
 	LEFT JOIN article_tag t
 	ON a.article_id = t.article_id
-	WHERE $1 = '' OR a.title SIMILAR TO $1
+	WHERE $1 = '' OR LOWER(a.title) SIMILAR TO $1
 	GROUP BY a.title, a.article_id, a.url_title
 	HAVING ARRAY_AGG(t.tag_name) @> $2
 	ORDER BY
