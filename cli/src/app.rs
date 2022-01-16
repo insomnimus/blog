@@ -9,8 +9,8 @@ pub fn app() -> App<'static> {
 	App::new("blog")
 		.about("Blog management cli.")
 		.version(crate_version!())
-		.setting(AppSettings::InferSubcommands)
 		.setting(AppSettings::SubcommandRequiredElseHelp)
+		.global_setting(AppSettings::InferSubcommands)
 		.global_setting(AppSettings::PropagateVersion)
 		.subcommands([article::app()])
 }
