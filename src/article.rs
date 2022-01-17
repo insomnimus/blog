@@ -35,12 +35,12 @@ pub async fn handle_article(Path(p): Path<String>) -> HtmlResponse<Article> {
 	.or_500()
 	.and_then(|opt| {
 		opt.or_404().map(|mut x| Article {
-			html: mem::take(&mut x.html),
+			html: x.html.take(),
 			info: ArticleInfo {
 				published: x.date_published,
 				updated: x.date_updated,
-				title: mem::take(&mut x.title),
-				url_title: mem::take(&mut x.url_title),
+				title: x.title.take(),
+				url_title: x.url_title.take(),
 				tags: x.tags_array.take().unwrap_or_default(),
 			},
 		})

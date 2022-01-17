@@ -1,5 +1,3 @@
-pub use std::mem;
-
 // pub use futures::prelude::*;
 pub use askama::Template;
 pub use axum::{
@@ -25,6 +23,7 @@ pub use sqlx::{
 pub use crate::{
 	date_ext::*,
 	db::prelude::*,
+	default_ext::DefaultExt,
 	response_ext::*,
 };
 
