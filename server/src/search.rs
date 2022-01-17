@@ -6,6 +6,9 @@ struct SearchResult {
 	updated: Option<String>,
 }
 
-pub async fn handle_search(Path(query): Path<String>) -> HttpResponse<Json> {
-	
+#[derive(Serialize)]
+struct SearchResults(Vec<SearchResult>);
+
+pub async fn handle_search(Path(query): Path<String>) -> HttpResponse<Json<SearchResults>> {
+	todo!();
 }
