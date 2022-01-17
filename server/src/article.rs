@@ -17,7 +17,7 @@ pub struct Article {
 	html: String,
 }
 
-pub async fn handle_article(Path(p): Path<String>) -> HtmlResponse<Article> {
+pub async fn handle_article(Path(p): Path<String>) -> HttpResponse<Article> {
 	query!(
 		"
 		SELECT a.title, a.url_title, a.date_published, a.date_updated, a.html,

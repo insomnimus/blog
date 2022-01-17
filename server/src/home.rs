@@ -9,10 +9,9 @@ struct Home {
 	articles: Vec<ArticleInfo>,
 }
 
-pub async fn handle_home() -> HtmlResponse {
+pub async fn handle_home() -> HttpResponse {
 	let mut tx = db().begin().await.or_500()?;
 	let data = query!("SELECT data FROM home_cache")
-		// .map(|row: PgRow| row.get::<String, _>("data"))
 		.fetch_optional(&mut tx)
 		.await
 		.or_500()?

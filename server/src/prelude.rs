@@ -1,4 +1,3 @@
-// pub use futures::prelude::*;
 pub use askama::Template;
 pub use axum::{
 	http::StatusCode,
@@ -10,6 +9,8 @@ pub use log::{
 };
 pub use sqlx::{
 	postgres::PgRow,
+	query,
+	query_as,
 	types::chrono::{
 		DateTime,
 		NaiveDateTime,
@@ -21,10 +22,8 @@ pub use sqlx::{
 };
 
 pub use crate::{
-	date_ext::*,
-	db::prelude::*,
-	default_ext::DefaultExt,
-	response_ext::*,
+	db::db,
+	ext::*,
 };
 
-pub type HtmlResponse<T = Html<String>> = ::std::result::Result<T, StatusCode>;
+pub type HttpResponse<T = Html<String>> = ::std::result::Result<T, StatusCode>;

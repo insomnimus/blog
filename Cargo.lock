@@ -245,12 +245,26 @@ dependencies = [
  "axum",
  "clap",
  "log",
- "pulldown-cmark",
  "sqlx",
  "tokio",
  "tower",
  "tower-http",
  "tracing-subscriber",
+ "url-escape",
+]
+
+[[package]]
+name = "blog-cli"
+version = "0.3.1"
+dependencies = [
+ "anyhow",
+ "clap",
+ "pulldown-cmark",
+ "serde",
+ "serde_json",
+ "sha2 0.10.1",
+ "sqlx",
+ "tokio",
  "url-escape",
 ]
 
@@ -333,21 +347,6 @@ dependencies = [
  "terminal_size",
  "textwrap",
  "unicase",
-]
-
-[[package]]
-name = "cli"
-version = "0.3.1"
-dependencies = [
- "anyhow",
- "clap",
- "pulldown-cmark",
- "serde",
- "serde_json",
- "sha2 0.10.1",
- "sqlx",
- "tokio",
- "url-escape",
 ]
 
 [[package]]

@@ -1,11 +1,9 @@
 mod app;
 mod article;
-mod date_ext;
 mod db;
-mod default_ext;
+mod ext;
 mod home;
 mod prelude;
-mod response_ext;
 
 use std::{
 	env,
