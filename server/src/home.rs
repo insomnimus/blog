@@ -21,20 +21,28 @@ pub async fn handle_home() -> HttpResponse {
 		tx.commit().await.or_500()?;
 		Ok(Html(data))
 	} else {
-		let articles = query_as!(
-			ArticleInfo,
+		// NOTE: Do not use query_as here, it panics for some reason.
+		let articles = query!(
 			r#"SELECT title,
 			url_title,
-			date_published published,
-			date_updated updated,
-			'{}' "tags!: Vec<String>"
+			date_published AS published,
+			date_updated AS updated
 			FROM article
 	ORDER BY COALESCE(date_updated, date_published) DESC
 	LIMIT 5"#
 		)
 		.fetch_all(&mut tx)
 		.await
-		.or_500()?;
+		.or_500()?
+		.into_iter()
+		.map(|mut x| ArticleInfo {
+			title: x.title.take(),
+			url_title: x.url_title.take(),
+			published: x.published,
+			updated: x.updated,
+			tags: Vec::new(),
+		})
+		.collect::<Vec<_>>();
 
 		let home = Home { articles };
 

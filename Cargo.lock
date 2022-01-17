@@ -162,9 +162,9 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "axum"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8757fdd8f5b3ef2838f0e83fff84c4b89c12c93ff95b8448686d10a82ac86a53"
+checksum = "310a147401c66e79fc78636e4db63ac68cd6acb9ece056de806ea173a15bce32"
 dependencies = [
  "async-trait",
  "axum-core",
@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "blog"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "askama",
@@ -245,6 +245,7 @@ dependencies = [
  "axum",
  "clap",
  "log",
+ "serde",
  "sqlx",
  "tokio",
  "tower",
@@ -255,7 +256,7 @@ dependencies = [
 
 [[package]]
 name = "blog-cli"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -333,9 +334,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.0.7"
+version = "3.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12e8611f9ae4e068fa3e56931fded356ff745e70987ff76924a6e0ab1c8ef2e3"
+checksum = "31b34190c12bd1d613deba77e1cc13e68eaf4a0d51e389dbd485b7bfe15a47c0"
 dependencies = [
  "atty",
  "bitflags",
@@ -1688,9 +1689,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.3.5"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d81bfa81424cc98cb034b837c985b7a290f592e5b4322f353f94a0ab0f9f594"
+checksum = "77be66445c4eeebb934a7340f227bfe7b338173d3f8c00a60a5a58005c9faecf"
 dependencies = [
  "ansi_term",
  "sharded-slab",

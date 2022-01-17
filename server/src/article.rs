@@ -19,8 +19,7 @@ pub struct Article {
 
 pub async fn handle_article(Path(p): Path<String>) -> HttpResponse<Article> {
 	query!(
-		"
-		SELECT a.title, a.url_title, a.date_published, a.date_updated, a.html,
+		"SELECT a.title, a.url_title, a.date_published, a.date_updated, a.html,
 		ARRAY_AGG(t.tag_name) tags_array
 		FROM article a
 		LEFT JOIN article_tag t

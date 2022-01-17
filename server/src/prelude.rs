@@ -24,6 +24,7 @@ pub use sqlx::{
 pub use crate::{
 	db::db,
 	ext::*,
+	response::*,
 };
 
-pub type HttpResponse<T = Html<String>> = ::std::result::Result<T, StatusCode>;
+pub type HttpResponse<T = Html<String>> = ::std::result::Result<T, (StatusCode, &'static str)>;
