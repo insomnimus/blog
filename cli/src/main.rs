@@ -2,6 +2,7 @@ mod app;
 mod article;
 mod display;
 mod prelude;
+mod utility;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {

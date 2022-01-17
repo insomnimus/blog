@@ -1,3 +1,4 @@
+mod delete;
 mod fetch;
 mod list;
 mod publish;
@@ -30,13 +31,14 @@ pub fn app() -> App<'static> {
 				.env("BLOG_DB_URL")
 				.hide_env_values(true),
 		)
-		.subcommands([fetch::app(), list::app(), publish::app()])
+		.subcommands([delete::app(), fetch::app(), list::app(), publish::app()])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	init_db(m.value_of("database").unwrap()).await?;
 
 	match m.subcommand().unwrap() {
+		("delete", m) => delete::run(m).await,
 		("fetch", m) => fetch::run(m).await,
 		("list", m) => list::run(m).await,
 		("publish", m) => publish::run(m).await,

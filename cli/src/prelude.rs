@@ -9,6 +9,7 @@ pub use clap::{
 	App,
 	AppSettings,
 	Arg,
+	ArgGroup,
 	ArgMatches,
 };
 use sqlx::{
@@ -17,6 +18,7 @@ use sqlx::{
 };
 pub use sqlx::{
 	query,
+	query_as,
 	types::chrono::{
 		DateTime,
 		Utc,
@@ -24,7 +26,10 @@ pub use sqlx::{
 };
 use tokio::sync::OnceCell;
 
-pub use crate::display::*;
+pub(crate) use crate::{
+	display::*,
+	utility::*,
+};
 
 pub type StdResult<T, E> = ::std::result::Result<T, E>;
 
@@ -50,14 +55,6 @@ pub async fn init_db(url: &str) -> Result<&'static Pool> {
 pub fn validate<T: FromStr>(msg: &'static str) -> impl FnMut(&str) -> StdResult<(), String> {
 	move |s| s.parse::<T>().map(|_| {}).map_err(|_| msg.to_string())
 }
-
-macro_rules! clear_home {
-	() => {
-		sqlx::query!("TRUNCATE home_cache")
-	};
-}
-
-pub(crate) use clear_home;
 
 pub trait DefaultExt {
 	fn take(&mut self) -> Self;
