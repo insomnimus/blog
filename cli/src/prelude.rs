@@ -1,4 +1,3 @@
-pub use std::mem;
 use std::str::FromStr;
 
 pub use anyhow::{
@@ -59,3 +58,13 @@ macro_rules! clear_home {
 }
 
 pub(crate) use clear_home;
+
+pub trait DefaultExt {
+	fn take(&mut self) -> Self;
+}
+
+impl<T: Default> DefaultExt for T {
+	fn take(&mut self) -> Self {
+		std::mem::take(self)
+	}
+}

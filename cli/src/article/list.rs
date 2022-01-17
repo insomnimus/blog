@@ -64,8 +64,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	for mut x in vals {
 		let info = ArticleInfo {
 			id: x.article_id,
-			title: mem::take(&mut x.title),
-			url_title: mem::take(&mut x.url_title),
+			title: x.title.take(),
+			url_title: x.url_title.take(),
 			tags: x.tags_array.take().unwrap_or_default(),
 			published: format_date(x.date_published),
 			updated: x.date_updated.map(format_date),

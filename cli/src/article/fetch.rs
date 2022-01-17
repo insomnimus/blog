@@ -22,7 +22,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		)
 		.fetch_optional(db())
 		.await?
-		.map(|mut x| (mem::take(&mut x.title), mem::take(&mut x.markdown))),
+		.map(|mut x| (x.title.take(), x.markdown.take())),
 		Err(_) => query!(
 			"SELECT markdown, title
 					FROM article
@@ -35,7 +35,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		)
 		.fetch_optional(db())
 		.await?
-		.map(|mut x| (mem::take(&mut x.title), mem::take(&mut x.markdown))),
+		.map(|mut x| (x.title.take(), x.markdown.take())),
 	};
 
 	match res {
