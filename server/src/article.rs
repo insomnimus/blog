@@ -2,11 +2,10 @@ use axum::extract::Path;
 
 use crate::prelude::*;
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct ArticleInfo {
 	pub title: String,
 	pub url_title: String,
-	pub tags: Vec<String>,
 	pub published: String,
 	pub updated: Option<String>,
 }
@@ -16,6 +15,7 @@ pub struct ArticleInfo {
 pub struct Article {
 	info: ArticleInfo,
 	html: String,
+	tags: Vec<String>,
 }
 
 pub async fn handle_article(Path(p): Path<String>) -> HttpResponse<Article> {
@@ -36,12 +36,12 @@ pub async fn handle_article(Path(p): Path<String>) -> HttpResponse<Article> {
 	.and_then(|opt| {
 		opt.or_404().map(|mut x| Article {
 			html: x.html.take(),
+			tags: x.tags_array.take().unwrap_or_default(),
 			info: ArticleInfo {
 				published: x.date_published.format_utc(),
 				updated: x.date_updated.format_utc(),
 				title: x.title.take(),
 				url_title: x.url_title.take(),
-				tags: x.tags_array.take().unwrap_or_default(),
 			},
 		})
 	})

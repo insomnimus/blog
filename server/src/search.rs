@@ -1,14 +1,37 @@
-#[derive(Serialize)]
-struct SearchResult {
-	title: String,
-	url_title: String,
-	published: String,
-	updated: Option<String>,
+use crate::{
+	article::ArticleInfo,
+	prelude::*,
+};
+
+#[derive(Deserialize)]
+pub struct SearchParams {
+	query: String,
 }
 
-#[derive(Serialize)]
-struct SearchResults(Vec<SearchResult>);
+pub async fn handle_search(
+	Query(params): Query<SearchParams>,
+) -> HttpResponse<Json<Vec<ArticleInfo>>> {
+	let q = format!("%{}%", params.query.to_lowercase());
 
-pub async fn handle_search(Path(query): Path<String>) -> HttpResponse<Json<SearchResults>> {
-	todo!();
+	query!(
+		"SELECT title, url_title, date_published AS published, date_updated AS updated FROM article
+	WHERE LOWER(title) LIKE $1
+	ORDER BY COALESCE(date_updated, date_published) DESC
+	LIMIT 25",
+		&q,
+	)
+	.fetch_all(db())
+	.await
+	.or_500()
+	.map(|v| {
+		v.into_iter()
+			.map(|mut x| ArticleInfo {
+				title: x.title.take(),
+				url_title: x.url_title.take(),
+				published: x.published.format_utc(),
+				updated: x.updated.map(|d| d.format_utc()),
+			})
+			.collect()
+	})
+	.map(Json)
 }

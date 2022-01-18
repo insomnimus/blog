@@ -5,6 +5,7 @@ mod ext;
 mod home;
 mod prelude;
 mod response;
+mod search;
 
 use std::{
 	env,
@@ -44,18 +45,19 @@ async fn main() -> anyhow::Result<()> {
 		});
 
 	let app = Router::new()
-		.layer(
-			ServiceBuilder::new()
-            // this middleware goes above `TimeoutLayer` because it will receive
-            // errors returned by `TimeoutLayer`
-            .layer(HandleErrorLayer::new(|_: BoxError| async {
-                StatusCode::REQUEST_TIMEOUT
-            }))
-            .layer(TimeoutLayer::new(Duration::from_secs(10))),
-		)
 		.nest("/static", static_handler)
 		.route("/", get(home::handle_home))
-		.route("/articles/:article", get(article::handle_article));
+		.route("/articles/:article", get(article::handle_article))
+		.route("/search", get(search::handle_search))
+		.layer(
+			ServiceBuilder::new()
+			// this middleware goes above `TimeoutLayer` because it will receive
+						// errors returned by `TimeoutLayer
+						.layer(HandleErrorLayer::new(|_: BoxError| async {
+							StatusCode::REQUEST_TIMEOUT
+							}))
+							.layer(TimeoutLayer::new(Duration::from_secs(10))),
+		);
 
 	axum::Server::bind(&config.listen.parse()?)
 		.serve(app.into_make_service())

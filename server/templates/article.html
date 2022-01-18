@@ -13,10 +13,10 @@
 {% when None %}
 {% endmatch %}
 </p></div>
-{% if !self.info.tags.is_empty() %}
+{% if !self.tags.is_empty() %}
 <div id="tags" class="md-tags">
 	<ul>
-	{% 	for tag in self.info.tags %}
+	{% 	for tag in self.tags %}
 		<li class="md-tag"> #{{ tag }} </li>
 	{% endfor %}
 	</ul>

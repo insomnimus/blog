@@ -40,7 +40,6 @@ pub async fn handle_home() -> HttpResponse {
 			url_title: x.url_title.take(),
 			published: x.published.format_utc(),
 			updated: x.updated.map(|d| d.format_utc()),
-			tags: Vec::new(),
 		})
 		.collect::<Vec<_>>();
 
