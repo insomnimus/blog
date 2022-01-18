@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %} {{ self.title() }} {% endblock %}
+
+{% block content %}
+<h1>{{ self.title() }}</h1>
+<div>
+{% for result in self.results %}
+	<h4 class="search-result">
+	<a href="/articles/{{ result.url_title }}"> {{ result.title }} </a>
+	</h4>
+	<p class="description"> {{result.description }} </p>
+	<ul class="tags">
+	{% for tag in result.tags %}
+	<li> #{{ tag }} </li>
+	{% endfor %}
+{% endfor %}
+</div>
+
+{% endblock %}

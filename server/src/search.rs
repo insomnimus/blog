@@ -3,21 +3,66 @@ use crate::{
 	prelude::*,
 };
 
+#[derive(Template)]
+#[template(path = "search.html")]]
+struct Search {
+	results: Vec<ArticleInfo>,
+	query: SearchParams,
+}
+
+impl Search {
+	fn title(&self) -> String {
+		match &self.query.query {
+			Some(q) if self.query.tags.is_empty() => format!("Search results for '{}'", q),
+			Some(q) => {
+				let mut buf = format!("Search results for '{}' tagged", q);
+				for tag in &self.query.tags {
+					buf.push(' ');
+					buf.push_str(tag);
+				}
+				buf
+			}
+			None if self.query.tags.is_empty() => "Search for articles".into(),
+			None => {
+				let mut buf = String::from("Articles tagged");
+				for tag in self.query.tags {
+					buf.push(' ');
+					buf.push_str(tag);
+				}
+				buf
+			}
+		}
+	}
+}
+
 #[derive(Deserialize)]
 pub struct SearchParams {
-	query: String,
+	#[serde(default)]
+	query: Option<String>,
+	#[serde(default)]
+	tags: Vec<String>,
 }
 
 pub async fn handle_search(
 	Query(params): Query<SearchParams>,
-) -> HttpResponse<Json<Vec<ArticleInfo>>> {
-	let q = format!("%{}%", params.query.to_lowercase());
+) -> HttpResponse<Search>{
+	let SearchParams{query, tags} = params;
+	let q = query.as_ref().map(|s| format!("%{}%", s.to_lowercase())).unwrap_or_default();
 
-	query!(
-		"SELECT title, url_title, date_published AS published, date_updated AS updated FROM article
-	WHERE LOWER(title) LIKE $1
-	ORDER BY COALESCE(date_updated, date_published) DESC
-	LIMIT 25",
+	let vals = query!(
+		"SELECT
+		a.title,
+		a.url_title,
+		a.date_published AS published,
+		a.date_updated AS updated,
+		ARRAY_AGG(t.tag_name) AS tags
+		FROM article
+		LEFT JOIN article_tag t
+		ON a.article_id = t.article_id
+	WHERE $1 = '' OR LOWER(title) LIKE $1
+	GROUP BY a.title, a.url_title
+	HAVING ARRAY_AGG(t.tag_name) @> $2
+	ORDER BY COALESCE(date_updated, date_published) DESC",
 		&q,
 	)
 	.fetch_all(db())

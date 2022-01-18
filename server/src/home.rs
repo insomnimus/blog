@@ -25,6 +25,7 @@ pub async fn handle_home() -> HttpResponse {
 		let articles = query!(
 			r#"SELECT title,
 			url_title,
+			about,
 			date_published AS published,
 			date_updated AS updated
 			FROM article
@@ -38,8 +39,10 @@ pub async fn handle_home() -> HttpResponse {
 		.map(|mut x| ArticleInfo {
 			title: x.title.take(),
 			url_title: x.url_title.take(),
+			about: x.about.take(),
 			published: x.published.format_utc(),
 			updated: x.updated.map(|d| d.format_utc()),
+			tags: Vec::new(),
 		})
 		.collect::<Vec<_>>();
 

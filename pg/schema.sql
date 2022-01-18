@@ -2,6 +2,7 @@ CREATE TABLE article (
 	article_id SERIAL UNIQUE,
 	url_title TEXT PRIMARY KEY NOT NULL,
 	title TEXT NOT NULL,
+	about TEXT NOT NULL,
 	date_published TIMESTAMP NOT NULL DEFAULT(NOW() AT TIME ZONE 'UTC'),
 	date_updated TIMESTAMP,
 	html TEXT NOT NULL,

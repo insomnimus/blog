@@ -74,6 +74,7 @@ impl ArticleContents {
 pub struct ArticleInfo {
 	id: i32,
 	title: String,
+	about: String,
 	url_title: String,
 	published: String,
 	updated: Option<String>,
@@ -82,14 +83,21 @@ pub struct ArticleInfo {
 
 impl Formattable for ArticleInfo {
 	fn human(&self) -> String {
-		format!("#{}> {} ({})", self.id, &self.title, &self.published,)
+		format!(
+			"#{id}> {title} - {about} ({date})",
+			id = self.id,
+			title = &self.title,
+			date = &self.published,
+			about = &self.about
+		)
 	}
 }
 
 impl Tsv for ArticleInfo {
 	fn tsv(&self) -> String {
 		format!(
-			"{id}\t{title}\t{published}\t{updated}\t{tags}\t{url_title}",
+			"{id}\t{title}\t{published}\t{updated}\t{about}\t{tags}\t{url_title}",
+			about = self.about.tsv(),
 			id = self.id,
 			title = self.title.tsv(),
 			published = &self.published,

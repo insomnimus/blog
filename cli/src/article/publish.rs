@@ -11,10 +11,26 @@ fn validate_tag(s: &str) -> StdResult<(), String> {
 	}
 }
 
+fn validate_about(s: &str) -> StdResult<(), String> {
+	if s.contains(|c: char| c == '\t' || c == '\n' || c == '\r') {
+		return Err("the description cannot contain tabs or newlines".into());
+	}
+	let len = s.chars().count();
+
+	match len {
+		0..=14 => Err("the description is too short; at least 15 characters are required".into()),
+		15..=120 => Ok(()),
+		_ => Err("the description is too long; the value cannot exceed 120 characters".into()),
+	}
+}
+
 pub fn app() -> App<'static> {
 	App::new("publish").about("Publish a new article.").args(&[
 		arg!(-f --file <FILE> "The article."),
 		arg!(title: <TITLE> "The articles title."),
+		arg!(-a --about <DESCRIPTION> "The article description.")
+			.validator(validate_about)
+			.visible_alias("description"),
 		arg!(--"no-tags" "Permit omitting any tag.").conflicts_with("tags"),
 		Arg::new("tags")
 			.help("Comma separated list of tags.")
@@ -30,6 +46,7 @@ pub fn app() -> App<'static> {
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let file = m.value_of("file").unwrap();
 	let title = m.value_of("title").unwrap();
+	let about = m.value_of("about").unwrap();
 
 	let ArticleContents {
 		markdown,
@@ -42,11 +59,12 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let mut tx = db().begin().await?;
 
 	let id = query!(
-		"INSERT INTO article(title, url_title, markdown, html, markdown_hash)
-			VALUES($1, $2, $3, $4, $5)
+		"INSERT INTO article(title, url_title, about, markdown, html, markdown_hash)
+			VALUES($1, $2, $3, $4, $5, $6)
 			RETURNING article_id",
 		title,
 		url_title,
+		about,
 		markdown,
 		html,
 		hash,

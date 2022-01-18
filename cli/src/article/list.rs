@@ -41,7 +41,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let vals = query!(
 		"SELECT
-	a.article_id, a.title, a.url_title, a.date_updated, a.date_published,
+	a.article_id, a.title, a.url_title, a.about , a.date_updated, a.date_published,
 	ARRAY_AGG(t.tag_name) tags_array
 	FROM article a
 	LEFT JOIN article_tag t
@@ -65,6 +65,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		let info = ArticleInfo {
 			id: x.article_id,
 			title: x.title.take(),
+			about: x.about.take(),
 			url_title: x.url_title.take(),
 			tags: x.tags_array.take().unwrap_or_default(),
 			published: format_date(x.date_published),

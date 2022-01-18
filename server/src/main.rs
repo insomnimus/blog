@@ -5,7 +5,7 @@ mod ext;
 mod home;
 mod prelude;
 mod response;
-mod search;
+// mod search;
 
 use std::{
 	env,
@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
 		.nest("/static", static_handler)
 		.route("/", get(home::handle_home))
 		.route("/articles/:article", get(article::handle_article))
-		.route("/search", get(search::handle_search))
+		// .route("/search/article", get(search::handle_search))
 		.layer(
 			ServiceBuilder::new()
 			// this middleware goes above `TimeoutLayer` because it will receive
