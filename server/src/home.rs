@@ -38,8 +38,8 @@ pub async fn handle_home() -> HttpResponse {
 		.map(|mut x| ArticleInfo {
 			title: x.title.take(),
 			url_title: x.url_title.take(),
-			published: x.published,
-			updated: x.updated,
+			published: x.published.format_utc(),
+			updated: x.updated.map(|d| d.format_utc()),
 			tags: Vec::new(),
 		})
 		.collect::<Vec<_>>();
