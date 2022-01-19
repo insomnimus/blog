@@ -4,8 +4,8 @@
 {% block content %}
 <h1>{{ self.info.title }}</h1>
 
-<div id="info-header">
-<div id="timestamp" class="md-timestamp"><p>
+<div id="article-info">
+<div><p>
 <span id="published"> Published <time datetime="{{ self.info.published }}"> {{ self.info.published }} </time> </span>
 {% match self.info.updated %}
 {% when Some with (updated) %}
@@ -14,12 +14,12 @@
 {% endmatch %}
 </p></div>
 {% if !self.info.tags.is_empty() %}
-<div id="tags" class="md-tags">
-	<ul>
+	<ul class="tags">
 	{% 	for tag in self.info.tags %}
 		<li class="md-tag"> #{{ tag }} </li>
 	{% endfor %}
 	</ul>
+	<p id="article-about"> {{ self.info.about }} </p>
 </div>
 {% endif %}
 
