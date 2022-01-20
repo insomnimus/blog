@@ -1,0 +1,23 @@
+<h4 class="search-result">
+	<a href="/articles/{{ article.url_title }}"> {{ article.title }} </a>
+</h4>
+<div class="article-info">
+<div class="timestamp">
+<span> Published <time datetime="{{ article.published }}"> {{ article.published }} </time> </span>
+{% match article.updated %}
+	{% when Some with (updated) %}
+	<span> Updated <time datetime="{{ updated }}"> {{ updated }} </time> </span>
+	{% when None %}
+{% endmatch %}
+</div>
+<p class="about"> {{ article.about }} </p>
+<div>
+{% if !article.tags.is_empty() %}
+<ul class="tags">
+{% for tag in article.tags %}
+	<li> #{{ tag }} </li>
+{% endfor %}
+</ul>
+{% endif %}
+</div>
+</div>

@@ -1,19 +1,29 @@
 {% extends "base.html" %}
-{% block title %} {{ self.title() }} {% endblock %}
+{% block title %} {{ self.title }} {% endblock %}
+{% block head %}<script src="/static/search_page.js"></script> {% endblock %}
 
 {% block content %}
-<h1>{{ self.title() }}</h1>
-<div>
-{% for result in self.results %}
-	<h4 class="search-result">
-	<a href="/articles/{{ result.url_title }}"> {{ result.title }} </a>
-	</h4>
-	<p class="description"> {{result.description }} </p>
-	<ul class="tags">
-	{% for tag in result.tags %}
-	<li> #{{ tag }} </li>
-	{% endfor %}
-{% endfor %}
+<div id="search-area">
+<input
+	type="text"
+	placeholder="search for articles or #tags"
+	id="search-query"
+	onkeypress="submit_search(event)">
+<input type="radio" id="searchtype-article" name="searchtype" value="article" checked>
+<label for="searchtype-article">Articles</label>
 </div>
 
+{% if !self.is_base %} <H1> {{ self.title }} </h1> {% endif %}
+<div id="search-results">
+{% if !self.results.is_empty() %}
+{% for result in self.results %}
+	{% match result %}
+	{% when SearchResult::Article with (article) %} {% include "search/article_result.html" %}
+	{% endmatch %}
+{% endfor %}
+
+{% else if !self.is_base %}
+<p> No results found! </p>
+{% endif %}
+</div>
 {% endblock %}

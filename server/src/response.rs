@@ -3,15 +3,22 @@ use axum::{
 	response::Html,
 };
 
+pub const E400: &str = "Bad request.";
 pub const E404: &str = "Page not found.";
 pub const E500: &str = "Something went wrong.";
 // pub const E503: &str = "Service unavailable.";
+
+pub const E_BAD_REQUEST: (StatusCode, &str) = (StatusCode::BAD_REQUEST, E400);
 
 type ErrorResponse = (StatusCode, &'static str);
 
 pub trait ResponseExt<T>: Sized {
 	fn or_code(self, code: StatusCode, body: &'static str)
 		-> Result<T, (StatusCode, &'static str)>;
+
+	fn or_400(self) -> Result<T, ErrorResponse> {
+		self.or_code(StatusCode::BAD_REQUEST, E400)
+	}
 
 	fn or_404(self) -> Result<T, ErrorResponse> {
 		self.or_code(StatusCode::NOT_FOUND, E404)

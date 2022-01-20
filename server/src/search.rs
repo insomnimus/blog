@@ -4,79 +4,126 @@ use crate::{
 };
 
 #[derive(Template)]
-#[template(path = "search.html")]]
-struct Search {
-	results: Vec<ArticleInfo>,
-	query: SearchParams,
+#[template(path = "search.html")]
+pub struct SearchPage {
+	is_base: bool,
+	results: Vec<SearchResult>,
+	title: String,
 }
 
-impl Search {
-	fn title(&self) -> String {
-		match &self.query.query {
-			Some(q) if self.query.tags.is_empty() => format!("Search results for '{}'", q),
-			Some(q) => {
-				let mut buf = format!("Search results for '{}' tagged", q);
-				for tag in &self.query.tags {
-					buf.push(' ');
-					buf.push_str(tag);
-				}
-				buf
-			}
-			None if self.query.tags.is_empty() => "Search for articles".into(),
-			None => {
-				let mut buf = String::from("Articles tagged");
-				for tag in self.query.tags {
-					buf.push(' ');
-					buf.push_str(tag);
-				}
-				buf
-			}
+impl Default for SearchPage {
+	fn default() -> Self {
+		Self {
+			is_base: true,
+			results: Vec::new(),
+			title: String::from("Search for posts"),
 		}
 	}
 }
 
-#[derive(Deserialize)]
-pub struct SearchParams {
-	#[serde(default)]
-	query: Option<String>,
-	#[serde(default)]
-	tags: Vec<String>,
+enum SearchResult {
+	Article(ArticleInfo),
 }
 
-pub async fn handle_search(
-	Query(params): Query<SearchParams>,
-) -> HttpResponse<Search>{
-	let SearchParams{query, tags} = params;
-	let q = query.as_ref().map(|s| format!("%{}%", s.to_lowercase())).unwrap_or_default();
+#[derive(Deserialize)]
+pub struct SearchParams {
+	kind: String,
+	query: String,
+}
 
-	let vals = query!(
+pub async fn handle_search(params: Option<Query<SearchParams>>) -> HttpResponse<SearchPage> {
+	let params = match params {
+		None => return Ok(SearchPage::default()),
+		Some(p) => p.0,
+	};
+	if params.query.len() >= 200 {
+		return Err(E_BAD_REQUEST);
+	}
+
+	match params.kind.as_str() {
+		"article" => search_article(params).await,
+		_ => Err(E_BAD_REQUEST),
+	}
+}
+
+async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
+	let mut tags = Vec::new();
+	let mut term = String::new();
+	for s in params.query.split_whitespace() {
+		if let Some(tag) = s.strip_prefix('#') {
+			if !tag.is_empty() {
+				tags.push(tag.to_lowercase());
+			}
+		} else {
+			if !term.is_empty() {
+				term.push(' ');
+			}
+			term.push_str(s);
+		}
+	}
+
+	if tags.is_empty() && term.is_empty() {
+		return Ok(SearchPage::default());
+	}
+
+	let title = if term.is_empty() {
+		String::new()
+	} else {
+		format!("%{}%", term.to_lowercase())
+	};
+
+	let results = query!(
 		"SELECT
-		a.title,
-		a.url_title,
-		a.date_published AS published,
-		a.date_updated AS updated,
-		ARRAY_AGG(t.tag_name) AS tags
-		FROM article
-		LEFT JOIN article_tag t
-		ON a.article_id = t.article_id
-	WHERE $1 = '' OR LOWER(title) LIKE $1
+	a.title, a.url_title,
+	a.date_published, a.date_updated,
+	a.about, ARRAY_AGG(t.tag_name) tags_array
+	FROM article a
+	LEFT JOIN article_tag t
+	ON t.article_id = a.article_id
+	WHERE $1 = '' OR LOWER(a.title) LIKE $1
 	GROUP BY a.title, a.url_title
 	HAVING ARRAY_AGG(t.tag_name) @> $2
-	ORDER BY COALESCE(date_updated, date_published) DESC",
-		&q,
+	ORDER BY COALESCE(a.date_updated, a.date_published) DESC",
+		&title,
+		&tags,
 	)
 	.fetch_all(db())
 	.await
-	.or_500()
-	.map(|v| {
-		v.into_iter()
-			.map(|mut x| ArticleInfo {
-				title: x.title.take(),
-				url_title: x.url_title.take(),
-				published: x.published.format_utc(),
-				updated: x.updated.map(|d| d.format_utc()),
-			})
-			.collect()
+	.or_500()?
+	.into_iter()
+	.map(|mut x| {
+		SearchResult::Article(ArticleInfo {
+			title: x.title.take(),
+			url_title: x.url_title.take(),
+			published: x.date_published.format_utc(),
+			updated: x.date_updated.map(|d| d.format_utc()),
+			about: x.about.take(),
+			tags: x.tags_array.take().unwrap_or_default(),
+		})
 	})
-	.map(Json)
+	.collect::<Vec<_>>();
+
+	let title = if term.is_empty() {
+		let mut buf = String::from("Articles tagged");
+		for t in &tags {
+			buf.push(' ');
+			buf.push_str(t);
+		}
+		buf
+	} else if tags.is_empty() {
+		format!("Search results for '{}'", &term)
+	} else {
+		let mut buf = format!("Search results for '{}' tagged", &term);
+		for t in &tags {
+			buf.push(' ');
+			buf.push_str(t);
+		}
+		buf
+	};
+
+	Ok(SearchPage {
+		is_base: false,
+		title,
+		results,
+	})
 }

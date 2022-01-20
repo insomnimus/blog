@@ -16,6 +16,7 @@ pub async fn init(url: &str) -> Result<(), sqlx::Error> {
 		.idle_timeout(std::time::Duration::from_secs(2 * 3600))
 		.connect(url)
 		.await?;
+	sqlx::query!("TRUNCATE home_cache").execute(&pool).await?;
 	DB.set(pool).expect("db::init called twice");
 	Ok(())
 }
