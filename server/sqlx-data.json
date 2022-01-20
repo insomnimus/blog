@@ -1,0 +1,192 @@
+{
+  "db": "PostgreSQL",
+  "2c7762f389e6ca58a66ce41a8c70ae19922dc7e3621b7084bb19d71142f2d7cf": {
+    "query": "INSERT INTO home_cache(data)\n\tVALUES($1)\n\tON CONFLICT(_home_id) DO UPDATE\n\tSET data = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "3c95d3420390d8d3328ee02c2734f485969def2a881955ed2a08b4e5f32bb658": {
+    "query": "SELECT title,\n\t\t\turl_title,\n\t\t\tabout,\n\t\t\tdate_published AS published,\n\t\t\tdate_updated AS updated\n\t\t\tFROM article\n\tORDER BY COALESCE(date_updated, date_published) DESC\n\tLIMIT 5",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "about",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "published",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "8fecffb12a74c8a29b3dab97b44b8c31335228ccd72cf0e22cb7fb6c895f6bdb": {
+    "query": "TRUNCATE home_cache",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
+  "c9656af10223f708a38ad78724440a6990f6bde5a10a15c3dd45d11385a99c9f": {
+    "query": "SELECT\n\ta.title, a.url_title,\n\ta.date_published, a.date_updated,\n\ta.about, ARRAY_AGG(t.tag_name) tags_array\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON t.article_id = a.article_id\n\tWHERE $1 = '' OR LOWER(a.title) LIKE $1\n\tGROUP BY a.title, a.url_title\n\tHAVING ARRAY_AGG(t.tag_name) @> $2\n\tORDER BY COALESCE(a.date_updated, a.date_published) DESC",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date_published",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "date_updated",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 4,
+          "name": "about",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 5,
+          "name": "tags_array",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "TextArray"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        null
+      ]
+    }
+  },
+  "ed461794a04bb5cf0e6a163744383f62638914e140ceb97eff50823133520e72": {
+    "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title\n\t\tLIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "about",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "date_published",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 4,
+          "name": "date_updated",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "html",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 6,
+          "name": "tags_array",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        null
+      ]
+    }
+  },
+  "ef5fdb58734a50545faec25994907a5ab17714a4efa4393cd726e62b64f4450a": {
+    "query": "SELECT data FROM home_cache",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "data",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false
+      ]
+    }
+  }
+}

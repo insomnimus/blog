@@ -1,33 +1,15 @@
-use super::ArticleContents;
+use super::{
+	validate_about,
+	validate_tag,
+	validate_title,
+	ArticleContents,
+};
 use crate::prelude::*;
-
-fn validate_tag(s: &str) -> StdResult<(), String> {
-	if s.starts_with(|c: char| c == '-' || c.is_numeric())
-		|| s.contains(|c: char| c.is_uppercase() || (c != '-' && !c.is_alphanumeric()))
-	{
-		Err(String::from("tags can only consist of lowercase letters, numbers and '-' and must start with a lowercase letter"))
-	} else {
-		Ok(())
-	}
-}
-
-fn validate_about(s: &str) -> StdResult<(), String> {
-	if s.contains(|c: char| c == '\t' || c == '\n' || c == '\r') {
-		return Err("the description cannot contain tabs or newlines".into());
-	}
-	let len = s.chars().count();
-
-	match len {
-		0..=14 => Err("the description is too short; at least 15 characters are required".into()),
-		15..=120 => Ok(()),
-		_ => Err("the description is too long; the value cannot exceed 120 characters".into()),
-	}
-}
 
 pub fn app() -> App<'static> {
 	App::new("publish").about("Publish a new article.").args(&[
-		arg!(-f --file <FILE> "The article."),
-		arg!(title: <TITLE> "The articles title."),
+		arg!(-p --path <FILE> "The article."),
+		arg!(title: <TITLE> "The articles title.").validator(validate_title),
 		arg!(-a --about <DESCRIPTION> "The article description.")
 			.validator(validate_about)
 			.visible_alias("description"),
@@ -44,7 +26,7 @@ pub fn app() -> App<'static> {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	let file = m.value_of("file").unwrap();
+	let file = m.value_of("path").unwrap();
 	let title = m.value_of("title").unwrap();
 	let about = m.value_of("about").unwrap();
 

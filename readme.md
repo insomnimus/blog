@@ -10,10 +10,8 @@ You will need several things.
 -	Cargo, the rust languages build system to build the project.
 -	An active database for the compile-time checked queries to work.
 
-After cloning the project, set these environment variables:
-
--	`DATABASE_URL`: `postgres://blog:blog@localhost:59595/blog`
--	`BLOG_DB_URL`: `postgres://blog:blog@localhost:59595/blog`
+After cloning the project, set the `BLOG_DB_URL` environment variable to `postgres://blog:blog@localhost:59595/blog`.
+This is required only to get something up and running. In the future the readme will be updated for more detailed instructions.
 
 Now, build and run the postgresql image:
 

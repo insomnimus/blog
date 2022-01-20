@@ -15,7 +15,7 @@ axum = "0.4.4"
 clap = { version = "3.0.8", features = ["env", "wrap_help", "unicode"] }
 log = "0.4.14"
 serde = { version = "1.0.133", features = ["derive"] }
-sqlx = { version = "0.5.10", features = ["runtime-tokio-rustls", "postgres", "chrono"] }
+sqlx = { version = "0.5.10", features = ["runtime-tokio-rustls", "postgres", "chrono", "offline"] }
 tokio = { version = "1.15.0", features = ["full"] }
 tower = { version = "0.4.11", features = ["timeout"], default-features = false }
 tower-http = { version = "0.2.0", features = ["full"] }

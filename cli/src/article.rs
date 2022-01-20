@@ -1,4 +1,5 @@
 mod delete;
+mod edit;
 mod fetch;
 mod list;
 mod publish;
@@ -105,5 +106,38 @@ impl Tsv for ArticleInfo {
 			tags = self.tags.tsv(),
 			url_title = self.url_title.tsv(),
 		)
+	}
+}
+
+fn validate_tag(s: &str) -> StdResult<(), String> {
+	if s.starts_with(|c: char| c == '-' || c.is_numeric())
+		|| s.contains(|c: char| c.is_uppercase() || (c != '-' && !c.is_alphanumeric()))
+	{
+		Err(String::from("tags can only consist of lowercase letters, numbers and '-' and must start with a lowercase letter"))
+	} else {
+		Ok(())
+	}
+}
+
+fn validate_about(s: &str) -> StdResult<(), String> {
+	if s.contains(|c: char| c == '\t' || c == '\n' || c == '\r') {
+		return Err("the description cannot contain tabs or newlines".into());
+	}
+	let len = s.chars().count();
+
+	match len {
+		0..=14 => Err("the description is too short; at least 15 characters are required".into()),
+		15..=120 => Ok(()),
+		_ => Err("the description is too long; the value cannot exceed 120 characters".into()),
+	}
+}
+
+fn validate_title(s: &str) -> StdResult<(), String> {
+	if s.contains(|c: char| "\r\n\t".contains(c)) {
+		Err(String::from("the title cannot contain tabs or newlines"))
+	} else if s.trim().len() < 3 {
+		Err(String::from("the title must be at least 3 characters long"))
+	} else {
+		Ok(())
 	}
 }
