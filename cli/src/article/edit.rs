@@ -59,7 +59,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let url_title = encode_url_title(title);
 	let about = m.value_of("about");
 
-	query!(
+	let affected = query!(
 		"UPDATE article
 	SET
 	title = COALESCE(NULLIF($1, ''), title),
@@ -81,6 +81,13 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	.execute(&mut tx)
 	.await?
 	.rows_affected();
+
+	if affected == 0 {
+		anyhow::bail!(
+			"no articles found with the title or id {}",
+			m.value_of("article").unwrap()
+		);
+	}
 
 	clear_home!().execute(&mut tx).await?;
 
