@@ -82,6 +82,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	.await?
 	.rows_affected();
 
+	clear_home!().execute(&mut tx).await?;
+
 	tx.commit().await?;
 
 	macro_rules! print_if {
