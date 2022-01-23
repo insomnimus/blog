@@ -32,7 +32,13 @@ pub fn app() -> App<'static> {
 				.env("BLOG_DB_URL")
 				.hide_env_values(true),
 		)
-		.subcommands([delete::app(), fetch::app(), list::app(), publish::app()])
+		.subcommands([
+			delete::app(),
+			edit::app(),
+			fetch::app(),
+			list::app(),
+			publish::app(),
+		])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
@@ -40,6 +46,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	match m.subcommand().unwrap() {
 		("delete", m) => delete::run(m).await,
+		("edit", m) => edit::run(m).await,
 		("fetch", m) => fetch::run(m).await,
 		("list", m) => list::run(m).await,
 		("publish", m) => publish::run(m).await,
@@ -47,6 +54,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	}
 }
 
+#[derive(Default)]
 struct ArticleContents {
 	markdown: String,
 	html: String,
