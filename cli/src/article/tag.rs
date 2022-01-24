@@ -57,9 +57,12 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	match m.values_of("tag") {
 		None => {
-			let tags = query!("SELECT tag_name FROM article_tag WHERE article_id = $1 ORDER BY tag_name ASC", id)
-				.fetch_all(&mut tx)
-				.await?;
+			let tags = query!(
+				"SELECT tag_name FROM article_tag WHERE article_id = $1 ORDER BY tag_name ASC",
+				id
+			)
+			.fetch_all(&mut tx)
+			.await?;
 			for t in tags {
 				println!("{}", t.tag_name);
 			}

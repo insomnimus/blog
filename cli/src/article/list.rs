@@ -6,11 +6,9 @@ pub fn app() -> App<'static> {
 		.about("List metadata about published articles.")
 		.args(&[
 			arg!(--oldest "Show oldest articles first."),
-			arg!(n: -n [N] "Show N articles, 0 for all.")
-				.default_value("5")
-				.validator(validate::<usize>(
-					"The value must be a positive integer or 0.",
-				)),
+			arg!(n: -n [N] "Show N articles, 0 for all.").validator(validate::<usize>(
+				"The value must be a positive integer or 0.",
+			)),
 			arg!(-f --format [FORMAT] "The output format.")
 				.possible_values(Format::VALUES)
 				.default_value("human")
@@ -26,7 +24,6 @@ pub fn app() -> App<'static> {
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let format = m.value_of_t_or_exit::<Format>("format");
-	// let oldest = if m.is_present("oldest") { 1 } else { -1 };
 	let oldest = m.is_present("oldest");
 	let tags: Vec<_> = m
 		.values_of("tags")
@@ -36,7 +33,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.value_of("filter")
 		.map(str::to_lowercase)
 		.unwrap_or_default();
-	let n = m.value_of_t_or_exit::<i32>("n");
+	let n = m
+		.value_of_t::<i32>("n")
+		.unwrap_or_else(|_| if filter.is_empty() { 5 } else { 0 });
+
 	let n = if n == 0 { 30000_i64 } else { n as i64 };
 
 	let vals = query!(
