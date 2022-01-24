@@ -3,6 +3,7 @@ mod edit;
 mod fetch;
 mod list;
 mod publish;
+mod tag;
 
 use std::path::Path;
 
@@ -38,6 +39,7 @@ pub fn app() -> App<'static> {
 			fetch::app(),
 			list::app(),
 			publish::app(),
+			tag::app(),
 		])
 }
 
@@ -50,6 +52,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		("fetch", m) => fetch::run(m).await,
 		("list", m) => list::run(m).await,
 		("publish", m) => publish::run(m).await,
+		("tag", m) => tag::run(m).await,
 		_ => unreachable!(),
 	}
 }
