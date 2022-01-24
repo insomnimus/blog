@@ -93,7 +93,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 			clear_home!().execute(&mut tx).await?;
 
 			tx.commit().await?;
-			println!("Success tagging article '{}'", article);
+			println!("Success tagging article '{}'", title);
 		}
 	}
 
