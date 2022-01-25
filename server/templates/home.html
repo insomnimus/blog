@@ -5,7 +5,7 @@
 <h1>Recent Articles</h1>
 <ul id="recent-articles">
 {% for article in self.articles %}
-	<li><a href="/articles/{{ article.url_title }}">{{ article.title }}</a></li>
+	<li><a href="/article/{{ article.url_title }}">{{ article.title }}</a></li>
 {% endfor %}
 </ul>
 {% endblock %}

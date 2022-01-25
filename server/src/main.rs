@@ -3,6 +3,8 @@ mod article;
 mod db;
 mod ext;
 mod home;
+mod media;
+mod post;
 mod prelude;
 mod response;
 mod search;
@@ -44,9 +46,14 @@ async fn main() -> anyhow::Result<()> {
 			(StatusCode::NOT_FOUND, "The requested file is not found.")
 		});
 
+	let api = Router::new().route("/posts", get(post::handle_api));
+
 	let app = Router::new()
+		.nest("/api", api)
 		.nest("/static", static_handler)
 		.route("/", get(home::handle_home))
+		.route("/posts", get(post::handle_posts))
+		.route("/posts/:id", get(post::handle_post))
 		.route("/articles/:article", get(article::handle_article))
 		.route("/search", get(search::handle_search))
 		.layer(

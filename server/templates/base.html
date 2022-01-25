@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>{% block title %}{{ title }} - Insomnia's Blog{% endblock %}</title>
+	<title>{% block title %} {% endblock %} - Insomnia's Blog </title>
 	<script src="/static/luxon.js" defer></script>
 	<script src="/static/localize_dates.js" defer></script>
+	<link rel="stylesheet" src="/static/normalize.css">
+	<link rel="stylesheet" src="/static/sakura.css">
 	<link rel="stylesheet" src="/static/style.css">
 	{% block head %} {% endblock %}
 </head>
 
 <body>
-<header>
 <nav>
 <ul>
 <li><a href="/">Home</a></li>
-<li><a href="/articles">Articles</a></li>
+<li><a href="/article">Articles</a></li>
 <li><a href="/search">Search</a></li>
 </ul>
 </nav>
-</header>
 
 <main>
-<div id="content">
+<article>
 {% block content %}{% endblock %}
-</div>
+</article>
 </main>
 </body>
 </html>

@@ -54,6 +54,82 @@
       ]
     }
   },
+  "57bf86a3c7d5993868d08ca770d5d9b7f653128626722b0092cbb7e1702f315f": {
+    "query": "SELECT\n\tp.post_id AS id,\n\tp.html,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "html",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        null
+      ]
+    }
+  },
+  "8d543c495816141875aaa81506920a0b242e9d34d79436670daca8911a590431": {
+    "query": "SELECT\n\tp.post_id AS id,\n\tp.html,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 0 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 25",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "html",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        null
+      ]
+    }
+  },
   "8fecffb12a74c8a29b3dab97b44b8c31335228ccd72cf0e22cb7fb6c895f6bdb": {
     "query": "TRUNCATE home_cache",
     "describe": {

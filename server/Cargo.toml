@@ -1,6 +1,6 @@
 [package]
 name = "blog"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 
 [[bin]]
@@ -13,6 +13,8 @@ askama = { version = "0.11.0", features = ["with-axum"] }
 askama_axum = "0.1.0"
 axum = "0.4.4"
 clap = { version = "3.0.8", features = ["env", "wrap_help", "unicode"] }
+futures = "0.3.19"
+html-escape = "0.2.9"
 log = "0.4.14"
 serde = { version = "1.0.133", features = ["derive"] }
 sqlx = { version = "0.5.10", features = ["runtime-tokio-rustls", "postgres", "chrono", "offline"] }
@@ -20,3 +22,4 @@ tokio = { version = "1.15.0", features = ["full"] }
 tower = { version = "0.4.11", features = ["timeout"], default-features = false }
 tower-http = { version = "0.2.0", features = ["full"] }
 tracing-subscriber = "0.3.6"
+url-escape = "0.1.0"
