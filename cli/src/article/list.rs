@@ -35,7 +35,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.unwrap_or_default();
 	let n = m
 		.value_of_t::<i32>("n")
-		.unwrap_or_else(|_| if filter.is_empty() { 5 } else { 0 });
+		.unwrap_or(if filter.is_empty() { 5 } else { 0 });
 
 	let n = if n == 0 { 30000_i64 } else { n as i64 };
 

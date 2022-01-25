@@ -39,7 +39,7 @@ pub fn encode_url_title(s: &str) -> String {
 	let s = s
 		.replace(|c: char| c.is_whitespace() || c == '_', "-")
 		.to_lowercase();
-	url_escape::encode_component(&s).to_string()
+	url_escape::encode_path(&s).to_string()
 }
 
 pub fn db() -> &'static Pool {
