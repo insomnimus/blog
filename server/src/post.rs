@@ -7,15 +7,22 @@ use crate::{
 #[template(path = "post.html")]
 pub struct Post {
 	id: i32,
-	html: String,
+	content: String,
 	date: String,
 	attachments: Vec<Media>,
+}
+
+pub struct PostInfo {
+	pub id: i32,
+	pub content: String,
+	pub n_attachments: i64,
+	pub date: NaiveDateTime,
 }
 
 #[derive(Template)]
 #[template(path = "single_post.html")]
 pub struct PostPage {
-	body: Post,
+	post: Post,
 }
 
 #[derive(Template)]
@@ -38,7 +45,7 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 	query!(
 		"SELECT
 	p.post_id AS id,
-	p.html,
+	p.content,
 	p.date_posted AS date,
 	ARRAY_AGG(m.file_path) AS attachments
 	FROM post p
@@ -56,7 +63,7 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 		v.into_iter()
 			.map(|mut x| Post {
 				id: x.id,
-				html: x.html.take().unwrap_or_default(),
+				content: x.content.take(),
 				date: x.date.format_utc(),
 				attachments: x
 					.attachments
@@ -90,7 +97,7 @@ pub async fn handle_post(Path(id): Path<i32>) -> HttpResponse<PostPage> {
 	query!(
 		"SELECT
 	p.post_id AS id,
-	p.html,
+	p.content,
 	p.date_posted AS date,
 	ARRAY_AGG(m.file_path) attachments
 	FROM post p
@@ -105,9 +112,9 @@ pub async fn handle_post(Path(id): Path<i32>) -> HttpResponse<PostPage> {
 	.or_500()?
 	.or_404()
 	.map(|mut x| PostPage {
-		body: Post {
+		post: Post {
 			id: x.id,
-			html: x.html.take().unwrap_or_default(),
+			content: x.content.take(),
 			date: x.date.format_utc(),
 			attachments: x
 				.attachments

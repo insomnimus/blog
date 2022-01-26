@@ -19,7 +19,7 @@ pub struct Article {
 	html: String,
 }
 
-pub async fn handle_article(Path(p): Path<String>) -> HttpResponse<Article> {
+pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> {
 	query!(
 		"SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,
 		ARRAY_AGG(t.tag_name) tags_array
@@ -29,7 +29,7 @@ pub async fn handle_article(Path(p): Path<String>) -> HttpResponse<Article> {
 		WHERE url_title = $1
 		GROUP BY a.title, a.url_title
 		LIMIT 1",
-		&p,
+		&title,
 	)
 	.fetch_optional(db())
 	.await

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %} Post #{{ self.body.id }} {% endblock %}
+{% block title %} Post #{{ self.post.id }} {% endblock %}
 
 {% block content %}
-{{ self.body }}
+{{ self.post }}
 {% endblock %}

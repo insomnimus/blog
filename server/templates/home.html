@@ -2,10 +2,27 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+<h1> Recent Posts </h1>
+<div id="recent-posts">
+{% for post in self.posts %}
+	<div class="post-preview">
+	<a href="/posts/{{ post.id }}">
+	<time datetime="{{ post.date }}"> {{ post.date }} </time>
+	</a>
+	{% if post.content.is_empty() %}
+	<p> (Has {{ post.n_attachments }} attachments) </p>
+	{% else %}
+	{{ post.content|safe }}
+	{% endif %}
+	</div>
+{% endfor %}
+</div>
+
 <h1>Recent Articles</h1>
 <ul id="recent-articles">
 {% for article in self.articles %}
 	<li><a href="/articles/{{ article.url_title }}">{{ article.title }}</a></li>
 {% endfor %}
 </ul>
+
 {% endblock %}

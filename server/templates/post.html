@@ -1,7 +1,7 @@
 <article id="p{{ self.id }}">
 <a href="/posts/{{ self.id }}"> <time datetime="{{ self.date }}" {{ self.date }} </time> </a>
 <div class="post-body">
-{{ self.html|safe }}
+{{ self.content|safe }}
 </div>
 {% if !self.attachments.is_empty() %}
 <div class="post-attachments">
