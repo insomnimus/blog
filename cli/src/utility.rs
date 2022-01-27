@@ -1,6 +1,31 @@
-macro_rules! clear_home {
-	() => {
-		sqlx::query!("TRUNCATE home_cache")
+macro_rules! clear {
+	(home) => {
+		sqlx::query!("INSERT INTO html_cache(_instance)
+		VALUES('TRUE')
+		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE
+		SET home_page = NULL")
+	};
+	(articles) => {
+		sqlx::query!("INSERT INTO html_cache(_instance)
+		VALUES('TRUE')
+		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE SET
+		home_page = NULL,
+		articles_page = NULL")
+	};
+	(posts) => {
+		sqlx::query!("INSERT INTO html_cache(_instance)
+		VALUES('TRUE')
+		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE SET
+		home_page = NULL,
+		posts_page = NULL")
+	};
+	(all) => {
+		sqlx::query!("INSERT INTO html_cache(_instance) 
+		VALUES('TRUE')
+		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE SET
+		home_page = NULL,
+		articles_page = NULL,
+		posts_page = NULL")
 	};
 }
 
@@ -19,5 +44,5 @@ macro_rules! confirm{
 	}};
 }
 
-pub(crate) use clear_home;
+pub(crate) use clear;
 pub(crate) use confirm;

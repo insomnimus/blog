@@ -79,7 +79,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		}
 	}
 
-	clear_home!().execute(&mut tx).await?;
+	clear!(articles).execute(&mut tx).await?;
 	tx.commit().await?;
 
 	println!("✓ Published new article '{}' (id = {})", title, id);

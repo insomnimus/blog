@@ -28,6 +28,7 @@ use tokio::sync::OnceCell;
 
 pub(crate) use crate::{
 	display::*,
+	render::*,
 	utility::*,
 };
 

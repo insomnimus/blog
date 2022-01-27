@@ -49,7 +49,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 			}
 		}
 
-		clear_home!().execute(&mut tx).await?;
+		clear!(articles).execute(&mut tx).await?;
 
 		tx.commit().await?;
 		return Ok(());
@@ -93,7 +93,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 				.await?;
 			}
 
-			clear_home!().execute(&mut tx).await?;
+			clear!(articles).execute(&mut tx).await?;
 
 			tx.commit().await?;
 			println!("Success tagging article '{}'", title);

@@ -56,7 +56,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	query!("DELETE FROM article WHERE article_id = $1", info.article_id)
 		.execute(&mut tx)
 		.await?;
-	clear_home!().execute(&mut tx).await?;
+	clear!(articles).execute(&mut tx).await?;
 	tx.commit().await?;
 
 	println!("✓ Deleted article '{}'", &info.title);
