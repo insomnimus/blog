@@ -7,11 +7,6 @@ mod tag;
 
 use std::path::Path;
 
-use pulldown_cmark::{
-	html::push_html,
-	Options,
-	Parser,
-};
 use serde::Serialize;
 use sha2::{
 	Digest,
@@ -59,7 +54,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 #[derive(Default)]
 struct ArticleContents {
-	markdown: String,
+	raw: String,
 	html: String,
 	hash: Vec<u8>,
 }
@@ -67,15 +62,21 @@ struct ArticleContents {
 impl ArticleContents {
 	async fn read_from_file<P: AsRef<Path>>(p: P) -> io::Result<Self> {
 		let data = fs::read_to_string(p.as_ref()).await?;
-		let mut html = String::new();
+		let syntax = if p
+			.as_ref()
+			.extension()
+			.map_or(false, |ext| ext.eq_ignore_ascii_case("html"))
+		{
+			Syntax::Html
+		} else {
+			Syntax::Markdown
+		};
 		let mut hasher = Sha256::new();
 		hasher.update(data.trim().as_bytes());
-		let opts = Options::all();
-		let parser = Parser::new_ext(&data, opts);
-		push_html(&mut html, parser);
+		let html = syntax.render(&data).into_owned();
 
 		Ok(Self {
-			markdown: data,
+			raw: data,
 			hash: hasher.finalize().to_vec(),
 			html,
 		})

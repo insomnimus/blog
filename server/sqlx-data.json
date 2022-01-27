@@ -1,7 +1,7 @@
 {
   "db": "PostgreSQL",
-  "2c7762f389e6ca58a66ce41a8c70ae19922dc7e3621b7084bb19d71142f2d7cf": {
-    "query": "INSERT INTO home_cache(data)\n\tVALUES($1)\n\tON CONFLICT(_home_id) DO UPDATE\n\tSET data = $1",
+  "266481cdb0ef08d380ac241f1fd92fc7c54903b4f6f1284f8870010414863b6c": {
+    "query": "INSERT INTO html_cache(home_page)\n\t\tVALUES($1)\n\t\tON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE\n\t\tSET home_page = $1",
     "describe": {
       "columns": [],
       "parameters": {
@@ -10,6 +10,44 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "280a7fdd3358944aec34c6c793b029cd6b8bddce74c534440e1bdb38ebce653f": {
+    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 0 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 25",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        null
+      ]
     }
   },
   "3c95d3420390d8d3328ee02c2734f485969def2a881955ed2a08b4e5f32bb658": {
@@ -54,8 +92,8 @@
       ]
     }
   },
-  "57bf86a3c7d5993868d08ca770d5d9b7f653128626722b0092cbb7e1702f315f": {
-    "query": "SELECT\n\tp.post_id AS id,\n\tp.html,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
+  "54d59a7b3b8a458e69816cbd9f443d24d5fb2f5960cce8087d66c08e3c6bfb3f": {
+    "query": "SELECT p.post_id AS id,\n\t\tp.content,\n\t\tp.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON m.post_id = p.post_id\n\tGROUP BY p.post_id\n\tLIMIT 10",
     "describe": {
       "columns": [
         {
@@ -65,7 +103,7 @@
         },
         {
           "ordinal": 1,
-          "name": "html",
+          "name": "content",
           "type_info": "Text"
         },
         {
@@ -75,56 +113,16 @@
         },
         {
           "ordinal": 3,
-          "name": "attachments",
-          "type_info": "TextArray"
+          "name": "n_attachments!",
+          "type_info": "Int8"
         }
       ],
       "parameters": {
-        "Left": [
-          "Int4"
-        ]
+        "Left": []
       },
       "nullable": [
         false,
-        true,
         false,
-        null
-      ]
-    }
-  },
-  "8d543c495816141875aaa81506920a0b242e9d34d79436670daca8911a590431": {
-    "query": "SELECT\n\tp.post_id AS id,\n\tp.html,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 0 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 25",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "html",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "attachments",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        false,
-        true,
         false,
         null
       ]
@@ -191,6 +189,44 @@
       ]
     }
   },
+  "d2b508334cd5fe01e8428fbcdbd83018068f4d4a4439359fb9b94adeaa813262": {
+    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        null
+      ]
+    }
+  },
   "ed461794a04bb5cf0e6a163744383f62638914e140ceb97eff50823133520e72": {
     "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title\n\t\tLIMIT 1",
     "describe": {
@@ -247,13 +283,13 @@
       ]
     }
   },
-  "ef5fdb58734a50545faec25994907a5ab17714a4efa4393cd726e62b64f4450a": {
-    "query": "SELECT data FROM home_cache",
+  "f0f8a9e5ff3e83bebe8dd6bcec79dba3fadef395825fd6e584b411e518c10ac3": {
+    "query": "SELECT home_page FROM html_cache",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "data",
+          "name": "home_page",
           "type_info": "Text"
         }
       ],
@@ -261,7 +297,7 @@
         "Left": []
       },
       "nullable": [
-        false
+        true
       ]
     }
   }

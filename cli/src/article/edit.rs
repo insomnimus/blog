@@ -24,15 +24,11 @@ pub fn app() -> App<'static> {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	let (html, markdown, hash) = match m.value_of("path") {
+	let (html, raw, hash) = match m.value_of("path") {
 		None => (None, None, None),
-		Some(p) => ArticleContents::read_from_file(p).await.map(
-			|ArticleContents {
-			     markdown,
-			     html,
-			     hash,
-			 }| (Some(html), Some(markdown), Some(hash)),
-		)?,
+		Some(p) => ArticleContents::read_from_file(p)
+			.await
+			.map(|ArticleContents { raw, html, hash }| (Some(html), Some(raw), Some(hash)))?,
 	};
 
 	let mut tx = db().begin().await?;
@@ -66,8 +62,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	url_title = COALESCE(NULLIF($2, ''), url_title),
 	about = COALESCE($3, about),
 	html = COALESCE($4, html),
-	markdown_hash = COALESCE($5, markdown_hash),
-	markdown = COALESCE($6, markdown),
+	raw_hash = COALESCE($5, raw_hash),
+	raw = COALESCE($6, raw),
 	date_updated = NOW() AT TIME ZONE 'UTC'
 	WHERE article_id = $7",
 		&title,
@@ -75,7 +71,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		about,
 		html.as_ref(),
 		hash.as_ref(),
-		markdown.as_ref(),
+		raw.as_ref(),
 		id,
 	)
 	.execute(&mut tx)

@@ -17,14 +17,14 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let res = match article.parse::<u32>() {
 		Ok(id) => query!(
-			"SELECT markdown, title FROM article WHERE article_id = $1",
+			"SELECT raw, title FROM article WHERE article_id = $1",
 			id as i32
 		)
 		.fetch_optional(db())
 		.await?
-		.map(|mut x| (x.title.take(), x.markdown.take())),
+		.map(|mut x| (x.title.take(), x.raw.take())),
 		Err(_) => query!(
-			"SELECT markdown, title
+			"SELECT raw, title
 					FROM article
 					WHERE
 					(LOWER(title) = $1)
@@ -35,14 +35,14 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		)
 		.fetch_optional(db())
 		.await?
-		.map(|mut x| (x.title.take(), x.markdown.take())),
+		.map(|mut x| (x.title.take(), x.raw.take())),
 	};
 
 	match res {
 		None => Err(anyhow!("No article found by the ID or title {}", article,)),
-		Some((title, markdown)) => {
+		Some((title, raw)) => {
 			println!("Saving article '{}'", &title);
-			fs::write(out, &markdown).await?;
+			fs::write(out, &raw).await?;
 			Ok(())
 		}
 	}

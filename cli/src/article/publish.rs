@@ -30,24 +30,20 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let title = m.value_of("title").unwrap();
 	let about = m.value_of("about").unwrap();
 
-	let ArticleContents {
-		markdown,
-		html,
-		hash,
-	} = ArticleContents::read_from_file(file).await?;
+	let ArticleContents { raw, html, hash } = ArticleContents::read_from_file(file).await?;
 
 	let url_title = encode_url_title(title);
 
 	let mut tx = db().begin().await?;
 
 	let id = query!(
-		"INSERT INTO article(title, url_title, about, markdown, html, markdown_hash)
+		"INSERT INTO article(title, url_title, about, raw, html, raw_hash)
 			VALUES($1, $2, $3, $4, $5, $6)
 			RETURNING article_id",
 		title,
 		url_title,
 		about,
-		markdown,
+		raw,
 		html,
 		hash,
 	)

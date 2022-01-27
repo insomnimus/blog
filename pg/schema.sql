@@ -1,7 +1,9 @@
-CREATE TABLE home_cache (
-	_home_id BOOL PRIMARY KEY DEFAULT TRUE,
-	data TEXT NOT NULL,
-	CONSTRAINT only_one_cache CHECK(_home_id)
+CREATE TABLE html_cache(
+	_instance BOOL PRIMARY KEY DEFAULT TRUE,
+	home_page TEXT,
+	articles_page TEXT,
+	posts_page TEXT,
+	CONSTRAINT only_one_cache CHECK(_instance)
 );
 
 CREATE TABLE media (
@@ -18,8 +20,8 @@ CREATE TABLE article (
 	date_published TIMESTAMP NOT NULL DEFAULT(NOW() AT TIME ZONE 'UTC'),
 	date_updated TIMESTAMP,
 	html TEXT NOT NULL,
-	markdown TEXT NOT NULL,
-	markdown_hash BYTEA NOT NULL
+	raw TEXT NOT NULL,
+	raw_hash BYTEA NOT NULL
 );
 
 CREATE TABLE tag(
@@ -34,8 +36,8 @@ CREATE TABLE article_tag(
 
 CREATE TABLE post (
 	post_id SERIAL PRIMARY KEY,
-	markdown TEXT,
-	html TEXT,
+	raw TEXT NOT NULL,
+	content TEXT NOT NULL,
 	date_posted TIMESTAMP NOT NULL DEFAULT(NOW() AT TIME ZONE 'UTC')
 );
 
