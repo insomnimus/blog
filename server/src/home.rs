@@ -18,7 +18,7 @@ pub async fn handle_home() -> HttpResponse {
 		.await
 		.or_500()?
 		.and_then(|x| x.home_page);
-		
+
 	if let Some(data) = data {
 		tx.commit().await.or_500()?;
 		return Ok(Html(data));

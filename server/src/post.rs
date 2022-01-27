@@ -68,8 +68,8 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 				attachments: x
 					.attachments
 					.take()
-					.unwrap_or_default()
 					.into_iter()
+					.flatten()
 					.map(Media::new)
 					.collect(),
 			})
@@ -95,16 +95,16 @@ pub async fn handle_api(Query(params): Query<PostParams>) -> HttpResponse<Json<P
 
 pub async fn handle_post(Path(id): Path<i32>) -> HttpResponse<PostPage> {
 	query!(
-		"SELECT
+		r#"SELECT
 	p.post_id AS id,
 	p.content,
 	p.date_posted AS date,
-	ARRAY_AGG(m.file_path) attachments
+	ARRAY_AGG(m.file_path) AS "attachments?: Vec<Option<String>>"
 	FROM post p
 	LEFT JOIN post_media m
 	ON p.post_id = m.post_id
 	WHERE p.post_id = $1
-	GROUP BY p.post_id",
+	GROUP BY p.post_id"#,
 		id
 	)
 	.fetch_optional(db())
@@ -116,11 +116,13 @@ pub async fn handle_post(Path(id): Path<i32>) -> HttpResponse<PostPage> {
 			id: x.id,
 			content: x.content.take(),
 			date: x.date.format_utc(),
+			// attachments: vec![],
 			attachments: x
 				.attachments
 				.take()
-				.unwrap_or_default()
 				.into_iter()
+				.flatten()
+				.flatten()
 				.map(Media::new)
 				.collect(),
 		},
