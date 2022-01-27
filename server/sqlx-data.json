@@ -1,17 +1,5 @@
 {
   "db": "PostgreSQL",
-  "266481cdb0ef08d380ac241f1fd92fc7c54903b4f6f1284f8870010414863b6c": {
-    "query": "INSERT INTO html_cache(home_page)\n\t\tVALUES($1)\n\t\tON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE\n\t\tSET home_page = $1",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "280a7fdd3358944aec34c6c793b029cd6b8bddce74c534440e1bdb38ebce653f": {
     "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 0 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 25",
     "describe": {
@@ -92,6 +80,18 @@
       ]
     }
   },
+  "52cc0d2202b656b1caac13dc8234574f93b512f5950841a695a79391c0979473": {
+    "query": "INSERT INTO html_cache(_instance, home_page)\n\t\tVALUES('TRUE', $1)\n\t\tON CONFLICT(_instance) DO UPDATE\n\t\tSET home_page = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "54d59a7b3b8a458e69816cbd9f443d24d5fb2f5960cce8087d66c08e3c6bfb3f": {
     "query": "SELECT p.post_id AS id,\n\t\tp.content,\n\t\tp.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON m.post_id = p.post_id\n\tGROUP BY p.post_id\n\tLIMIT 10",
     "describe": {
@@ -126,16 +126,6 @@
         false,
         null
       ]
-    }
-  },
-  "8fecffb12a74c8a29b3dab97b44b8c31335228ccd72cf0e22cb7fb6c895f6bdb": {
-    "query": "TRUNCATE home_cache",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": []
     }
   },
   "c9656af10223f708a38ad78724440a6990f6bde5a10a15c3dd45d11385a99c9f": {
@@ -225,6 +215,16 @@
         false,
         null
       ]
+    }
+  },
+  "dbc9b8d17eb7cd707f85172a796bb1a355f60cdedb382a1cb1fe049efcc7cabe": {
+    "query": "TRUNCATE html_cache",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
     }
   },
   "ed461794a04bb5cf0e6a163744383f62638914e140ceb97eff50823133520e72": {

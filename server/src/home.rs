@@ -14,11 +14,11 @@ struct Home {
 pub async fn handle_home() -> HttpResponse {
 	let mut tx = db().begin().await.or_500()?;
 	let data = query!("SELECT home_page FROM html_cache")
-		.fetch_one(&mut tx)
+		.fetch_optional(&mut tx)
 		.await
 		.or_500()?
-		.home_page;
-
+		.and_then(|x| x.home_page);
+		
 	if let Some(data) = data {
 		tx.commit().await.or_500()?;
 		return Ok(Html(data));
@@ -68,9 +68,9 @@ pub async fn handle_home() -> HttpResponse {
 
 	let home = home.render().or_500()?;
 	query!(
-		"INSERT INTO html_cache(home_page)
-		VALUES($1)
-		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE
+		"INSERT INTO html_cache(_instance, home_page)
+		VALUES('TRUE', $1)
+		ON CONFLICT(_instance) DO UPDATE
 		SET home_page = $1",
 		home.as_str(),
 	)
