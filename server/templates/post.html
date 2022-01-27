@@ -1,5 +1,5 @@
 <article id="p{{ self.id }}">
-<a href="/posts/{{ self.id }}"> <time datetime="{{ self.date }}" {{ self.date }} </time> </a>
+<a href="/posts/{{ self.id }}"> <time datetime="{{ self.date }}"> {{ self.date }} </time> </a>
 <div class="post-body">
 {{ self.content|safe }}
 </div>
