@@ -2,27 +2,27 @@ macro_rules! clear {
 	(home) => {
 		sqlx::query!("INSERT INTO html_cache(_instance)
 		VALUES('TRUE')
-		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE
+		ON CONFLICT(_instance) DO UPDATE
 		SET home_page = NULL")
 	};
 	(articles) => {
 		sqlx::query!("INSERT INTO html_cache(_instance)
 		VALUES('TRUE')
-		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE SET
+		ON CONFLICT(_instance) DO UPDATE SET
 		home_page = NULL,
 		articles_page = NULL")
 	};
 	(posts) => {
 		sqlx::query!("INSERT INTO html_cache(_instance)
 		VALUES('TRUE')
-		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE SET
+		ON CONFLICT(_instance) DO UPDATE SET
 		home_page = NULL,
 		posts_page = NULL")
 	};
 	(all) => {
 		sqlx::query!("INSERT INTO html_cache(_instance) 
 		VALUES('TRUE')
-		ON CONFLICT ON CONSTRAINT only_one_cache DO UPDATE SET
+		ON CONFLICT(_instance) DO UPDATE SET
 		home_page = NULL,
 		articles_page = NULL,
 		posts_page = NULL")
