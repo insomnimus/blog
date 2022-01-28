@@ -1,4 +1,5 @@
 mod create;
+mod list;
 
 use crate::prelude::*;
 
@@ -11,7 +12,7 @@ pub fn app() -> App<'static> {
 				.env("BLOG_DB_URL")
 				.hide_env_values(true),
 		)
-		.subcommands([create::app()])
+		.subcommands([create::app(), list::app()])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
@@ -19,6 +20,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	match m.subcommand().unwrap() {
 		("create", m) => create::run(m).await,
+		("list", m) => list::run(m).await,
 		_ => unreachable!(),
 	}
 }
@@ -28,5 +30,44 @@ fn validate_post(s: &str) -> StdResult<(), String> {
 		0..=4 => Err("the post is too short; it must be at least 5 characters".into()),
 		5..=400 => Ok(()),
 		_ => Err("post is too long; it can't exceed 400 characters".into()),
+	}
+}
+
+#[derive(Serialize)]
+struct Post {
+	id: i32,
+	date: String,
+	raw: String,
+	rendered: Option<String>,
+	attachments: Vec<String>,
+}
+
+impl Tsv for Post {
+	fn tsv(&self) -> String {
+		format!(
+			"{id}\t{raw}\t{date}\t{attachments}\t{rendered}",
+			id = self.id,
+			raw = self.raw.tsv(),
+			date = self.date.tsv(),
+			rendered = self.rendered.as_deref().tsv(),
+			attachments = self.attachments.tsv(),
+		)
+	}
+}
+
+impl Formattable for Post {
+	fn human(&self) -> String {
+		let attachments = match self.attachments.len() {
+			0 => String::new(),
+			1 => String::from(" (has 1 attachment)"),
+			n => format!(" (has {n} attachments)"),
+		};
+		format!(
+			"#{id} on {date}{attachments}:
+	{raw}",
+			id = self.id,
+			raw = &self.raw,
+			date = &self.date,
+		)
 	}
 }

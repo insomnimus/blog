@@ -12,6 +12,7 @@ pub use clap::{
 	ArgGroup,
 	ArgMatches,
 };
+pub use serde::Serialize;
 use sqlx::{
 	postgres::PgPoolOptions as Opts,
 	PgPool as Pool,

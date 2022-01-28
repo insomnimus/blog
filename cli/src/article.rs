@@ -7,7 +7,6 @@ mod tag;
 
 use std::path::Path;
 
-use serde::Serialize;
 use sha2::{
 	Digest,
 	Sha256,
