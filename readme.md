@@ -5,6 +5,14 @@ A simplistic blogging webserver with a custom tooling.
 This project is not meant to be a general solution and is mainly for showcasing and sharing code for the sake of it; in short, it's personal (for now).
 
 ## Building The Project (development)
+## Docker (server only)
+There's a convenience docker image provided, you can run it with `docker compose up -d`.
+
+After this, visiting `localhost:3000` on a browser will get you the home page.
+
+You still need to populate the database for the content, for that you need to build the command line tooling as well, see below.
+
+## Native Build (server and tooling)
 You will need several things.
 -	Docker (compose) to get the development db up and running.
 -	Cargo, the rust languages build system to build the project.
