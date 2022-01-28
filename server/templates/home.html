@@ -2,8 +2,19 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+<section id="recent-articles">
+<h1>Recent Articles</h1>
+{% for article in self.articles %}
+<div>
+	<h4><a href="/articles/{{ article.url_title }}">{{ article.title }}</a></h4>
+	<p>Published <time datetime="{{ article.published }}"> {{ article.published }} </time></p>
+	<p class="article-about"> {{ article.about }} </p>
+	</div>
+{% endfor %}
+</section>
+
+<section id="recent-posts">
 <h1> Recent Posts </h1>
-<div id="recent-posts">
 {% for post in self.posts %}
 	<div class="post-preview">
 	<a href="/posts/{{ post.id }}">
@@ -16,13 +27,6 @@
 	{% endif %}
 	</div>
 {% endfor %}
-</div>
-
-<h1>Recent Articles</h1>
-<ul id="recent-articles">
-{% for article in self.articles %}
-	<li><a href="/articles/{{ article.url_title }}">{{ article.title }}</a></li>
-{% endfor %}
-</ul>
+</section>
 
 {% endblock %}

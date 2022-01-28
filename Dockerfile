@@ -4,7 +4,9 @@ WORKDIR app
 COPY . .
 RUN cargo build --bin blog-server
 
+
 FROM debian:buster-slim AS binary
+
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
 	libssl-dev \
