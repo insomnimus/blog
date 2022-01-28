@@ -8,16 +8,13 @@ This project is not meant to be a general solution and is mainly for showcasing 
 You will need several things.
 -	Docker (compose) to get the development db up and running.
 -	Cargo, the rust languages build system to build the project.
--	An active database for the compile-time checked queries to work.
 
-After cloning the project, set the `BLOG_DB_URL` environment variable to `postgres://blog:blog@localhost:59595/blog`.
-This is required only to get something up and running. In the future the readme will be updated for more detailed instructions.
-
-Now, build and run the postgresql image:
+Build and run the postgresql image:
 
 ```sh
 cd pg
 docker compose up -d
+cd ..
 ```
 
 Build the entire project (both the server and the cli):
@@ -26,9 +23,16 @@ Build the entire project (both the server and the cli):
 cargo build --release
 ```
 
+> Set the `BLOG_DB_URL` environment variable to `postgres://blog:blog@localhost:59595/blog`.
+> Or pass the same value to the blog webserver and cli.
+> This value is for the development version of the postgresql image we just built and ran.
+
 To start the server:
-`./target/release/blog-server`
+```sh
+# NOTE: Make sure the current working directory contains the `static` folder.
+./target/release/blog-server
+```
 
-To publish/list articles:
-`./target/release/blog --help`
+For how to publish articles/posts, please run
 
+`./target/release/blog help`
