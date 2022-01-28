@@ -1,4 +1,4 @@
-let dates = document.querySelectorAll("time");
+const dates = document.querySelectorAll("time");
 
 for(const date of dates) {
 	const stamp = new Date(date.getAttribute("datetime"));

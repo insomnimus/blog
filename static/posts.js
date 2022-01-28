@@ -13,7 +13,7 @@ function fetch_more() {
 		return;
 	}
 	const last_id = posts[posts.length - 1].id.substring(1);
-	if(isNaN(last_id) || last_id == 0) {
+	if(last_id === "p1") {
 		return;
 	}
 	const addr = "/api/posts?cursor=" + last_id;

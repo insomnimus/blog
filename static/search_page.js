@@ -2,7 +2,6 @@ function submit_search(event) {
 	if(event.keyCode !== 13) {
 		return;
 	}
-	// event.preventDefault();
 	const query = document.querySelector("#search-query").value.trim();
 	if(query) {
 		const kind = document.querySelector('input[name="searchtype"]:checked').value;
