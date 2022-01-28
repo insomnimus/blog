@@ -1,5 +1,3 @@
-use futures::prelude::*;
-
 use super::Post;
 use crate::prelude::*;
 

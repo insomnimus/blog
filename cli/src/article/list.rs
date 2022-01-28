@@ -39,7 +39,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let n = if n == 0 { 30000_i64 } else { n as i64 };
 
-	let vals = query!(
+	let mut results = query!(
 		"SELECT
 	a.article_id, a.title, a.url_title, a.about , a.date_updated, a.date_published,
 	ARRAY_AGG(t.tag_name) tags_array
@@ -58,10 +58,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		oldest,
 		n,
 	)
-	.fetch_all(db())
-	.await?;
+	.fetch(db());
 
-	for mut x in vals {
+	while let Some(res) = results.next().await {
+		let mut x = res?;
 		let info = ArticleInfo {
 			id: x.article_id,
 			title: x.title.take(),
