@@ -4,6 +4,7 @@ mod display;
 mod post;
 mod prelude;
 mod render;
+mod sftp;
 mod utility;
 
 #[tokio::main(flavor = "current_thread")]

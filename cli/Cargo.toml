@@ -19,3 +19,4 @@ serde_json = "1.0.78"
 comrak = { version = "0.12.1", default-features = false }
 html-escape = "0.2.9"
 futures = "0.3.19"
+shell-escape = "0.1.5"
