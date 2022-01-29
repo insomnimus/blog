@@ -78,10 +78,7 @@ impl Sftp {
 		});
 
 		let status = proc.wait().await?;
-		ensure!(
-			status.success(),
-			"sftp command exited with exit code {status}"
-		);
+		ensure!(status.success(), "sftp command exited with {status}");
 
 		handle.await??;
 
