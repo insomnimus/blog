@@ -10,11 +10,7 @@ use anyhow::{
 	ensure,
 };
 use tokio::{
-	io::{
-		self,
-		AsyncWrite,
-		AsyncWriteExt,
-	},
+	io::AsyncWriteExt,
 	process::Command,
 };
 
@@ -56,7 +52,7 @@ impl SftpCommand {
 }
 
 impl Sftp {
-	pub async fn send_files(&self, dir: &str, files: &[SendFile]) -> io::Result<()> {
+	pub async fn send_files(&self, dir: &str, files: &[SendFile]) -> anyhow::Result<()> {
 		assert!(!files.is_empty(), "files passed to `send_files` is empty");
 
 		let mut cmds = vec![
@@ -73,7 +69,7 @@ impl Sftp {
 
 		let handle = tokio::spawn(async move {
 			for s in cmds {
-				println!("running `{s}`");
+				// println!("running `{s}`");
 				AsyncWriteExt::write_all(&mut stdin, s.as_bytes()).await?;
 				AsyncWriteExt::write_all(&mut stdin, b"\n").await?;
 			}
@@ -81,8 +77,13 @@ impl Sftp {
 			stdin.shutdown().await
 		});
 
-		proc.wait().await?;
-		handle.await?;
+		let status = proc.wait().await?;
+		ensure!(
+			status.success(),
+			"sftp command exited with exit code {status}"
+		);
+
+		handle.await??;
 
 		Ok(())
 	}
@@ -117,7 +118,7 @@ impl FromStr for SendFile {
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let (local, remote) = match s.split_once("::") {
 			Some((left, right)) => {
-				anyhow::ensure!(
+				ensure!(
 					!right.contains(|c: char| if cfg!(windows) {
 						c == ':' || c == '/' || c == '\\'
 					} else {
@@ -146,6 +147,28 @@ impl FromStr for SendFile {
 			})
 		} else {
 			Err(anyhow!("file is not a plain file: {}", local))
+		}
+	}
+}
+
+pub struct SftpUri {
+	pub remote: String,
+	pub root: String,
+}
+
+impl FromStr for SftpUri {
+	type Err = &'static str;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let (remote, root) = s.rsplit_once(':').ok_or("missing the `:` separator")?;
+
+		if remote.is_empty() {
+			Err("host name is missing")
+		} else {
+			Ok(Self {
+				remote: remote.into(),
+				root: root.into(),
+			})
 		}
 	}
 }

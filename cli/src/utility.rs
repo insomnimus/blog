@@ -1,3 +1,11 @@
+use clap::ArgMatches;
+
+use crate::sftp::{
+	Sftp,
+	SftpCommand,
+	SftpUri,
+};
+
 macro_rules! clear {
 	(home) => {
 		sqlx::query!("INSERT INTO html_cache(_instance)
@@ -46,3 +54,29 @@ macro_rules! confirm{
 
 pub(crate) use clear;
 pub(crate) use confirm;
+
+pub fn sftp_args(m: &ArgMatches) -> Sftp {
+	let extra_args = m
+		.values_of("args")
+		.into_iter()
+		.flatten()
+		.map(String::from)
+		.collect::<Vec<_>>();
+
+	let SftpUri { remote, root } = m.value_of_t_or_exit::<SftpUri>("remote");
+
+	Sftp {
+		root,
+		cmd: SftpCommand::Constructed {
+			remote,
+			extra_args,
+			cmd_path: "sftp".into(),
+		},
+	}
+}
+
+pub fn validate_sftp_uri(s: &str) -> Result<(), String> {
+	s.parse::<SftpUri>()
+		.map(|_| {})
+		.map_err(|e| format!("the uri syntax is invalid: {e}"))
+}
