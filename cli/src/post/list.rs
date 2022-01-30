@@ -47,7 +47,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		let mut x = res?;
 		let p = Post {
 			id: x.id,
-			date: format_date(x.date),
+			date: x.date.to_local(),
 			attachments: x
 				.attachments
 				.take()

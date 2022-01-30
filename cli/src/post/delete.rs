@@ -1,5 +1,8 @@
+use super::{
+	post_dir,
+	Post,
+};
 use crate::prelude::*;
-use super::Post;
 
 pub fn app() -> App<'static> {
 	App::new("delete")
@@ -24,12 +27,11 @@ pub fn app() -> App<'static> {
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let yes = m.is_present("yes");
-	
+
 	let mut tx = db().begin().await?;
-	
+
 	let post = match m.value_of_t::<i32>("id") {
-		Ok(id) => {
-			query!(
+		Ok(id) => query!(
 			r#"SELECT
 			p.post_id AS id,
 			p.date_posted AS date,
@@ -41,21 +43,25 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 			WHERE p.post_id = $1
 			GROUP BY p.post_id"#,
 			id,
-			)
-			.fetch_optional(&mut tx)
-			.await?
-			.map(|mut x| Post {
-				id: x.id,
-				date: x.date.to_local(),
-				raw: x.raw.take(),
-				rendered: String::new(),
-				attachments: x.attachments.take().into_iter().flatten().flatten().collect(),
-			})
-			.ok_or_else(|| anyhow!("no post found with the id {id}"))?
-		}
+		)
+		.fetch_optional(&mut tx)
+		.await?
+		.map(|mut x| Post {
+			id: x.id,
+			date: x.date.to_local(),
+			raw: x.raw.take(),
+			rendered: None,
+			attachments: x
+				.attachments
+				.take()
+				.into_iter()
+				.flatten()
+				.flatten()
+				.collect(),
+		})
+		.ok_or_else(|| anyhow!("no post found with the id {id}"))?,
 		// `--last` is set here
-		Err(_) => {
-			query!(
+		Err(_) => query!(
 			r#"SELECT
 			p.post_id AS id,
 			p.raw,
@@ -67,27 +73,35 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 			GROUP BY p.post_id
 			ORDER BY p.post_id DESC
 			LIMIT 1"#
-			)
-			.fetch_optional(&mut tx)
-			.await?
-						.map(|mut x| Post {
-				id: x.id,
-				date: x.date.to_local(),
-				raw: x.raw.take(),
-				rendered: String::new(),
-				attachments: x.attachments.take().into_iter().flatten().flatten().collect(),
-			})
-			.ok_or_else(|| anyhow!("there are no posts in the database"))?
-		}
+		)
+		.fetch_optional(&mut tx)
+		.await?
+		.map(|mut x| Post {
+			id: x.id,
+			date: x.date.to_local(),
+			raw: x.raw.take(),
+			rendered: None,
+			attachments: x
+				.attachments
+				.take()
+				.into_iter()
+				.flatten()
+				.flatten()
+				.collect(),
+		})
+		.ok_or_else(|| anyhow!("there are no posts in the database"))?,
 	};
-	
+
 	if !post.attachments.is_empty() && !m.is_present("sftp") {
-		return Err(anyhow!("the post has {} attachments but no sftp uri was provided", post.attachments.len()));
+		return Err(anyhow!(
+			"the post has {} attachments but no sftp uri was provided",
+			post.attachments.len()
+		));
 	}
-	
+
 	if !yes {
 		println!("post #{}", post.id);
-		println!("{}", &post.raw)]);
+		println!("{}", &post.raw);
 		let msg = if !post.attachments.is_empty() {
 			println!("ATTACHMENTS:");
 			for a in &post.attachments {
@@ -97,23 +111,25 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		} else {
 			"Do you want to delete this post?"
 		};
-		if !confirm!("{msg}")
-		return Ok(());
+		if !confirm!("{msg}")? {
+			return Ok(());
+		}
 	}
-	
+
 	query!("DELETE FROM post WHERE post_id = $1", post.id)
-	.execute(&mut tx)
-	.await?;
-	
+		.execute(&mut tx)
+		.await?;
+
 	if !post.attachments.is_empty() {
 		let sftp = sftp_args(m);
 		let dir = post_dir(post.id);
 		sftp.rmdir(&dir).await?;
 		println!("✓ deleted attachments from the sftp server");
 	}
-	
+
+	clear!(posts).execute(&mut tx).await?;
 	tx.commit().await?;
-	println!("✓ deleted psot #{}", post.id);
-	
+	println!("✓ deleted post #{}", post.id);
+
 	Ok(())
 }

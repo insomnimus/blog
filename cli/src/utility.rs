@@ -50,6 +50,9 @@ macro_rules! confirm{
 		let v = stdin.lines().next().unwrap().map(|s| s.eq_ignore_ascii_case("y") || s.eq_ignore_ascii_case("yes"));
 		v
 	}};
+	($fmt:literal) => {
+		$crate::utility::confirm!($fmt,)
+	};
 }
 
 pub(crate) use clear;

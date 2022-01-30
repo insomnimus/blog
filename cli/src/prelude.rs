@@ -30,6 +30,7 @@ use tokio::sync::OnceCell;
 
 pub(crate) use crate::{
 	display::*,
+	ext::*,
 	render::*,
 	utility::*,
 };

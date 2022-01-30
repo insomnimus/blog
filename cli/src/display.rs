@@ -1,17 +1,6 @@
 use std::str::FromStr;
 
 use serde::Serialize;
-use sqlx::types::chrono::{
-	DateTime,
-	NaiveDateTime,
-	Utc,
-};
-
-pub fn format_date(d: NaiveDateTime) -> String {
-	DateTime::<Utc>::from_utc(d, Utc)
-		.format("%Y/%m/%d:%H:%M")
-		.to_string()
-}
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Format {

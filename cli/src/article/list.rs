@@ -68,8 +68,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 			about: x.about.take(),
 			url_title: x.url_title.take(),
 			tags: x.tags_array.take().unwrap_or_default(),
-			published: format_date(x.date_published),
-			updated: x.date_updated.map(format_date),
+			published: x.date_published.to_local(),
+			updated: x.date_updated.to_local(),
 		};
 
 		format.print(&info)?;
