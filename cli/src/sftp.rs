@@ -104,7 +104,13 @@ impl Sftp {
 	}
 
 	pub async fn rmdir(&self, dir: &str) -> Result<()> {
-		let cmds = format!("cd {}\nrmdir {}", escape(&self.root), escape(dir),);
+		let cmds = format!(
+			"cd {root}
+rm {dir}/*
+rmdir {dir}",
+			root = escape(&self.root),
+			dir = escape(dir),
+		);
 
 		let mut cmd = self.cmd.command();
 		let mut proc = cmd.spawn()?;
