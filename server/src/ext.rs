@@ -13,7 +13,9 @@ impl DateTimeExt for DateTime<Utc> {
 	type Output = String;
 
 	fn format_utc(&self) -> String {
-		self.format("%Y-%m-%dT%H:%MZ").to_string()
+		self.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+		// self.format("%+").to_string()
+		// self.format("%Y-%m-%dT%H:%MZ").to_string()
 	}
 }
 

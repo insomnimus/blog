@@ -9,7 +9,7 @@
 <div id="posts">
 {% for post in self.posts %}
 	{% if !loop.first %} <hr> {% endif %}
-	{{ post }}
+	{{ post|safe }}
 {% endfor %}
 </div>
 {% endblock %}

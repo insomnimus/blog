@@ -58,6 +58,7 @@ pub async fn handle_home() -> HttpResponse {
 	LEFT JOIN post_media m
 	ON m.post_id = p.post_id
 	GROUP BY p.post_id
+	ORDER BY p.post_id DESC
 	LIMIT 10"#
 	)
 	.fetch_all(&mut tx)

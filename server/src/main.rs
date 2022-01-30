@@ -41,14 +41,21 @@ async fn main() -> anyhow::Result<()> {
 	db::init(&config.db_url).await?;
 
 	let static_handler =
-		get_service(ServeDir::new("static")).handle_error(|error: std::io::Error| async move {
-			log::error!("static: {}", error);
+		get_service(ServeDir::new("static")).handle_error(|e: std::io::Error| async move {
+			log::error!("static: {e}");
+			(StatusCode::NOT_FOUND, "The requested file is not found.")
+		});
+
+	let media_handler =
+		get_service(ServeDir::new("media")).handle_error(|e: std::io::Error| async move {
+			log::error!("media: {e}");
 			(StatusCode::NOT_FOUND, "The requested file is not found.")
 		});
 
 	let api = Router::new().route("/posts", get(post::handle_api));
 
 	let app = Router::new()
+		.nest("/media", media_handler)
 		.nest("/api", api)
 		.nest("/static", static_handler)
 		.route("/", get(home::handle_home))

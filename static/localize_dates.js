@@ -24,7 +24,7 @@ function format_since(date) {
 
 	const intervals = [
 		["second", 1, 60, "just now"],
-		["minute", 60, 360, "a minute ago"],
+		["minute", 60, 3600, "a minute ago"],
 		["hour", 3600, 86400, "an hour ago"],
 		["day", 86400, 1209600, "yesterday"],
 		["week", 604800, 3628800, "last week"],

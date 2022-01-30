@@ -157,7 +157,7 @@ impl FromStr for SftpUri {
 	type Err = &'static str;
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let (remote, root) = s.rsplit_once(':').ok_or("missing the `:` separator")?;
+		let (remote, root) = s.split_once(':').ok_or("missing the `:` separator")?;
 
 		if remote.is_empty() {
 			Err("host name is missing")

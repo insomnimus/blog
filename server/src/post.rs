@@ -43,19 +43,19 @@ pub struct PostParams {
 
 async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 	query!(
-		"SELECT
+		r#"SELECT
 	p.post_id AS id,
 	p.content,
 	p.date_posted AS date,
-	ARRAY_AGG(m.file_path) AS attachments
+	ARRAY_AGG(m.file_path) AS "attachments: Vec<Option<String>>"
 	FROM post p
 	LEFT JOIN post_media m
 	ON p.post_id = m.post_id
-	WHERE $1 = 0 OR p.post_id < $1
+	WHERE $1 = 1 OR p.post_id < $1
 	GROUP BY p.post_id
-	ORDER BY p.post_id DESC
-	LIMIT 25",
-		last_id.saturating_sub(1),
+	ORDER BY p.date_posted DESC
+	LIMIT 25"#,
+		last_id,
 	)
 	.fetch_all(db())
 	.await
@@ -70,6 +70,7 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 					.take()
 					.into_iter()
 					.flatten()
+					.flatten()
 					.map(Media::new)
 					.collect(),
 			})
@@ -79,7 +80,7 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 }
 
 pub async fn handle_posts() -> HttpResponse<Posts> {
-	get_posts(0).await.or_500().map(|posts| Posts { posts })
+	get_posts(1).await.or_500().map(|posts| Posts { posts })
 }
 
 pub async fn handle_api(Query(params): Query<PostParams>) -> HttpResponse<Json<PostsJson>> {
