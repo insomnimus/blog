@@ -13,6 +13,8 @@ pub fn app() -> App<'static> {
 	.validator(validate::<i32>("the value must be a whole number")),
 	arg!(--last "Delete the last post instead."),
 	arg!(-y --yes "Do not prompt for confirmation."),
+	arg!(--dirty "Do not abort the operation if the attachments could not be deleted."),
+	arg!(--"keep-attachments" "Do not attempt to delete attachments.").conflicts_with("dirty"),
 		arg!(-r --sftp [URI] "The sftp servers connection uri in the form `user@domain:/path/to/store`.")
 			.env("BLOG_SFTP_URI")
 			.validator(validate_sftp_uri),
@@ -27,6 +29,8 @@ pub fn app() -> App<'static> {
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let yes = m.is_present("yes");
+	let dirty = m.is_present("dirty");
+	let keep_attachments = m.is_present("keep-attachments");
 
 	let mut tx = db().begin().await?;
 
@@ -92,7 +96,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.ok_or_else(|| anyhow!("there are no posts in the database"))?,
 	};
 
-	if !post.attachments.is_empty() && !m.is_present("sftp") {
+	if !keep_attachments && !post.attachments.is_empty() && !m.is_present("sftp") {
 		return Err(anyhow!(
 			"the post has {} attachments but no sftp uri was provided",
 			post.attachments.len()
@@ -120,11 +124,14 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.execute(&mut tx)
 		.await?;
 
-	if !post.attachments.is_empty() {
+	if !keep_attachments && !post.attachments.is_empty() {
 		let sftp = sftp_args(m);
 		let dir = post_dir(post.id);
-		sftp.rmdir(&dir).await?;
-		println!("✓ deleted attachments from the sftp server");
+		match sftp.rmdir(&dir).await {
+			Ok(_) => println!("✓ deleted attachments from the sftp server"),
+			Err(e) if dirty => eprintln!("warning: failed to delete attachments: {e}"),
+			Err(e) => return Err(e),
+		};
 	}
 
 	clear!(posts).execute(&mut tx).await?;
