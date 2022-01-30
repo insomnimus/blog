@@ -10,25 +10,20 @@ pub fn app() -> App<'static> {
 			.default_value("markdown")
 			.possible_values(Syntax::VALUES)
 			.ignore_case(true),
-			Arg::new("attachment")
-			.short('a')
-			.long("attachment")
-			.help("An attachment, in the form 'LOCAL::REMOTE' or just 'LOCAL' (file names)")
-			.multiple_occurrences(true)
+			arg!(-a --attachment [ATTACHMENT] ... "An attachment as a file path or `file::rename_name`.")
 			.max_occurrences(3)
-			.takes_value(true)
 			.validator(validate_send_file)
-			.requires("remote"),
-			arg!(-r --remote [URI] "The sftp servers connection uri in the form `user@domain:/path/to/store`.")
+			.requires("sftp"),
+			arg!(-r --sftp [URI] "The sftp servers connection uri in the form `user@domain:/path/to/store`.")
 			.env("BLOG_SFTP_URI")
 			.validator(validate_sftp_uri),
 		arg!(content: <CONTENT> "The post content.").validator(validate_post),
-		Arg::new("args")
+		Arg::new("sftp-args")
 		.multiple_values(true)
 		.last(true)
 		.help("Extra args to pass to the sftp command.")
 		.required(false)
-		.requires("remote"),
+		.requires("sftp"),
 	])
 }
 

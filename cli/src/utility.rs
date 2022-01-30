@@ -44,7 +44,7 @@ macro_rules! confirm{
 		let stdout = std::io::stdout();
 		let mut stdout = stdout.lock();
 
-		println!("{} [y/n]: ", format_args!($fmt, $($args),*));
+		print!("{} [y/n]: ", format_args!($fmt, $($args),*));
 		stdout.flush().unwrap();
 		let stdin = stdin.lock();
 		let v = stdin.lines().next().unwrap().map(|s| s.eq_ignore_ascii_case("y") || s.eq_ignore_ascii_case("yes"));
@@ -57,17 +57,17 @@ pub(crate) use confirm;
 
 pub fn sftp_args(m: &ArgMatches) -> Sftp {
 	let extra_args = m
-		.values_of("args")
+		.values_of("sftp-args")
 		.into_iter()
 		.flatten()
 		.map(String::from)
 		.collect::<Vec<_>>();
 
-	let SftpUri { remote, root } = m.value_of_t_or_exit::<SftpUri>("remote");
+	let SftpUri { remote, root } = m.value_of_t_or_exit::<SftpUri>("sftp");
 
 	Sftp {
 		root,
-		cmd: SftpCommand::Constructed {
+		cmd: SftpCommand {
 			remote,
 			extra_args,
 			cmd_path: "sftp".into(),
