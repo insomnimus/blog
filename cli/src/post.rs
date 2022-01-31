@@ -1,5 +1,6 @@
 mod create;
 mod delete;
+mod edit;
 mod list;
 
 use crate::prelude::*;
@@ -13,7 +14,7 @@ pub fn app() -> App<'static> {
 				.env("BLOG_DB_URL")
 				.hide_env_values(true),
 		)
-		.subcommands([create::app(), delete::app(), list::app()])
+		.subcommands([create::app(), delete::app(), edit::app(), list::app()])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
@@ -22,6 +23,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	match m.subcommand().unwrap() {
 		("create", m) => create::run(m).await,
 		("delete", m) => delete::run(m).await,
+		("edit", m) => edit::run(m).await,
 		("list", m) => list::run(m).await,
 		_ => unreachable!(),
 	}
