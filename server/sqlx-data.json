@@ -1,43 +1,5 @@
 {
   "db": "PostgreSQL",
-  "280a7fdd3358944aec34c6c793b029cd6b8bddce74c534440e1bdb38ebce653f": {
-    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS attachments\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 0 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 25",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "attachments",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        null
-      ]
-    }
-  },
   "3651dc586bc10c5b6c48558e6abe203c005ce2af4e3ad5a9484c358078a93f50": {
     "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
     "describe": {
@@ -130,8 +92,8 @@
       "nullable": []
     }
   },
-  "54d59a7b3b8a458e69816cbd9f443d24d5fb2f5960cce8087d66c08e3c6bfb3f": {
-    "query": "SELECT p.post_id AS id,\n\t\tp.content,\n\t\tp.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON m.post_id = p.post_id\n\tGROUP BY p.post_id\n\tLIMIT 10",
+  "989381b9d980bd3f568274b5115aedd7e9bceb9157d3fc5acde45ccfd2e6d58e": {
+    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 1 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.date_posted DESC\n\tLIMIT 25",
     "describe": {
       "columns": [
         {
@@ -151,12 +113,14 @@
         },
         {
           "ordinal": 3,
-          "name": "n_attachments!",
-          "type_info": "Int8"
+          "name": "attachments: Vec<Option<String>>",
+          "type_info": "TextArray"
         }
       ],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Int4"
+        ]
       },
       "nullable": [
         false,
@@ -212,6 +176,42 @@
         false,
         false,
         true,
+        false,
+        null
+      ]
+    }
+  },
+  "d656941d05f7ba9b5d253b192e38838915840c2519fa9bc2e3c0837081b27e40": {
+    "query": "SELECT p.post_id AS id,\n\t\tp.content,\n\t\tp.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON m.post_id = p.post_id\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 10",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "n_attachments!",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
         false,
         null
       ]
