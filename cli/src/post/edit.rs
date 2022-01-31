@@ -38,7 +38,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let raw = match m.value_of("content") {
 		Some(x) => Cow::Borrowed(x),
-		None => match edit_md("post", &raw).await? {
+		None => match edit_buf("post", ".md", &raw).await? {
 			None => return Ok(()),
 			Some(x) => Cow::Owned(x),
 		},

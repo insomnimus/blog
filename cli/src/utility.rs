@@ -84,12 +84,12 @@ pub fn validate_sftp_uri(s: &str) -> Result<(), String> {
 		.map_err(|e| format!("the uri syntax is invalid: {e}"))
 }
 
-pub async fn edit_md(prefix: &str, buf: &str) -> std::io::Result<Option<String>> {
+pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> std::io::Result<Option<String>> {
 	let mut b = edit::Builder::new();
-	b.prefix(prefix).rand_bytes(4).suffix(".md");
+	b.prefix(prefix).rand_bytes(4).suffix(ext);
 
 	let edited = tokio::task::block_in_place(move || {
-		println!("waiting for your editor to terminate");
+		println!("waiting for you to finish editing");
 		edit::edit_with_builder(buf, &b)
 	})?;
 
