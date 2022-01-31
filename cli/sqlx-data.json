@@ -1,28 +1,13 @@
 {
   "db": "PostgreSQL",
-  "3651dc586bc10c5b6c48558e6abe203c005ce2af4e3ad5a9484c358078a93f50": {
-    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
+  "1d896c81bbd4e4207091aacbbbb0f46ef4d78afe758a0dd598b5a79c3b21d622": {
+    "query": "SELECT title FROM article WHERE article_id = $1",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
+          "name": "title",
           "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "attachments?: Vec<Option<String>>",
-          "type_info": "TextArray"
         }
       ],
       "parameters": {
@@ -31,57 +16,79 @@
         ]
       },
       "nullable": [
-        false,
-        false,
-        false,
-        null
+        false
       ]
     }
   },
-  "3c95d3420390d8d3328ee02c2734f485969def2a881955ed2a08b4e5f32bb658": {
-    "query": "SELECT title,\n\t\t\turl_title,\n\t\t\tabout,\n\t\t\tdate_published AS published,\n\t\t\tdate_updated AS updated\n\t\t\tFROM article\n\tORDER BY COALESCE(date_updated, date_published) DESC\n\tLIMIT 5",
+  "264aea0f3e66a8edeffc63536453ed3ab58ef59fb9bac91baf1a646cff8b7f49": {
+    "query": "DELETE FROM article WHERE article_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "2778fbc1bea2f713a89e8a0a9fe32c022e2d6f1925861e678b37d172ebaff849": {
+    "query": "DELETE FROM article_tag WHERE article_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "3ee6a3b3295fd332e56210c9aa915fcd1d60d4b05a3d6f950bceddf8ae1e30f1": {
+    "query": "INSERT INTO html_cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome_page = NULL,\n\t\tposts_page = NULL",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
+  "520acbf3fa55054be0199ab3a620035c77b1d4728292060fc770916a26e81a4a": {
+    "query": "DELETE FROM article_tag WHERE article_id = $1 RETURNING tag_name",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "title",
+          "name": "tag_name",
           "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "about",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "published",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated",
-          "type_info": "Timestamp"
         }
       ],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Int4"
+        ]
       },
       "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true
+        false
       ]
     }
   },
-  "52cc0d2202b656b1caac13dc8234574f93b512f5950841a695a79391c0979473": {
-    "query": "INSERT INTO html_cache(_instance, home_page)\n\t\tVALUES('TRUE', $1)\n\t\tON CONFLICT(_instance) DO UPDATE\n\t\tSET home_page = $1",
+  "5a529efa46752199760388b41abae0a266aff97e33a42cfcd4bd5d98f2b9239d": {
+    "query": "INSERT INTO article_tag(article_id, tag_name) VALUES($1, $2)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "655902da1dbd7d6009909266e98108ce575792ab14502ab7a279d2b66f4a1a68": {
+    "query": "INSERT INTO media(file_path) VALUES($1)",
     "describe": {
       "columns": [],
       "parameters": {
@@ -92,8 +99,130 @@
       "nullable": []
     }
   },
-  "989381b9d980bd3f568274b5115aedd7e9bceb9157d3fc5acde45ccfd2e6d58e": {
-    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 1 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.date_posted DESC\n\tLIMIT 25",
+  "672c8cd543c1f149ff1287a34c824dfc3b62ec396836b3831a6deccd829e3b93": {
+    "query": "SELECT article_id FROM article WHERE LOWER(title) = $1 LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "6a68c4f301f6a5245b738fcf0c5b39b8362bd613f05944db77d1e09383593ed9": {
+    "query": "INSERT INTO post_media(file_path, post_id) VALUES($1, $2)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6b720f2046ab9fd8ea93b0b38c548ce66d82027df396e887cdc8ef4923c2c1db": {
+    "query": "UPDATE article\n\tSET\n\ttitle = COALESCE(NULLIF($1, ''), title),\n\turl_title = COALESCE(NULLIF($2, ''), url_title),\n\tabout = COALESCE($3, about),\n\thtml = COALESCE($4, html),\n\traw_hash = COALESCE($5, raw_hash),\n\traw = COALESCE($6, raw),\n\tdate_updated = NOW() AT TIME ZONE 'UTC'\n\tWHERE article_id = $7",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Bytea",
+          "Text",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6de200f79d0aac2baf4614ad99754bb5dc6a49e0097fdea9e3f1cec41fab3356": {
+    "query": "INSERT INTO tag(tag_name) VALUES($1) ON CONFLICT(tag_name) DO NOTHING",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6e7663b0a3ddad701756bbfa35e8a77a1857484b8685f5d3164b2d1ef39d4a10": {
+    "query": "SELECT\n\ta.article_id, a.title, a.url_title, a.about , a.date_updated, a.date_published,\n\tARRAY_AGG(t.tag_name) tags_array\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON a.article_id = t.article_id\n\tWHERE $1 = '' OR LOWER(a.title) SIMILAR TO $1\n\tGROUP BY a.title, a.article_id, a.url_title\n\tHAVING ARRAY_AGG(t.tag_name) @> $2\n\tORDER BY\n\tCASE WHEN $3 = TRUE THEN a.date_published END ASC,\n\tCASE WHEN $3 = FALSE THEN a.date_published END DESC\n\tLIMIT $4",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "about",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "date_updated",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "date_published",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 6,
+          "name": "tags_array",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "TextArray",
+          "Bool",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        null
+      ]
+    }
+  },
+  "83c73dc093b0b65fc9a95b207f093cf7fed00c4cc6bb1023e0df5dbb0084f812": {
+    "query": "SELECT\n\t\t\tp.post_id AS id,\n\t\t\tp.date_posted AS date,\n\t\t\tp.raw,\n\t\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\t\tFROM post p\n\t\t\tLEFT JOIN post_media m\n\t\t\tON m.post_id = p.post_id\n\t\t\tWHERE p.post_id = $1\n\t\t\tGROUP BY p.post_id",
     "describe": {
       "columns": [
         {
@@ -103,13 +232,13 @@
         },
         {
           "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
+          "name": "date",
+          "type_info": "Timestamp"
         },
         {
           "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
+          "name": "raw",
+          "type_info": "Text"
         },
         {
           "ordinal": 3,
@@ -130,141 +259,19 @@
       ]
     }
   },
-  "c9656af10223f708a38ad78724440a6990f6bde5a10a15c3dd45d11385a99c9f": {
-    "query": "SELECT\n\ta.title, a.url_title,\n\ta.date_published, a.date_updated,\n\ta.about, ARRAY_AGG(t.tag_name) tags_array\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON t.article_id = a.article_id\n\tWHERE $1 = '' OR LOWER(a.title) LIKE $1\n\tGROUP BY a.title, a.url_title\n\tHAVING ARRAY_AGG(t.tag_name) @> $2\n\tORDER BY COALESCE(a.date_updated, a.date_published) DESC",
+  "9465a9279bbf3d41bfaed0bed9c84231e9dfc739fbec219d8cfc205a61ae24f9": {
+    "query": "SELECT article_id, title FROM article WHERE LOWER(title) = $1",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date_published",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "date_updated",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 4,
-          "name": "about",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 5,
-          "name": "tags_array",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "TextArray"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        true,
-        false,
-        null
-      ]
-    }
-  },
-  "d656941d05f7ba9b5d253b192e38838915840c2519fa9bc2e3c0837081b27e40": {
-    "query": "SELECT p.post_id AS id,\n\t\tp.content,\n\t\tp.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON m.post_id = p.post_id\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 10",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
+          "name": "article_id",
           "type_info": "Int4"
         },
         {
           "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "n_attachments!",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        null
-      ]
-    }
-  },
-  "dbc9b8d17eb7cd707f85172a796bb1a355f60cdedb382a1cb1fe049efcc7cabe": {
-    "query": "TRUNCATE html_cache",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": []
-    }
-  },
-  "ed461794a04bb5cf0e6a163744383f62638914e140ceb97eff50823133520e72": {
-    "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title\n\t\tLIMIT 1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
           "name": "title",
           "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "about",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "date_published",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 4,
-          "name": "date_updated",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 5,
-          "name": "html",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags_array",
-          "type_info": "TextArray"
         }
       ],
       "parameters": {
@@ -274,31 +281,256 @@
       },
       "nullable": [
         false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        null
+        false
       ]
     }
   },
-  "f0f8a9e5ff3e83bebe8dd6bcec79dba3fadef395825fd6e584b411e518c10ac3": {
-    "query": "SELECT home_page FROM html_cache",
+  "a2400dc34ba7426058a0cfea0e40947d4d13c893f81c86e4302aa0873b3a7bd4": {
+    "query": "SELECT\n\t\tp.post_id AS id,\n\t\tp.date_posted AS date,\n\t\tp.raw,\n\t\t(CASE WHEN $1 THEN p.content END) AS content,\n\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\tFROM post p\n\t\tLEFT JOIN post_media m\n\t\tON p.post_id = m.post_id\n\t\tGROUP BY p.post_id\n\t\tORDER BY\n\t\tCASE WHEN $2 THEN p.post_id END ASC,\n\t\tCASE WHEN NOT $2 THEN p.post_id END DESC\n\t\tLIMIT $3",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "home_page",
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 2,
+          "name": "raw",
           "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "attachments: Vec<Option<String>>",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Bool",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        null,
+        null
+      ]
+    }
+  },
+  "afdbe5c3e7ee4722bd3b1cbb9b68093df509e6a1d123dc1fe2236f4e1a4efa35": {
+    "query": "SELECT article_id, title FROM article WHERE article_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "ba4a6e7884ff51e37aa01146becaab5062a40e09500c8515cdca8ad418141ec7": {
+    "query": "INSERT INTO post(raw, content)\n\tVALUES($1, $2)\n\tRETURNING post_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "post_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "baf401b037fbc82f6cdfbbbab1a85513051049043c38fb134d61f96c254fd13b": {
+    "query": "SELECT raw, title\n\t\t\t\t\tFROM article\n\t\t\t\t\tWHERE\n\t\t\t\t\t(LOWER(title) = $1)\n\t\t\t\t\tOR\n\t\t\t\t\t(LOWER(url_title) = $1)\n\t\t\t\t\tLIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "c7509ccea8c87857edfc241dd08ece78740dda71aea7f08df883e9013b4ade11": {
+    "query": "SELECT tag_name FROM article_tag WHERE article_id = $1 ORDER BY tag_name ASC",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "tag_name",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "ceaa3a247383d3b82601993dd9587758d52f1f5d595406493475861dbf2a6be9": {
+    "query": "SELECT raw, title FROM article WHERE article_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "d61b93af1450e421e8e0b9f0fc900f14ba6a286d42a7eba690cee415286f6eec": {
+    "query": "SELECT\n\t\t\tp.post_id AS id,\n\t\t\tp.raw,\n\t\t\tp.date_posted AS date,\n\t\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\t\tFROM post p\n\t\t\tLEFT JOIN post_media m\n\t\t\tON p.post_id = m.post_id\n\t\t\tGROUP BY p.post_id\n\t\t\tORDER BY p.post_id DESC\n\t\t\tLIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments: Vec<Option<String>>",
+          "type_info": "TextArray"
         }
       ],
       "parameters": {
         "Left": []
       },
       "nullable": [
-        true
+        false,
+        false,
+        false,
+        null
       ]
+    }
+  },
+  "de62e310219afcbba284be5d3af14640ebf880a2fbbfc6c35cfaeac779f6b5e8": {
+    "query": "INSERT INTO article(title, url_title, about, raw, html, raw_hash)\n\t\t\tVALUES($1, $2, $3, $4, $5, $6)\n\t\t\tRETURNING article_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Bytea"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "e9fd6f8020a754f9361d4d21921cf4a311ad9ae5415ff04b660f876c56fc0b16": {
+    "query": "INSERT INTO html_cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome_page = NULL,\n\t\tarticles_page = NULL",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
+  "efd0c2739be8b960d7980bd19792ad2e6fa582a6a51fec87c03efa161ceb5570": {
+    "query": "DELETE FROM post WHERE post_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
     }
   }
 }
