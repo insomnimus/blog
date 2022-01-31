@@ -44,3 +44,4 @@ To start the server:
 For how to publish articles/posts, please run
 
 `./target/release/blog help`
+
