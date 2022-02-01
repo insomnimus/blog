@@ -43,6 +43,16 @@
       ]
     }
   },
+  "042f968ffdd2f20d296e23826a25fe3b7f3da7a9b28030825cda5a1ae8ec5b5d": {
+    "query": "INSERT INTO cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome = CURRENT_TIMESTAMP,\n\t\tarticles = CURRENT_TIMESTAMP",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
   "05625ce9c6a0781d90702656c5f1c64dbdf08d4d91d1934efc41ee85bd50ffb1": {
     "query": "UPDATE post SET raw = $2, content = $3 WHERE post_id = $1",
     "describe": {
@@ -134,16 +144,6 @@
         "Left": [
           "Int4"
         ]
-      },
-      "nullable": []
-    }
-  },
-  "3ee6a3b3295fd332e56210c9aa915fcd1d60d4b05a3d6f950bceddf8ae1e30f1": {
-    "query": "INSERT INTO html_cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome_page = NULL,\n\t\tposts_page = NULL",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": []
       },
       "nullable": []
     }
@@ -593,6 +593,16 @@
       ]
     }
   },
+  "b7cd59be98e358afbb4c886281d970444f5cb2df0a7e3964dce278cc7159418c": {
+    "query": "INSERT INTO cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome = CURRENT_TIMESTAMP,\n\t\tposts = CURRENT_TIMESTAMP",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
   "ba4a6e7884ff51e37aa01146becaab5062a40e09500c8515cdca8ad418141ec7": {
     "query": "INSERT INTO post(raw, content)\n\tVALUES($1, $2)\n\tRETURNING post_id",
     "describe": {
@@ -738,16 +748,6 @@
       "nullable": [
         false
       ]
-    }
-  },
-  "e9fd6f8020a754f9361d4d21921cf4a311ad9ae5415ff04b660f876c56fc0b16": {
-    "query": "INSERT INTO html_cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome_page = NULL,\n\t\tarticles_page = NULL",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": []
     }
   },
   "eb1caae4c47ef3cc9f29561a2b241f928d85a754ae1f21e335d491a6527038d5": {

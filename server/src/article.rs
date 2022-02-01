@@ -56,15 +56,22 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 }
 
 pub async fn handle_articles() -> HttpResponse<Html<String>> {
-	let mut tx = db().begin().await.or_500()?;
-	let articles = query!("SELECT articles_page FROM html_cache")
-		.fetch_optional(&mut tx)
+	static CACHE: OnceCell<RwLock<Cache>> = OnceCell::const_new();
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Cache::default()) })
+		.await;
+
+	let last_updated = query!("SELECT articles FROM cache")
+		.fetch_one(db())
 		.await
 		.or_500()?
-		.map(|x| x.articles_page);
+		.articles;
 
-	if let Some(Some(html)) = articles {
-		return Ok(Html(html));
+	{
+		let cached = cache.read().await;
+		if cached.time == last_updated && !cached.html.is_empty() {
+			return Ok(Html(cached.html.clone()));
+		}
 	}
 
 	let mut stream = query!(
@@ -81,7 +88,7 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 	GROUP BY a.article_id, a.url_title, a.title
 	ORDER BY COALESCE(a.date_updated, a.date_published) DESC"#
 	)
-	.fetch(&mut tx);
+	.fetch(db());
 
 	let mut articles = Vec::new();
 
@@ -97,22 +104,11 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 		});
 	}
 
-	drop(stream);
-
 	let html = ArticlesPage { articles }.render().or_500()?;
-
-	query!(
-		"INSERT INTO html_cache(_instance, articles_page)
-	VALUES ('TRUE', $1)
-	ON CONFLICT(_instance) DO UPDATE
-	SET articles_page = $1",
-		&html,
-	)
-	.execute(&mut tx)
-	.await
-	.or_500()?;
-
-	tx.commit().await.or_500()?;
+	let mut cached = cache.write().await;
+	cached.html.clear();
+	cached.html.push_str(&html);
+	cached.time = last_updated;
 
 	Ok(Html(html))
 }

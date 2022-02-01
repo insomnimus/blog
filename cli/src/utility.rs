@@ -8,32 +8,32 @@ use crate::sftp::{
 
 macro_rules! clear {
 	(home) => {
-		sqlx::query!("INSERT INTO html_cache(_instance)
+		sqlx::query!("INSERT INTO cache (_instance)
 		VALUES('TRUE')
 		ON CONFLICT(_instance) DO UPDATE
-		SET home_page = NULL")
+		SET home = CURRENT_TIMESTAMP")
 	};
 	(articles) => {
-		sqlx::query!("INSERT INTO html_cache(_instance)
+		sqlx::query!("INSERT INTO cache(_instance)
 		VALUES('TRUE')
 		ON CONFLICT(_instance) DO UPDATE SET
-		home_page = NULL,
-		articles_page = NULL")
+		home = CURRENT_TIMESTAMP,
+		articles = CURRENT_TIMESTAMP")
 	};
 	(posts) => {
-		sqlx::query!("INSERT INTO html_cache(_instance)
+		sqlx::query!("INSERT INTO cache(_instance)
 		VALUES('TRUE')
 		ON CONFLICT(_instance) DO UPDATE SET
-		home_page = NULL,
-		posts_page = NULL")
+		home = CURRENT_TIMESTAMP,
+		posts = CURRENT_TIMESTAMP")
 	};
 	(all) => {
-		sqlx::query!("INSERT INTO html_cache(_instance) 
+		sqlx::query!("INSERT INTO cache(_instance) 
 		VALUES('TRUE')
 		ON CONFLICT(_instance) DO UPDATE SET
-		home_page = NULL,
-		articles_page = NULL,
-		posts_page = NULL")
+		home = CURRENT_TIMESTAMP,
+		articles = CURRENT_TIMESTAMP,
+		posts = CURRENT_TIMESTAMP")
 	};
 }
 

@@ -24,11 +24,29 @@ use axum::{
 	},
 	BoxError,
 };
+use sqlx::types::chrono::{
+	NaiveDateTime,
+	Utc,
+};
 use tower::{
 	timeout::TimeoutLayer,
 	ServiceBuilder,
 };
 use tower_http::services::ServeDir;
+
+struct Cache {
+	pub time: NaiveDateTime,
+	pub html: String,
+}
+
+impl Default for Cache {
+	fn default() -> Self {
+		Self {
+			time: Utc::now().naive_utc(),
+			html: String::new(),
+		}
+	}
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

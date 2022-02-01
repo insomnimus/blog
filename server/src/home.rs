@@ -12,16 +12,22 @@ struct Home {
 }
 
 pub async fn handle_home() -> HttpResponse {
-	let mut tx = db().begin().await.or_500()?;
-	let data = query!("SELECT home_page FROM html_cache")
-		.fetch_optional(&mut tx)
+	static CACHE: OnceCell<RwLock<Cache>> = OnceCell::const_new();
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Cache::default()) })
+		.await;
+
+	let last_updated = query!("SELECT home FROM cache")
+		.fetch_one(db())
 		.await
 		.or_500()?
-		.and_then(|x| x.home_page);
+		.home;
 
-	if let Some(data) = data {
-		tx.commit().await.or_500()?;
-		return Ok(Html(data));
+	{
+		let cached = cache.read().await;
+		if cached.time == last_updated && !cached.html.is_empty() {
+			return Ok(Html(cached.html.clone()));
+		}
 	}
 
 	let articles = query!(
@@ -34,7 +40,7 @@ pub async fn handle_home() -> HttpResponse {
 	ORDER BY COALESCE(date_updated, date_published) DESC
 	LIMIT 5"
 	)
-	.fetch_all(&mut tx)
+	.fetch_all(db())
 	.await
 	.or_500()?
 	.into_iter()
@@ -61,23 +67,17 @@ pub async fn handle_home() -> HttpResponse {
 	ORDER BY p.post_id DESC
 	LIMIT 10"#
 	)
-	.fetch_all(&mut tx)
+	.fetch_all(db())
 	.await
 	.or_500()?;
 
 	let home = Home { articles, posts };
+	let html = home.render().or_500()?;
 
-	let home = home.render().or_500()?;
-	query!(
-		"INSERT INTO html_cache(_instance, home_page)
-		VALUES('TRUE', $1)
-		ON CONFLICT(_instance) DO UPDATE
-		SET home_page = $1",
-		home.as_str(),
-	)
-	.execute(&mut tx)
-	.await
-	.or_500()?;
-	tx.commit().await.or_500()?;
-	Ok(Html(home))
+	let mut cached = cache.write().await;
+	cached.html.clear();
+	cached.html.push_str(&html);
+	cached.time = last_updated;
+
+	Ok(Html(html))
 }

@@ -1,15 +1,21 @@
 {
   "db": "PostgreSQL",
-  "33c2014c087a7b5f4c54cb95b1e65a7c7561b90daa13409d88dd66a62c6aed1b": {
-    "query": "INSERT INTO html_cache(_instance, articles_page)\n\tVALUES ('TRUE', $1)\n\tON CONFLICT(_instance) DO UPDATE\n\tSET articles_page = $1",
+  "15d45446dc71daf8d0205fa496d15e7ef6d84ce8c2d6c2e573bb82eb22f33acc": {
+    "query": "SELECT articles FROM cache",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "articles",
+          "type_info": "Timestamp"
+        }
+      ],
       "parameters": {
-        "Left": [
-          "Text"
-        ]
+        "Left": []
       },
-      "nullable": []
+      "nullable": [
+        false
+      ]
     }
   },
   "3651dc586bc10c5b6c48558e6abe203c005ce2af4e3ad5a9484c358078a93f50": {
@@ -92,16 +98,22 @@
       ]
     }
   },
-  "52cc0d2202b656b1caac13dc8234574f93b512f5950841a695a79391c0979473": {
-    "query": "INSERT INTO html_cache(_instance, home_page)\n\t\tVALUES('TRUE', $1)\n\t\tON CONFLICT(_instance) DO UPDATE\n\t\tSET home_page = $1",
+  "54dd3774e0f333dd960e200f81d9e279155dc80352c9fd6e3681bf34cf4e645b": {
+    "query": "SELECT home FROM cache",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "home",
+          "type_info": "Timestamp"
+        }
+      ],
       "parameters": {
-        "Left": [
-          "Text"
-        ]
+        "Left": []
       },
-      "nullable": []
+      "nullable": [
+        false
+      ]
     }
   },
   "989381b9d980bd3f568274b5115aedd7e9bceb9157d3fc5acde45ccfd2e6d58e": {
@@ -139,24 +151,6 @@
         false,
         false,
         null
-      ]
-    }
-  },
-  "a53ae3de29bed4a5c268efc1b669a0e8d89e59ea8ca0d05a6d500b2349305d72": {
-    "query": "SELECT articles_page FROM html_cache",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "articles_page",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        true
       ]
     }
   },
@@ -295,16 +289,6 @@
       ]
     }
   },
-  "dbc9b8d17eb7cd707f85172a796bb1a355f60cdedb382a1cb1fe049efcc7cabe": {
-    "query": "TRUNCATE html_cache",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": []
-    }
-  },
   "ed461794a04bb5cf0e6a163744383f62638914e140ceb97eff50823133520e72": {
     "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title\n\t\tLIMIT 1",
     "describe": {
@@ -358,24 +342,6 @@
         true,
         false,
         null
-      ]
-    }
-  },
-  "f0f8a9e5ff3e83bebe8dd6bcec79dba3fadef395825fd6e584b411e518c10ac3": {
-    "query": "SELECT home_page FROM html_cache",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "home_page",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        true
       ]
     }
   }
