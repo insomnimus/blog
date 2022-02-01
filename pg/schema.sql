@@ -1,3 +1,5 @@
+CREATE TYPE syntax AS ENUM('plain', 'markdown', 'html');
+
 CREATE TABLE html_cache(
 	_instance BOOL PRIMARY KEY NOT NULL DEFAULT TRUE,
 	home_page TEXT,
@@ -21,7 +23,8 @@ CREATE TABLE article (
 	date_updated TIMESTAMP,
 	html TEXT NOT NULL,
 	raw TEXT NOT NULL,
-	raw_hash BYTEA NOT NULL
+	raw_hash BYTEA NOT NULL,
+	syntax syntax NOT NULL
 );
 
 CREATE TABLE tag(

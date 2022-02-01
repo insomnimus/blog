@@ -1,5 +1,48 @@
 {
   "db": "PostgreSQL",
+  "0343453286ab065465692e4b529846d98c82e1c397e6b75d20f970a7b5a7ff12": {
+    "query": "SELECT article_id,\n\t\t\traw,\n\t\t\tsyntax AS \"syntax: Syntax\"\n\t\t\tFROM article\n\t\t\tWHERE LOWER(title) = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "05625ce9c6a0781d90702656c5f1c64dbdf08d4d91d1934efc41ee85bd50ffb1": {
     "query": "UPDATE post SET raw = $2, content = $3 WHERE post_id = $1",
     "describe": {
@@ -12,6 +55,43 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "0f9c30710ec25fe5aa647fdb14136b692d9c0dc772e533255f6e5060e9e76c90": {
+    "query": "INSERT INTO article(title, url_title, about, raw, html, raw_hash, syntax)\n\t\t\tVALUES($1, $2, $3, $4, $5, $6, $7)\n\t\t\tRETURNING article_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Bytea",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   },
   "1d896c81bbd4e4207091aacbbbb0f46ef4d78afe758a0dd598b5a79c3b21d622": {
@@ -68,6 +148,44 @@
       "nullable": []
     }
   },
+  "4a3c698a2d6960341eebfda26e5b22d8382e84eb2bcafb66f79f1cf959e8aa36": {
+    "query": "UPDATE article\n\tSET\n\ttitle = COALESCE($1, title),\n\turl_title = COALESCE($2, url_title),\n\tabout = COALESCE($3, about),\n\thtml = COALESCE($4, html),\n\traw_hash = COALESCE($5, raw_hash),\n\traw = COALESCE($6, raw),\n\tsyntax = COALESCE($7, syntax),\n\tdate_updated = NOW() AT TIME ZONE 'UTC'\n\tWHERE article_id = $8\n\tRETURNING title",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Bytea",
+          "Text",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          },
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "520acbf3fa55054be0199ab3a620035c77b1d4728292060fc770916a26e81a4a": {
     "query": "DELETE FROM article_tag WHERE article_id = $1 RETURNING tag_name",
     "describe": {
@@ -113,26 +231,6 @@
       "nullable": []
     }
   },
-  "672c8cd543c1f149ff1287a34c824dfc3b62ec396836b3831a6deccd829e3b93": {
-    "query": "SELECT article_id FROM article WHERE LOWER(title) = $1 LIMIT 1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "article_id",
-          "type_info": "Int4"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
   "6a68c4f301f6a5245b738fcf0c5b39b8362bd613f05944db77d1e09383593ed9": {
     "query": "INSERT INTO post_media(file_path, post_id) VALUES($1, $2)",
     "describe": {
@@ -146,22 +244,45 @@
       "nullable": []
     }
   },
-  "6b720f2046ab9fd8ea93b0b38c548ce66d82027df396e887cdc8ef4923c2c1db": {
-    "query": "UPDATE article\n\tSET\n\ttitle = COALESCE(NULLIF($1, ''), title),\n\turl_title = COALESCE(NULLIF($2, ''), url_title),\n\tabout = COALESCE($3, about),\n\thtml = COALESCE($4, html),\n\traw_hash = COALESCE($5, raw_hash),\n\traw = COALESCE($6, raw),\n\tdate_updated = NOW() AT TIME ZONE 'UTC'\n\tWHERE article_id = $7",
+  "6aff954be4c172b581b79e7ba9295ee286b03aa098a1a2a841ada648cedca61d": {
+    "query": "SELECT article_id, raw, syntax AS \"syntax: Syntax\" FROM article ORDER BY article_id DESC LIMIT 1",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        }
+      ],
       "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Bytea",
-          "Text",
-          "Int4"
-        ]
+        "Left": []
       },
-      "nullable": []
+      "nullable": [
+        false,
+        false,
+        false
+      ]
     }
   },
   "6de200f79d0aac2baf4614ad99754bb5dc6a49e0097fdea9e3f1cec41fab3356": {
@@ -369,6 +490,26 @@
       ]
     }
   },
+  "a337605be1f3ec5f8eef4efb91eae4881abaca24e959cc17971fe98328405072": {
+    "query": "SELECT article_id FROM article WHERE LOWER(title) = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "a6786a11d6d03cb83f1d64d7b51dba1dfd7f5ff0117a2fbb8544cd3936d098cc": {
     "query": "SELECT raw FROM post WHERE post_id = $1",
     "describe": {
@@ -402,6 +543,43 @@
           "ordinal": 1,
           "name": "title",
           "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "b1d20e5bd82a077a5f4270ed0e65b5e44a2cdbbff3fac8b14ff6d93ae3e1c30c": {
+    "query": "SELECT raw, syntax AS \"syntax: Syntax\" FROM article WHERE article_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
         }
       ],
       "parameters": {
@@ -544,8 +722,8 @@
       ]
     }
   },
-  "de62e310219afcbba284be5d3af14640ebf880a2fbbfc6c35cfaeac779f6b5e8": {
-    "query": "INSERT INTO article(title, url_title, about, raw, html, raw_hash)\n\t\t\tVALUES($1, $2, $3, $4, $5, $6)\n\t\t\tRETURNING article_id",
+  "e77c4dc37b6f6812a38f769524179a32bca57de9fc5071dad015e205b7415268": {
+    "query": "SELECT article_id FROM article ORDER BY article_id DESC LIMIT 1",
     "describe": {
       "columns": [
         {
@@ -555,14 +733,7 @@
         }
       ],
       "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Bytea"
-        ]
+        "Left": []
       },
       "nullable": [
         false
@@ -577,6 +748,26 @@
         "Left": []
       },
       "nullable": []
+    }
+  },
+  "eb1caae4c47ef3cc9f29561a2b241f928d85a754ae1f21e335d491a6527038d5": {
+    "query": "SELECT article_id FROM article WHERE article_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   },
   "efd0c2739be8b960d7980bd19792ad2e6fa582a6a51fec87c03efa161ceb5570": {

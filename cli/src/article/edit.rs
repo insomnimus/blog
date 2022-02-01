@@ -9,14 +9,25 @@ pub fn app() -> App<'static> {
 	App::new("edit")
 		.about("Update an existing article.")
 		.group(
-			ArgGroup::new("md")
-				.multiple(true)
+			ArgGroup::new("handle")
 				.required(true)
-				.args(&["path", "title", "about"]),
+				.args(&["article", "last"]),
+		)
+		.group(ArgGroup::new("edit")
+		.args(&["editor", "path"]))
+		.group(ArgGroup::new("md")
+		.multiple(true)
+		.required(true)
+		.args(&["editor", "path", "title", "about"])
 		)
 		.args(&[
-			arg!(article: <ARTICLE> "The ID or title of the article to edit.").required(true),
+			arg!(article: [ARTICLE] "The ID or title of the article to edit."),
+			arg!(--last "Edit the last article published."),
 			arg!(-p --path [FILE] "The path to the file containing the new article contents."),
+			arg!(-e --editor "Edit the article in your editor."),
+			arg!(-s --syntax [SYNTAX] "The syntax for rendering. If omitted and --path is set, it will be inferred from the file extension.")
+			.possible_values(Syntax::VALUES)
+			.ignore_case(true),
 			arg!(-t --title [NEW_TITLE] "The new article title.").validator(validate_title),
 			arg!(-a --about [DESCRIPTION] "Change the article description.")
 				.validator(validate_about),
@@ -24,82 +35,132 @@ pub fn app() -> App<'static> {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	let (html, raw, hash) = match m.value_of("path") {
-		None => (None, None, None),
-		Some(p) => ArticleContents::read_from_file(p)
-			.await
-			.map(|ArticleContents { raw, html, hash }| (Some(html), Some(raw), Some(hash)))?,
+	if m.is_present("editor") {
+		run_editor(m).await?;
+	} else {
+		run_no_editor(m).await?;
+	}
+	Ok(())
+}
+
+async fn run_editor(m: &ArgMatches) -> Result<()> {
+	let (id, raw, syntax) = match m.value_of_t::<i32>("article") {
+		Ok(id) => query!(r#"SELECT raw, syntax AS "syntax: Syntax" FROM article WHERE article_id = $1"#, id)
+			.fetch_optional(db())
+			.await?
+			.map(|mut x| (id, x.raw.take(), x.syntax))
+			.ok_or_else(|| anyhow!("no article found with the id {id}"))?,
+		Err(_) if m.is_present("last") => {
+			query!(r#"SELECT article_id, raw, syntax AS "syntax: Syntax" FROM article ORDER BY article_id DESC LIMIT 1"#)
+				.fetch_optional(db())
+				.await?
+				.map(|mut x| (x.article_id, x.raw.take(), x.syntax))
+				.ok_or_else(|| anyhow!("there are no articles in the database"))?
+		}
+		Err(_) => {
+			let name = m.value_of("article").unwrap();
+
+			query!(
+				r#"SELECT article_id,
+			raw,
+			syntax AS "syntax: Syntax"
+			FROM article
+			WHERE LOWER(title) = $1"#,
+				name.to_lowercase(),
+			)
+			.fetch_optional(db())
+			.await?
+			.map(|mut x| (x.article_id, x.raw.take(), x.syntax))
+			.ok_or_else(|| anyhow!("no article found with the title '{name}'"))?
+		}
 	};
 
-	let mut tx = db().begin().await?;
+	let syntax = m.value_of_t::<Syntax>("syntax").unwrap_or(syntax);
+
+	let raw = match edit_buf("article", syntax.ext(), &raw).await? {
+		None => return Ok(()),
+		Some(x) => x,
+	};
+
+	let contents = ArticleContents::new(raw, syntax);
+	update_article(m, id, Some(contents)).await
+}
+
+async fn run_no_editor(m: &ArgMatches) -> Result<()> {
+	let contents = match m.value_of("path") {
+		None => None,
+		Some(p) => Some(ArticleContents::read_from_file(p, m.value_of_t("syntax").ok()).await?),
+	};
+
 	let id = match m.value_of_t::<i32>("article") {
-		Ok(n) => n,
+		Ok(id) => {
+			query!("SELECT article_id FROM article WHERE article_id = $1", id)
+				.fetch_optional(db())
+				.await?
+				.ok_or_else(|| anyhow!("no article found with the id {id}"))?;
+
+			id
+		}
+		Err(_) if m.is_present("last") => {
+			query!("SELECT article_id FROM article ORDER BY article_id DESC LIMIT 1")
+				.fetch_optional(db())
+				.await?
+				.ok_or_else(|| anyhow!("there are no articles in the database"))?
+				.article_id
+		}
 		Err(_) => {
+			let name = m.value_of("article").unwrap();
 			query!(
-				"SELECT article_id FROM article WHERE LOWER(title) = $1 LIMIT 1",
-				m.value_of("article").unwrap().to_lowercase()
+				"SELECT article_id FROM article WHERE LOWER(title) = $1",
+				name.to_lowercase()
 			)
-			.fetch_optional(&mut tx)
+			.fetch_optional(db())
 			.await?
-			.ok_or_else(|| {
-				anyhow!(
-					"could not find an article titled '{}'",
-					m.value_of("article").unwrap()
-				)
-			})?
+			.ok_or_else(|| anyhow!("no article found matching the title '{name}'"))?
 			.article_id
 		}
 	};
 
-	let title = m.value_of("title").unwrap_or_default();
-	let url_title = encode_url_title(title);
+	update_article(m, id, contents).await
+}
+
+async fn update_article(m: &ArgMatches, id: i32, contents: Option<ArticleContents>) -> Result<()> {
+	let title = m.value_of("title");
+	let url_title = title.map(encode_url_title);
+
 	let about = m.value_of("about");
 
-	let affected = query!(
-		"UPDATE article
+	let mut tx = db().begin().await?;
+
+	let title = query!(
+		r#"UPDATE article
 	SET
-	title = COALESCE(NULLIF($1, ''), title),
-	url_title = COALESCE(NULLIF($2, ''), url_title),
+	title = COALESCE($1, title),
+	url_title = COALESCE($2, url_title),
 	about = COALESCE($3, about),
 	html = COALESCE($4, html),
 	raw_hash = COALESCE($5, raw_hash),
 	raw = COALESCE($6, raw),
+	syntax = COALESCE($7, syntax),
 	date_updated = NOW() AT TIME ZONE 'UTC'
-	WHERE article_id = $7",
-		&title,
-		&url_title,
+	WHERE article_id = $8
+	RETURNING title"#,
+		title,
+		url_title,
 		about,
-		html.as_ref(),
-		hash.as_ref(),
-		raw.as_ref(),
+		contents.as_ref().map(|c| c.html.as_str()),
+		contents.as_ref().map(|c| &c.hash),
+		contents.as_ref().map(|c| c.raw.as_str()),
+		contents.as_ref().map(|c| c.syntax) as Option<Syntax>,
 		id,
 	)
-	.execute(&mut tx)
+	.fetch_one(&mut tx)
 	.await?
-	.rows_affected();
-
-	if affected == 0 {
-		anyhow::bail!(
-			"no articles found with the title or id {}",
-			m.value_of("article").unwrap()
-		);
-	}
+	.title;
 
 	clear!(articles).execute(&mut tx).await?;
-
 	tx.commit().await?;
 
-	macro_rules! print_if {
-		($arg:expr, $msg:expr) => {
-			if m.is_present($arg) {
-				println!("✓ updated {}", $msg);
-			}
-		};
-	}
-
-	print_if!("about", "about article");
-	print_if!("title", "the article title");
-	print_if!("path", "article contents");
-
+	println!("✓ updated article '{title}'");
 	Ok(())
 }

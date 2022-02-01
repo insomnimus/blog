@@ -14,6 +14,9 @@ pub fn app() -> App<'static> {
 			.validator(validate_about)
 			.visible_alias("description"),
 		arg!(--"no-tags" "Permit omitting any tag.").conflicts_with("tags"),
+		arg!(-s --syntax [SYNTAX] "The syntax for rendering. If omitted, it will be inferred from the file extension.")
+			.possible_values(Syntax::VALUES)
+			.ignore_case(true),
 		Arg::new("tags")
 			.help("Comma separated list of tags.")
 			.long("tags")
@@ -30,15 +33,20 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let title = m.value_of("title").unwrap();
 	let about = m.value_of("about").unwrap();
 
-	let ArticleContents { raw, html, hash } = ArticleContents::read_from_file(file).await?;
+	let ArticleContents {
+		raw,
+		html,
+		hash,
+		syntax,
+	} = ArticleContents::read_from_file(file, m.value_of_t("syntax").ok()).await?;
 
 	let url_title = encode_url_title(title);
 
 	let mut tx = db().begin().await?;
 
 	let id = query!(
-		"INSERT INTO article(title, url_title, about, raw, html, raw_hash)
-			VALUES($1, $2, $3, $4, $5, $6)
+		"INSERT INTO article(title, url_title, about, raw, html, raw_hash, syntax)
+			VALUES($1, $2, $3, $4, $5, $6, $7)
 			RETURNING article_id",
 		title,
 		url_title,
@@ -46,6 +54,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		raw,
 		html,
 		hash,
+		syntax as Syntax,
 	)
 	.fetch_one(&mut tx)
 	.await?

@@ -51,25 +51,39 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	}
 }
 
-#[derive(Default)]
 struct ArticleContents {
 	raw: String,
 	html: String,
 	hash: Vec<u8>,
+	syntax: Syntax,
 }
 
 impl ArticleContents {
-	async fn read_from_file<P: AsRef<Path>>(p: P) -> io::Result<Self> {
+	fn new<S: Into<String>>(raw: S, syntax: Syntax) -> Self {
+		let raw = raw.into();
+		let mut hasher = Sha256::new();
+		hasher.update(raw.trim().as_bytes());
+		let html = syntax.render(&raw).into_owned();
+
+		Self {
+			raw,
+			hash: hasher.finalize().to_vec(),
+			html,
+			syntax,
+		}
+	}
+
+	async fn read_from_file<P: AsRef<Path>>(p: P, syntax: Option<Syntax>) -> io::Result<Self> {
 		let data = fs::read_to_string(p.as_ref()).await?;
-		let syntax = if p
-			.as_ref()
-			.extension()
-			.map_or(false, |ext| ext.eq_ignore_ascii_case("html"))
-		{
-			Syntax::Html
-		} else {
-			Syntax::Markdown
-		};
+		let syntax = syntax.unwrap_or_else(|| {
+			Syntax::from_ext(
+				p.as_ref()
+					.extension()
+					.map_or("txt", |ext| ext.to_str().unwrap_or("txt")),
+			)
+			.unwrap_or(Syntax::Plain)
+		});
+
 		let mut hasher = Sha256::new();
 		hasher.update(data.trim().as_bytes());
 		let html = syntax.render(&data).into_owned();
@@ -78,6 +92,7 @@ impl ArticleContents {
 			raw: data,
 			hash: hasher.finalize().to_vec(),
 			html,
+			syntax,
 		})
 	}
 }
