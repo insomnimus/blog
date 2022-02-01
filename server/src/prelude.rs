@@ -8,6 +8,7 @@ pub use axum::{
 	response::Html,
 	Json,
 };
+pub use futures::prelude::*;
 pub use log::{
 	error,
 	info,

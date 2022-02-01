@@ -13,6 +13,12 @@ pub struct ArticleInfo {
 }
 
 #[derive(Template)]
+#[template(path = "articles_page.html")]
+pub struct ArticlesPage {
+	articles: Vec<ArticleInfo>,
+}
+
+#[derive(Template)]
 #[template(path = "article.html")]
 pub struct Article {
 	info: ArticleInfo,
@@ -47,4 +53,66 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 			},
 		})
 	})
+}
+
+pub async fn handle_articles() -> HttpResponse<Html<String>> {
+	let mut tx = db().begin().await.or_500()?;
+	let articles = query!("SELECT articles_page FROM html_cache")
+		.fetch_optional(&mut tx)
+		.await
+		.or_500()?
+		.map(|x| x.articles_page);
+
+	if let Some(Some(html)) = articles {
+		return Ok(Html(html));
+	}
+
+	let mut stream = query!(
+		r#"SELECT
+	a.url_title,
+	a.title,
+	a.about,
+	a.date_published AS published,
+	a.date_updated AS updated,
+	ARRAY_AGG(t.tag_name) AS "tags?: Vec<Option<String>>"
+	FROM article a
+	LEFT JOIN article_tag t
+	ON a.article_id = t.article_id
+	GROUP BY a.article_id, a.url_title, a.title
+	ORDER BY COALESCE(a.date_updated, a.date_published) DESC"#
+	)
+	.fetch(&mut tx);
+
+	let mut articles = Vec::new();
+
+	while let Some(res) = stream.next().await {
+		let mut x = res.or_500()?;
+		articles.push(ArticleInfo {
+			title: x.title.take(),
+			url_title: x.url_title.take(),
+			about: x.about.take(),
+			updated: x.updated.format_utc(),
+			published: x.published.format_utc(),
+			tags: x.tags.take().into_iter().flatten().flatten().collect(),
+		});
+	}
+
+	drop(stream);
+
+	let html = ArticlesPage { articles }.render().or_500()?;
+
+	query!(
+		"INSERT INTO html_cache(_instance, articles_page)
+	VALUES ('TRUE', $1)
+	ON CONFLICT(_instance) DO UPDATE
+	SET articles_page = $1",
+		&html,
+	)
+	.execute(&mut tx)
+	.await
+	.or_500()?;
+
+	tx.commit().await.or_500()?;
+
+	Ok(Html(html))
 }

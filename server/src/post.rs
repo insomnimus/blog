@@ -26,7 +26,7 @@ pub struct PostPage {
 }
 
 #[derive(Template)]
-#[template(path = "posts.html")]
+#[template(path = "posts_page.html")]
 pub struct Posts {
 	posts: Vec<Post>,
 }

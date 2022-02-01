@@ -61,6 +61,7 @@ async fn main() -> anyhow::Result<()> {
 		.route("/", get(home::handle_home))
 		.route("/posts", get(post::handle_posts))
 		.route("/posts/:id", get(post::handle_post))
+		.route("/articles", get(article::handle_articles))
 		.route("/articles/:article", get(article::handle_article))
 		.route("/search", get(search::handle_search))
 		.layer(

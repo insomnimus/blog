@@ -1,6 +1,6 @@
 [package]
 name = "blog"
-version = "0.6.5"
+version = "0.7.0"
 edition = "2021"
 
 [[bin]]
@@ -14,6 +14,7 @@ askama_axum = "0.1.0"
 axum = "0.4.4"
 chrono = "0.4.19"
 clap = { version = "3.0.13", features = ["env", "wrap_help", "unicode"] }
+futures = "0.3.19"
 html-escape = "0.2.9"
 log = "0.4.14"
 serde = { version = "1.0.136", features = ["derive"] }

@@ -1,5 +1,17 @@
 {
   "db": "PostgreSQL",
+  "33c2014c087a7b5f4c54cb95b1e65a7c7561b90daa13409d88dd66a62c6aed1b": {
+    "query": "INSERT INTO html_cache(_instance, articles_page)\n\tVALUES ('TRUE', $1)\n\tON CONFLICT(_instance) DO UPDATE\n\tSET articles_page = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "3651dc586bc10c5b6c48558e6abe203c005ce2af4e3ad5a9484c358078a93f50": {
     "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
     "describe": {
@@ -126,6 +138,72 @@
         false,
         false,
         false,
+        null
+      ]
+    }
+  },
+  "a53ae3de29bed4a5c268efc1b669a0e8d89e59ea8ca0d05a6d500b2349305d72": {
+    "query": "SELECT articles_page FROM html_cache",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "articles_page",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        true
+      ]
+    }
+  },
+  "bf47e2e0e2c899fa293f024fb03f53460f39d45acaec5416df9c2e062ce40dab": {
+    "query": "SELECT\n\ta.url_title,\n\ta.title,\n\ta.about,\n\ta.date_published AS published,\n\ta.date_updated AS updated,\n\tARRAY_AGG(t.tag_name) AS \"tags?: Vec<Option<String>>\"\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON a.article_id = t.article_id\n\tGROUP BY a.article_id, a.url_title, a.title\n\tORDER BY COALESCE(a.date_updated, a.date_published) DESC",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "about",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "published",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 4,
+          "name": "updated",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "tags?: Vec<Option<String>>",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
         null
       ]
     }
