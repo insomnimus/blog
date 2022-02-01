@@ -29,6 +29,7 @@ pub async fn handle_home() -> HttpResponse {
 			return Ok(Html(cached.html.clone()));
 		}
 	}
+	info!("updating home cache");
 
 	let articles = query!(
 		"SELECT title,
@@ -54,8 +55,7 @@ pub async fn handle_home() -> HttpResponse {
 	})
 	.collect::<Vec<_>>();
 
-	let posts = query_as!(
-		PostInfo,
+	let posts = query!(
 		r#"SELECT p.post_id AS id,
 		p.content,
 		p.date_posted AS date,
@@ -69,7 +69,15 @@ pub async fn handle_home() -> HttpResponse {
 	)
 	.fetch_all(db())
 	.await
-	.or_500()?;
+	.or_500()?
+	.into_iter()
+	.map(|mut x| PostInfo {
+		id: x.id,
+		content: x.content.take(),
+		n_attachments: x.n_attachments,
+		date: x.date.format_utc(),
+	})
+	.collect::<Vec<_>>();
 
 	let home = Home { articles, posts };
 	let html = home.render().or_500()?;

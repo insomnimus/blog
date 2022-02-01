@@ -15,8 +15,8 @@ pub struct Post {
 pub struct PostInfo {
 	pub id: i32,
 	pub content: String,
+	pub date: String,
 	pub n_attachments: i64,
-	pub date: NaiveDateTime,
 }
 
 #[derive(Template)]
