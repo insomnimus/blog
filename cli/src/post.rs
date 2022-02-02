@@ -11,7 +11,7 @@ pub fn app() -> App<'static> {
 		.setting(AppSettings::SubcommandRequiredElseHelp)
 		.arg(
 			arg!(-D --database <URL> "Database URL.")
-				.env("BLOG_DB_URL")
+				.env("BLOGCLI_DB_URL")
 				.hide_env_values(true),
 		)
 		.subcommands([create::app(), delete::app(), edit::app(), list::app()])

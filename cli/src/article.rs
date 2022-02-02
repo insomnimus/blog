@@ -23,8 +23,8 @@ pub fn app() -> App<'static> {
 		.about("Manage articles.")
 		.setting(AppSettings::SubcommandRequiredElseHelp)
 		.arg(
-			arg!(-D --database <URL> "Database URL.")
-				.env("BLOG_DB_URL")
+			arg!(-D --database <URL> "The database URL with write permissions.")
+				.env("BLOGCLI_DB_URL")
 				.hide_env_values(true),
 		)
 		.subcommands([
