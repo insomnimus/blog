@@ -67,6 +67,56 @@
       "nullable": []
     }
   },
+  "0904f220361c0c35c0d5f290a80104d6e71d3674e0425bbdb6dfd5e4b620d9b2": {
+    "query": "SELECT\n\ttitle,\n\t(CASE WHEN NOT $1 THEN raw END) AS raw,\n\t(CASE WHEN $1 THEN html END) AS html,\n\tsyntax AS \"syntax: Syntax\"\n\tFROM article\n\tWHERE article_id = $2\n\t",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "html",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        null,
+        null,
+        false
+      ]
+    }
+  },
   "0f9c30710ec25fe5aa647fdb14136b692d9c0dc772e533255f6e5060e9e76c90": {
     "query": "INSERT INTO article(title, url_title, about, raw, html, raw_hash, syntax)\n\t\t\tVALUES($1, $2, $3, $4, $5, $6, $7)\n\t\t\tRETURNING article_id",
     "describe": {
@@ -624,32 +674,6 @@
       ]
     }
   },
-  "baf401b037fbc82f6cdfbbbab1a85513051049043c38fb134d61f96c254fd13b": {
-    "query": "SELECT raw, title\n\t\t\t\t\tFROM article\n\t\t\t\t\tWHERE\n\t\t\t\t\t(LOWER(title) = $1)\n\t\t\t\t\tOR\n\t\t\t\t\t(LOWER(url_title) = $1)\n\t\t\t\t\tLIMIT 1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "raw",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "title",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false,
-        false
-      ]
-    }
-  },
   "c7509ccea8c87857edfc241dd08ece78740dda71aea7f08df883e9013b4ade11": {
     "query": "SELECT tag_name FROM article_tag WHERE article_id = $1 ORDER BY tag_name ASC",
     "describe": {
@@ -666,32 +690,6 @@
         ]
       },
       "nullable": [
-        false
-      ]
-    }
-  },
-  "ceaa3a247383d3b82601993dd9587758d52f1f5d595406493475861dbf2a6be9": {
-    "query": "SELECT raw, title FROM article WHERE article_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "raw",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "title",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        false,
         false
       ]
     }
@@ -780,6 +778,26 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "f3de600572d464f6bc42b6f853579b7f9c27fb385d59ce1275e3b434979648e1": {
+    "query": "SELECT article_id FROM article WHERE LOWER(title) = $1 OR LOWER(url_title) = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "article_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   }
 }

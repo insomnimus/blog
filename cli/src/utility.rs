@@ -100,3 +100,16 @@ pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> std::io::Result<Opt
 		Ok(Some(edited))
 	}
 }
+
+pub fn format_filename(s: &str) -> String {
+	s.chars()
+		.map(|c| {
+			if c.is_whitespace() || c == '_' {
+				'-'
+			} else {
+				c
+			}
+		})
+		.filter(|&c| c.is_alphanumeric() || c == '-' || c == '.')
+		.collect()
+}
