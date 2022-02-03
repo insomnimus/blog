@@ -10,7 +10,7 @@
         "blog-db:/var/lib/postgresql/data"
       ],
       "ports": [
-        "59595:5432"
+        "3001:5432"
       ],
       "environment": {
         "POSTGRES_USER": "blog",
@@ -24,7 +24,7 @@
         "3000:8080"
       ],
       "environment": {
-        "BLOG_DB_URL": "postgres://blog:blog@db:5432/blog"
+        "BLOG_DB_URL": "postgres://server:server@db:5432/blog"
       }
     }
   }

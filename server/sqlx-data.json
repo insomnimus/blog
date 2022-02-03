@@ -98,6 +98,24 @@
       ]
     }
   },
+  "5023cf5c6fd968ba0aa9ca75f3c48591d0d8ca3582e7c93884f7643d91606dea": {
+    "query": "SELECT posts FROM cache",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "posts",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "54dd3774e0f333dd960e200f81d9e279155dc80352c9fd6e3681bf34cf4e645b": {
     "query": "SELECT home FROM cache",
     "describe": {
