@@ -23,7 +23,7 @@ pub fn app() -> App<'static> {
 		.about("Manage articles.")
 		.setting(AppSettings::SubcommandRequiredElseHelp)
 		.arg(
-			arg!(-D --database <URL> "The database URL with write permissions.")
+			arg!(-D --database [URL] "The database URL with write permissions.")
 				.env("BLOGCLI_DB_URL")
 				.hide_env_values(true),
 		)
@@ -38,7 +38,8 @@ pub fn app() -> App<'static> {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	init_db(m.value_of("database").unwrap()).await?;
+	let db = Config::database(m).await?;
+	init_db(db).await?;
 
 	match m.subcommand().unwrap() {
 		("delete", m) => delete::run(m).await,

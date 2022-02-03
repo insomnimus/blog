@@ -10,7 +10,7 @@ pub fn app() -> App<'static> {
 		.about("Manage short posts.")
 		.setting(AppSettings::SubcommandRequiredElseHelp)
 		.arg(
-			arg!(-D --database <URL> "Database URL.")
+			arg!(-D --database [URL] "Database URL.")
 				.env("BLOGCLI_DB_URL")
 				.hide_env_values(true),
 		)
@@ -18,7 +18,8 @@ pub fn app() -> App<'static> {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	init_db(m.value_of("database").unwrap()).await?;
+	let db = Config::database(m).await?;
+	init_db(db).await?;
 
 	match m.subcommand().unwrap() {
 		("create", m) => create::run(m).await,

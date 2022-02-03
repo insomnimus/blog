@@ -1,9 +1,12 @@
 use clap::ArgMatches;
 
-use crate::sftp::{
-	Sftp,
-	SftpCommand,
-	SftpUri,
+use crate::{
+	app::Config,
+	sftp::{
+		Sftp,
+		SftpCommand,
+		SftpUri,
+	},
 };
 
 macro_rules! clear {
@@ -58,7 +61,7 @@ macro_rules! confirm{
 pub(crate) use clear;
 pub(crate) use confirm;
 
-pub fn sftp_args(m: &ArgMatches) -> Sftp {
+pub async fn sftp_args(m: &ArgMatches) -> anyhow::Result<Sftp> {
 	let extra_args = m
 		.values_of("sftp-args")
 		.into_iter()
@@ -66,16 +69,16 @@ pub fn sftp_args(m: &ArgMatches) -> Sftp {
 		.map(String::from)
 		.collect::<Vec<_>>();
 
-	let SftpUri { remote, root } = m.value_of_t_or_exit::<SftpUri>("sftp");
+	let SftpUri { remote, root } = Config::sftp(m).await?;
 
-	Sftp {
+	Ok(Sftp {
 		root,
 		cmd: SftpCommand {
 			remote,
 			extra_args,
 			cmd_path: "sftp".into(),
 		},
-	}
+	})
 }
 
 pub fn validate_sftp_uri(s: &str) -> Result<(), String> {

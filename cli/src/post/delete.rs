@@ -7,7 +7,7 @@ use crate::prelude::*;
 pub fn app() -> App<'static> {
 	App::new("delete")
 	.about("Delete posts.")
-	.group(ArgGroup::new("criteria").args(&["id", "last"]).required(true))
+	.group(ArgGroup::new("handle").args(&["id", "last"]).required(true))
 	.args(&[
 	arg!(id: [ID] "The ID of the post.")
 	.validator(validate::<i32>("the value must be a whole number")),
@@ -22,8 +22,7 @@ pub fn app() -> App<'static> {
 		.multiple_values(true)
 		.last(true)
 		.help("Extra args to pass to the sftp command.")
-		.required(false)
-		.requires("sftp"),
+		.required(false),
 	])
 }
 
@@ -96,12 +95,11 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.ok_or_else(|| anyhow!("there are no posts in the database"))?,
 	};
 
-	if !keep_attachments && !post.attachments.is_empty() && !m.is_present("sftp") {
-		return Err(anyhow!(
-			"the post has {} attachments but no sftp uri was provided",
-			post.attachments.len()
-		));
-	}
+	let sftp = if post.attachments.is_empty() || keep_attachments {
+		None
+	} else {
+		Some(sftp_args(m).await?)
+	};
 
 	if !yes {
 		println!("post #{}", post.id);
@@ -124,8 +122,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.execute(&mut tx)
 		.await?;
 
-	if !keep_attachments && !post.attachments.is_empty() {
-		let sftp = sftp_args(m);
+	if let Some(sftp) = sftp {
 		let dir = post_dir(post.id);
 		match sftp.rmdir(&dir).await {
 			Ok(_) => println!("✓ deleted attachments from the sftp server"),

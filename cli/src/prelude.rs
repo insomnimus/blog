@@ -29,6 +29,7 @@ pub use sqlx::{
 use tokio::sync::OnceCell;
 
 pub(crate) use crate::{
+	app::Config,
 	display::*,
 	ext::*,
 	render::*,
@@ -58,14 +59,4 @@ pub async fn init_db(url: &str) -> Result<&'static Pool> {
 
 pub fn validate<T: FromStr>(msg: &'static str) -> impl FnMut(&str) -> StdResult<(), String> {
 	move |s| s.parse::<T>().map(|_| {}).map_err(|_| msg.to_string())
-}
-
-pub trait DefaultExt {
-	fn take(&mut self) -> Self;
-}
-
-impl<T: Default> DefaultExt for T {
-	fn take(&mut self) -> Self {
-		std::mem::take(self)
-	}
 }

@@ -13,8 +13,8 @@
       "59595:5432"
       ],
       "environment": {
-        "POSTGRES_USER": "blog",
-        "POSTGRES_PASSWORD": "blog",
+        "POSTGRES_USER": "admin",
+        "POSTGRES_PASSWORD": "${BLOG_DB_PASSWORD?You need to set an administrator database password}",
         "POSTGRES_DB": "blog"
       }
     }

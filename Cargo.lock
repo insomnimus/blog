@@ -289,11 +289,12 @@ dependencies = [
 
 [[package]]
 name = "blog-cli"
-version = "0.13.1"
+version = "0.15.0"
 dependencies = [
  "anyhow",
  "clap",
  "comrak",
+ "directories",
  "edit",
  "futures",
  "html-escape",
@@ -303,6 +304,7 @@ dependencies = [
  "shell-escape",
  "sqlx",
  "tokio",
+ "toml",
  "url-escape",
 ]
 
@@ -521,6 +523,15 @@ dependencies = [
  "block-buffer 0.10.0",
  "crypto-common",
  "generic-array 0.14.5",
+]
+
+[[package]]
+name = "directories"
+version = "4.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f51c5d4ddabd36886dd3e1438cb358cdcb0d7c499cb99cb4ac2e38e18b5cb210"
+dependencies = [
+ "dirs-sys",
 ]
 
 [[package]]

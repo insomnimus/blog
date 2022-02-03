@@ -14,8 +14,7 @@ pub fn app() -> App<'static> {
 			.ignore_case(true),
 			arg!(-a --attachment [ATTACHMENT] ... "An attachment as a file path or `file::rename_name`.")
 			.max_occurrences(3)
-			.validator(validate_send_file)
-			.requires("sftp"),
+			.validator(validate_send_file),
 			arg!(-r --sftp [URI] "The sftp servers connection uri in the form `user@domain:/path/to/store`.")
 			.env("BLOG_SFTP_URI")
 			.validator(validate_sftp_uri),
@@ -24,8 +23,7 @@ pub fn app() -> App<'static> {
 		.multiple_values(true)
 		.last(true)
 		.help("Extra args to pass to the sftp command.")
-		.required(false)
-		.requires("sftp"),
+		.required(false),
 	])
 }
 
@@ -62,8 +60,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	.post_id;
 
 	if let Ok(files) = m.values_of_t::<SendFile>("attachment") {
+		let sftp = sftp_args(m).await?;
 		let dir = format!("post_{id}");
-		let sftp = sftp_args(m);
 		sftp.send_files(&dir, &files).await?;
 		for f in &files {
 			let path = format!("{dir}/{remote}", remote = f.remote());
