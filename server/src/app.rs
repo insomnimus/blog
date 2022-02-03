@@ -6,6 +6,7 @@ use clap::{
 pub struct Config {
 	pub db_url: String,
 	pub listen: String,
+	pub media_dir: String,
 }
 
 impl Config {
@@ -18,12 +19,16 @@ impl Config {
 				arg!(-l --listen [ADDRESS] "Listen on the given address.")
 					.default_value("0.0.0.0:8080")
 					.env("BLOG_LISTEN_ADDRESS"),
+					arg!(-m --"media-dir" [MEDIA_DIR] "The media directory that will be served on /media.")
+					.default_value("media")
+					.env("BLOG_MEDIA_DIR"),
 			])
 			.get_matches();
 
 		Self {
 			db_url: m.value_of("database").unwrap().into(),
 			listen: m.value_of("listen").unwrap().into(),
+			media_dir: m.value_of("media-dir").unwrap().into(),
 		}
 	}
 }

@@ -64,11 +64,12 @@ async fn main() -> anyhow::Result<()> {
 			(StatusCode::NOT_FOUND, "The requested file is not found.")
 		});
 
-	let media_handler =
-		get_service(ServeDir::new("media")).handle_error(|e: std::io::Error| async move {
+	let media_handler = get_service(ServeDir::new(&config.media_dir)).handle_error(
+		|e: std::io::Error| async move {
 			log::error!("media: {e}");
 			(StatusCode::NOT_FOUND, "The requested file is not found.")
-		});
+		},
+	);
 
 	let api = Router::new().route("/posts", get(post::handle_api));
 
