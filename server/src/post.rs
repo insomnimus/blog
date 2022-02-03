@@ -27,7 +27,7 @@ pub struct PostPage {
 
 #[derive(Template)]
 #[template(path = "posts_page.html")]
-pub struct Posts {
+pub struct PostsPage {
 	posts: Vec<Post>,
 }
 
@@ -79,8 +79,35 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 	.map_err(|e| e.into())
 }
 
-pub async fn handle_posts() -> HttpResponse<Posts> {
-	get_posts(1).await.or_500().map(|posts| Posts { posts })
+pub async fn handle_posts() -> HttpResponse {
+	static CACHE: OnceCell<RwLock<Cache>> = OnceCell::const_new();
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Cache::default()) })
+		.await;
+
+	let last_updated = query!("SELECT posts FROM cache")
+		.fetch_one(db())
+		.await
+		.or_500()?
+		.posts;
+
+	{
+		let cached = cache.read().await;
+		if cached.time == last_updated && !cached.html.is_empty() {
+			return Ok(Html(cached.html.clone()));
+		}
+	}
+	info!("updating posts cache");
+
+	let posts = get_posts(1).await.or_500()?;
+	let html = PostsPage { posts }.render().or_500()?;
+
+	let mut cached = cache.write().await;
+	cached.html.clear();
+	cached.html.push_str(&html);
+	cached.time = last_updated;
+
+	Ok(Html(html))
 }
 
 pub async fn handle_api(Query(params): Query<PostParams>) -> HttpResponse<Json<PostsJson>> {
