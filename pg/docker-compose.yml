@@ -1,7 +1,9 @@
 {
   "version": "3.9",
   "volumes": {
-    "blog-db": null
+    "blog-db": {
+      "external": true
+    }
   },
   "services": {
     "db": {
@@ -10,7 +12,7 @@
         "blog-db:/var/lib/postgresql/data"
       ],
       "ports": [
-      "59595:5432"
+        "3001:5432"
       ],
       "environment": {
         "POSTGRES_USER": "admin",

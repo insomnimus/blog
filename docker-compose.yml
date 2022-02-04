@@ -1,7 +1,13 @@
 {
   "version": "3.9",
   "volumes": {
-    "blog-db": null
+    "blog-db": {
+      "external": true
+    },
+    "caddy-data": {
+      "external": true
+    },
+    "caddy-config": null
   },
   "services": {
     "db": {
@@ -18,14 +24,25 @@
         "POSTGRES_DB": "blog"
       }
     },
-    "server": {
+    "blog": {
       "build": ".",
-      "ports": [
-        "3000:8080"
-      ],
       "environment": {
-        "BLOG_DB_URL": "postgres://server:server@db:5432/blog"
+        "BLOG_DB_URL": "postgres://server:server@db:5432/blog",
+        "BLOG_LISTEN_ADDRESS": "0.0.0.0:8080"
       }
+    },
+    "proxy": {
+      "image": "caddy:2.4.6-alpine",
+      "restart": "unless-stopped",
+      "ports": [
+        "8080:8080",
+        "80:80"
+      ],
+      "volumes": [
+        "./Caddyfile:/etc/caddy/Caddyfile",
+        "caddy-data:/data",
+        "caddy-config:/config"
+      ]
     }
   }
 }
