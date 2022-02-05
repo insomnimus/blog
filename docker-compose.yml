@@ -1,12 +1,8 @@
 {
   "version": "3.9",
   "volumes": {
-    "blog-db": {
-      "external": true
-    },
-    "caddy-data": {
-      "external": true
-    },
+    "blog-db": null,
+    "caddy-data": null,
     "caddy-config": null
   },
   "services": {
