@@ -16,7 +16,7 @@
 {% if !self.info.tags.is_empty() %}
 	<ul class="tags">
 	{% 	for tag in self.info.tags %}
-		<li class="md-tag"> #{{ tag }} </li>
+		<li> #{{ tag }} </li>
 	{% endfor %}
 	</ul>
 	<p id="article-about"> {{ self.info.about }} </p>

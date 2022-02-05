@@ -1,9 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
-
 main {
 	background-color: #000038;
 	color: white;
-	font-family: "Poppins", sans-serif;
 }
 
 nav a {
@@ -24,4 +21,9 @@ nav ul {
 	height: 100%;
 	display: flex;
 	justify-content: space-around;
+}
+
+ul.tags {
+	list-style-type: none;
+	display: inline;
 }
