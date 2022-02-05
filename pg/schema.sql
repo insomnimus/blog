@@ -49,6 +49,14 @@ CREATE TABLE post_media (
 	post_id INTEGER NOT NULL REFERENCES post ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE music (
+	music_id SERIAL NOT NULL PRIMARY KEY,
+	title TEXT,
+	comment TEXT,
+	file_path TEXT NOT NULL REFERENCES media(file_path),
+	date_uploaded TIMESTAMP NOT NULL DEFAULT(NOW() AT TIME ZONE 'UTC')
+);
+
 -- Initialization --
 INSERT INTO cache(_instance, home, articles, posts)
 VALUES('TRUE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

@@ -1,9 +1,7 @@
 {
   "version": "3.9",
   "volumes": {
-    "blog-db": {
-      "external": true
-    }
+    "blog-db": null
   },
   "services": {
     "db": {
