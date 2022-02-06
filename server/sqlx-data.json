@@ -172,6 +172,24 @@
       ]
     }
   },
+  "604e7e96e26b4b4bdf13358f68fdf16cb2b8e9b7a2890d307c842cae6b81d95b": {
+    "query": "SELECT music FROM cache",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "music",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "989381b9d980bd3f568274b5115aedd7e9bceb9157d3fc5acde45ccfd2e6d58e": {
     "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 1 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.date_posted DESC\n\tLIMIT 25",
     "describe": {
@@ -306,6 +324,42 @@
         true,
         false,
         null
+      ]
+    }
+  },
+  "cb32dcf3772478163a08b426231d1fcc5b9794e5199aa81282fb5b787c34795e": {
+    "query": "SELECT music_id id, comment, title, date_uploaded date FROM music ORDER BY date DESC",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "comment",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "date",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        false
       ]
     }
   },

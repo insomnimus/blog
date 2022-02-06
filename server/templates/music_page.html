@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Music{% endblock %}
+
+{% block content %}
+<h1>Music</h1>
+<p>My shitty music, all in one page.</p>
+<table id="music-list">
+	<tr>
+		<th>Title</th> <th>Date</th> <th>Comment</th>
+	</tr>
+{%- for music in self.music -%}
+	<tr id="m{{ music.id }}">
+		<td><a href="/music/{{ music.id }}">{{ music.title.as_deref().unwrap_or("untitled") }}</a></td>
+		<td><time datetime="{{ music.date }}">{{ music.date }}</time></td>
+		<td>{{ music.short_comment(50) }}</td>
+	</tr>
+{% endfor %}
+</table>
+{% endblock %}

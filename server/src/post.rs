@@ -80,16 +80,17 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 }
 
 pub async fn handle_posts() -> HttpResponse {
-	static CACHE: OnceCell<RwLock<Cache>> = OnceCell::const_new();
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Cache::default()) })
-		.await;
+	static CACHE: Cache = Cache::const_new();
 
 	let last_updated = query!("SELECT posts FROM cache")
 		.fetch_one(db())
 		.await
 		.or_500()?
 		.posts;
+
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
 
 	{
 		let cached = cache.read().await;

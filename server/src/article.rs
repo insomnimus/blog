@@ -56,9 +56,9 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 }
 
 pub async fn handle_articles() -> HttpResponse<Html<String>> {
-	static CACHE: OnceCell<RwLock<Cache>> = OnceCell::const_new();
+	static CACHE: Cache = OnceCell::const_new();
 	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Cache::default()) })
+		.get_or_init(|| async { RwLock::new(Default::default()) })
 		.await;
 
 	let last_updated = query!("SELECT articles FROM cache")

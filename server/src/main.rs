@@ -29,18 +29,22 @@ use sqlx::types::chrono::{
 	NaiveDateTime,
 	Utc,
 };
+use tokio::sync::{
+	OnceCell,
+	RwLock,
+};
 use tower::{
 	timeout::TimeoutLayer,
 	ServiceBuilder,
 };
 use tower_http::services::ServeDir;
 
-struct Cache {
+pub struct CacheData {
 	pub time: NaiveDateTime,
 	pub html: String,
 }
 
-impl Default for Cache {
+impl Default for CacheData {
 	fn default() -> Self {
 		Self {
 			time: Utc::now().naive_utc(),
@@ -48,6 +52,8 @@ impl Default for Cache {
 		}
 	}
 }
+
+pub type Cache = OnceCell<RwLock<CacheData>>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -85,6 +91,7 @@ async fn main() -> anyhow::Result<()> {
 		.route("/articles/:article", get(article::handle_article))
 		.route("/search", get(search::handle_search))
 		.route("/music/:id", get(music::handle_music))
+		.route("/music", get(music::handle_music_page))
 		.layer(
 			ServiceBuilder::new()
 			// this middleware goes above `TimeoutLayer` because it will receive

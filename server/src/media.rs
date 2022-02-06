@@ -6,6 +6,15 @@ pub struct Media {
 	pub kind: MediaType,
 }
 
+impl Default for Media {
+	fn default() -> Self {
+		Self {
+			kind: MediaType::Other,
+			path: String::new(),
+		}
+	}
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MediaType {
 	Audio,
