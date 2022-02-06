@@ -1,10 +1,5 @@
-const dates = document.querySelectorAll("time");
-
-for (const date of dates) {
-	const stamp = new Date(date.getAttribute("datetime"));
-	// date.textContent = stamp.toLocaleString();
-	date.textContent = format_since(stamp);
-}
+localize_dates();
+tags_to_links();
 
 function format_since(date) {
 	const month_names = [
@@ -51,5 +46,26 @@ function format_since(date) {
 		return `last year on ${month}`;
 	} else {
 		return `${n} years ago`;
+	}
+}
+
+function localize_dates() {
+	const dates = document.querySelectorAll("time");
+
+	for (const date of dates) {
+		const stamp = new Date(date.getAttribute("datetime"));
+		// date.textContent = stamp.toLocaleString();
+		date.textContent = format_since(stamp);
+	}
+}
+
+function tags_to_links() {
+	const tags = document.querySelectorAll("ul.tags > li");
+	for (const tag of tags) {
+		const content = tag.textContent;
+		if (tag.childElementCount === 0 && content) {
+			const params = new URLSearchParams({ kind: "article", query: content });
+			tag.innerHTML = `<a href="/search?${params}"> ${content} </a>`;
+		}
 	}
 }
