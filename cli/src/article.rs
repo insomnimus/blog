@@ -159,7 +159,7 @@ fn validate_about(s: &str) -> StdResult<(), String> {
 	}
 }
 
-fn validate_title(s: &str) -> StdResult<(), String> {
+pub fn validate_title(s: &str) -> StdResult<(), String> {
 	if s.contains(|c: char| "\r\n\t".contains(c)) {
 		Err(String::from("the title cannot contain tabs or newlines"))
 	} else if s.trim().len() < 3 {

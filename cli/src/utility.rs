@@ -1,13 +1,4 @@
-use clap::ArgMatches;
-
-use crate::{
-	app::Config,
-	sftp::{
-		Sftp,
-		SftpCommand,
-		SftpUri,
-	},
-};
+use crate::sftp::SftpUri;
 
 macro_rules! clear {
 	(home) => {
@@ -61,26 +52,6 @@ macro_rules! confirm{
 pub(crate) use clear;
 pub(crate) use confirm;
 
-pub async fn sftp_args(m: &ArgMatches) -> anyhow::Result<Sftp> {
-	let extra_args = m
-		.values_of("sftp-args")
-		.into_iter()
-		.flatten()
-		.map(String::from)
-		.collect::<Vec<_>>();
-
-	let SftpUri { remote, root } = Config::sftp(m).await?;
-
-	Ok(Sftp {
-		root,
-		cmd: SftpCommand {
-			remote,
-			extra_args,
-			cmd_path: "sftp".into(),
-		},
-	})
-}
-
 pub fn validate_sftp_uri(s: &str) -> Result<(), String> {
 	s.parse::<SftpUri>()
 		.map(|_| {})
@@ -114,5 +85,17 @@ pub fn format_filename(s: &str) -> String {
 			}
 		})
 		.filter(|&c| c.is_alphanumeric() || c == '-' || c == '.')
+		.collect()
+}
+
+pub fn rand_filename() -> String {
+	use rand::{
+		distributions::Alphanumeric,
+		Rng,
+	};
+	rand::thread_rng()
+		.sample_iter(&Alphanumeric)
+		.take(7)
+		.map(char::from)
 		.collect()
 }

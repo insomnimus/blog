@@ -60,7 +60,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	.post_id;
 
 	if let Ok(files) = m.values_of_t::<SendFile>("attachment") {
-		let sftp = sftp_args(m).await?;
+		let sftp = Config::sftp(m).await?;
 		let dir = format!("post_{id}");
 		sftp.send_files(&dir, &files).await?;
 		for f in &files {

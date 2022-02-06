@@ -289,7 +289,7 @@ dependencies = [
 
 [[package]]
 name = "blog-cli"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -298,6 +298,7 @@ dependencies = [
  "edit",
  "futures",
  "html-escape",
+ "rand",
  "serde",
  "serde_json",
  "sha2 0.10.1",

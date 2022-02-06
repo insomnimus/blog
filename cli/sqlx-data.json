@@ -730,6 +730,28 @@
       ]
     }
   },
+  "d81346dee8631720dec2713349e229db1a13b0ccc533a9d5c513c7f4a1a7424b": {
+    "query": "INSERT INTO music(title, comment, file_path)\n\tVALUES($1, $2, $3)\n\tRETURNING music_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "music_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "e77c4dc37b6f6812a38f769524179a32bca57de9fc5071dad015e205b7415268": {
     "query": "SELECT article_id FROM article ORDER BY article_id DESC LIMIT 1",
     "describe": {

@@ -16,8 +16,12 @@ pub struct SendFile {
 }
 
 impl SendFile {
+	pub fn local(&self) -> &str {
+		&self.local[..]
+	}
+
 	pub fn remote(&self) -> &str {
-		&self.remote
+		&self.remote[..]
 	}
 
 	pub fn sftp_cmd(&self) -> String {

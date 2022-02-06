@@ -2,6 +2,7 @@ mod app;
 mod article;
 mod display;
 mod ext;
+mod music;
 mod post;
 mod prelude;
 mod render;

@@ -18,6 +18,44 @@
       ]
     }
   },
+  "33bf19e731f24f8f2eabfd66162cb137c7fe8fb061269dcb1a481c3687f57c11": {
+    "query": "SELECT title, comment, file_path, date_uploaded FROM music WHERE music_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "comment",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "file_path",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "date_uploaded",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        true,
+        true,
+        false,
+        false
+      ]
+    }
+  },
   "3651dc586bc10c5b6c48558e6abe203c005ce2af4e3ad5a9484c358078a93f50": {
     "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
     "describe": {

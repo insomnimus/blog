@@ -1,10 +1,12 @@
 use std::path::Path;
 
+#[derive(Clone, Debug)]
 pub struct Media {
 	pub path: String,
 	pub kind: MediaType,
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MediaType {
 	Audio,
 	Image,

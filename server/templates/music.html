@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ self.title.as_deref().unwrap_or("Music") }}{% endblock %}
+
+{%- block content -%}
+<h1><a href="/music/{{ self.id }}">
+{%- match self.title -%}
+{%- when Some with (ttl) -%} {{ ttl }}
+	{%- when None -%} Music #{{ self.id }}
+{% endmatch %}
+</a></h1>
+<p>Uploaded <time datetime="{{ self.date }}"> {{ self.date }}</time></p>
+{%- match self.comment -%}
+	{%- when Some with (cmt) -%}
+	<p>{{ cmt }}</p>
+	{% when None %}
+{% endmatch %}
+{{ self.media.render_html()|safe }}
+{% endblock %}

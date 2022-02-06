@@ -4,6 +4,7 @@ mod db;
 mod ext;
 mod home;
 mod media;
+mod music;
 mod post;
 mod prelude;
 mod response;
@@ -83,6 +84,7 @@ async fn main() -> anyhow::Result<()> {
 		.route("/articles", get(article::handle_articles))
 		.route("/articles/:article", get(article::handle_article))
 		.route("/search", get(search::handle_search))
+		.route("/music/:id", get(music::handle_music))
 		.layer(
 			ServiceBuilder::new()
 			// this middleware goes above `TimeoutLayer` because it will receive

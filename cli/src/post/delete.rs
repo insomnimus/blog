@@ -98,7 +98,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let sftp = if post.attachments.is_empty() || keep_attachments {
 		None
 	} else {
-		Some(sftp_args(m).await?)
+		Some(Config::sftp(m).await?)
 	};
 
 	if !yes {

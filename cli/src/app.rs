@@ -10,9 +10,14 @@ use tokio::{
 
 use crate::{
 	article,
+	music,
 	post,
 	prelude::*,
-	sftp::SftpUri,
+	sftp::{
+		Sftp,
+		SftpCommand,
+		SftpUri,
+	},
 };
 
 pub fn app() -> App<'static> {
@@ -28,7 +33,7 @@ pub fn app() -> App<'static> {
 				.hide_env_values(true)
 				.global(true),
 		)
-		.subcommands([article::app(), post::app()])
+		.subcommands([article::app(), music::app(), post::app()])
 }
 
 pub async fn run() -> Result<()> {
@@ -37,6 +42,7 @@ pub async fn run() -> Result<()> {
 	match m.subcommand().unwrap() {
 		("article", m) => article::run(m).await,
 		("post", m) => post::run(m).await,
+		("music", m) => music::run(m).await,
 		_ => unreachable!(),
 	}
 }
@@ -93,8 +99,8 @@ impl Config {
 		}
 	}
 
-	pub async fn sftp(m: &ArgMatches) -> Result<SftpUri> {
-		match m.value_of("sftp") {
+	pub async fn sftp(m: &ArgMatches) -> Result<Sftp> {
+		let SftpUri { remote, root } = match m.value_of("sftp") {
 			Some(sftp) => sftp,
 			None => Self::get_or_init(m.value_of("config"))
 				.await?
@@ -103,6 +109,22 @@ impl Config {
 				.ok_or_else(|| anyhow!("the sftp uri is missing"))?,
 		}
 		.parse::<SftpUri>()
-		.map_err(|e| anyhow!("invalid sftp uri: {e}"))
+		.map_err(|e| anyhow!("invalid sftp uri: {e}"))?;
+
+		let extra_args = m
+			.values_of("sftp-args")
+			.into_iter()
+			.flatten()
+			.map(String::from)
+			.collect::<Vec<_>>();
+
+		Ok(Sftp {
+			root,
+			cmd: SftpCommand {
+				remote,
+				extra_args,
+				cmd_path: "sftp".into(),
+			},
+		})
 	}
 }
