@@ -190,6 +190,42 @@
       ]
     }
   },
+  "900e0f53c05121018ef206481fbf6e36371842828e6ca0b25ab05fd402d51492": {
+    "query": "SELECT music_id id, title, comment, date_uploaded date FROM music ORDER BY date DESC LIMIT 5",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "comment",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "date",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        true,
+        true,
+        false
+      ]
+    }
+  },
   "989381b9d980bd3f568274b5115aedd7e9bceb9157d3fc5acde45ccfd2e6d58e": {
     "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 1 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.date_posted DESC\n\tLIMIT 25",
     "describe": {

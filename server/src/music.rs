@@ -6,11 +6,11 @@ use crate::{
 #[derive(Debug, Template)]
 #[template(path = "music.html")]
 pub struct Music {
-	id: i32,
-	title: Option<String>,
-	comment: Option<String>,
-	media: Media,
-	date: String,
+	pub id: i32,
+	pub title: Option<String>,
+	pub comment: Option<String>,
+	pub media: Media,
+	pub date: String,
 }
 
 #[derive(Debug, Template)]
@@ -20,7 +20,7 @@ pub struct MusicPage {
 }
 
 impl Music {
-	fn short_comment(&'_ self, max: usize) -> Cow<'_, str> {
+	pub fn short_comment(&'_ self, max: usize) -> Cow<'_, str> {
 		match self
 			.comment
 			.as_deref()

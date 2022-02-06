@@ -31,5 +31,17 @@
 	</div>
 {% endfor %}
 </section>
-
+<section id="recent-music">
+<h1>Recent Music</h1>
+{%- for music in self.music -%}
+	<div>
+	<a href="/music/{{ music.id }}">
+	{{ music.title.as_deref().unwrap_or("untitled") }} - <time datetime="{{ music.date }}"> {{ music.date }} </time>
+	</a>
+	{%- if music.comment.is_some() -%}
+	<p> {{ music.short_comment(60) }} </p>
+	{% endif %}
+	</div>
+{% endfor %}
+</section>
 {% endblock %}
