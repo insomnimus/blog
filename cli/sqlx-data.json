@@ -315,6 +315,36 @@
       ]
     }
   },
+  "52ba48d2f079383d05ce4b4d7a569a84201e0ecb82712ba9a6b3f68bfbdb6ece": {
+    "query": "SELECT music_id, title, file_path FROM music ORDER BY music_id DESC LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "music_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "file_path",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        true,
+        false
+      ]
+    }
+  },
   "5a529efa46752199760388b41abae0a266aff97e33a42cfcd4bd5d98f2b9239d": {
     "query": "INSERT INTO article_tag(article_id, tag_name) VALUES($1, $2)",
     "describe": {
@@ -525,6 +555,44 @@
       },
       "nullable": [
         false,
+        false
+      ]
+    }
+  },
+  "96a8183224370638e4b6e78df9e05b3d74552046d95e5c626c7eb6f35a451be1": {
+    "query": "DELETE FROM media WHERE file_path = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "98a6951ea906678ddec5ae177723d9651799db1b121a78e70b1ef452ae7966c1": {
+    "query": "SELECT title, file_path FROM music WHERE music_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "file_path",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        true,
         false
       ]
     }
@@ -822,6 +890,18 @@
       "nullable": [
         false
       ]
+    }
+  },
+  "e049593183f9ffb5565a526ce98bd04c850fb996b25fa92cf88707a3d074f7a8": {
+    "query": "DELETE FROM music WHERE music_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
     }
   },
   "e4b67c39fe7063ed7bc1627291db4bfc88410eb6e893d3173db1d5768d7726a6": {

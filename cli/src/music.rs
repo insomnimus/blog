@@ -1,4 +1,5 @@
 mod create;
+mod delete;
 mod list;
 
 use crate::{
@@ -15,7 +16,7 @@ pub fn app() -> App<'static> {
 				.env("BLOGCLI_DB_URL")
 				.hide_env_values(true),
 		)
-		.subcommands([create::app(), list::app()])
+		.subcommands([create::app(), delete::app(), list::app()])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
@@ -24,6 +25,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	match m.subcommand().unwrap() {
 		("create", m) => create::run(m).await,
+		("delete", m) => delete::run(m).await,
 		("list", m) => list::run(m).await,
 		_ => unreachable!(),
 	}
