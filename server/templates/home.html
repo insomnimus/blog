@@ -20,10 +20,13 @@
 	<a href="/posts/{{ post.id }}">
 	<time datetime="{{ post.date }}"> {{ post.date }} </time>
 	</a>
-	{% if post.content.is_empty() %}
-	<p> (Has {{ post.n_attachments }} attachments) </p>
-	{% else %}
+	{%- if !post.content.is_empty() -%}
 	{{ post.content|safe }}
+	{% endif %}
+	{%- if post.n_attachments == 1 -%}
+	<p>(Has 1 attachment)</p>
+	{%- else if post.n_attachments != 0 -%}
+	<p> (Has {{ post.n_attachments }} attachments) </p>
 	{% endif %}
 	</div>
 {% endfor %}
