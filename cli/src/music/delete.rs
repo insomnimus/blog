@@ -74,6 +74,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		};
 	}
 
+	clear!(music).execute(&mut tx).await?;
 	tx.commit().await?;
 
 	println!("✓ deleted music {music}");

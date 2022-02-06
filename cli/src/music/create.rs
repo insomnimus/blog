@@ -53,7 +53,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	.await?
 	.music_id;
 
-	// clear!(music).execute(&mut tx).await?;
+	clear!(music).execute(&mut tx).await?;
 	tx.commit().await?;
 
 	println!("✓ created a new music post (id = {id}, attachment = {path})");

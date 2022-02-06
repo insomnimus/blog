@@ -53,6 +53,16 @@
       "nullable": []
     }
   },
+  "05e844654896147e13effc58281df58b1a7bbe42e2ad4213155dbbaf60a4c492": {
+    "query": "INSERT INTO cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome = CURRENT_TIMESTAMP,\n\t\tmusic = CURRENT_TIMESTAMP",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
   "0904f220361c0c35c0d5f290a80104d6e71d3674e0425bbdb6dfd5e4b620d9b2": {
     "query": "SELECT\n\ttitle,\n\t(CASE WHEN NOT $1 THEN raw END) AS raw,\n\t(CASE WHEN $1 THEN html END) AS html,\n\tsyntax AS \"syntax: Syntax\"\n\tFROM article\n\tWHERE article_id = $2\n\t",
     "describe": {
