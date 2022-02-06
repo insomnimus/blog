@@ -1,8 +1,8 @@
+mod create;
 mod delete;
 mod edit;
 mod fetch;
 mod list;
-mod publish;
 mod tag;
 
 use std::path::Path;
@@ -28,11 +28,11 @@ pub fn app() -> App<'static> {
 				.hide_env_values(true),
 		)
 		.subcommands([
+			create::app(),
 			delete::app(),
 			edit::app(),
 			fetch::app(),
 			list::app(),
-			publish::app(),
 			tag::app(),
 		])
 }
@@ -42,11 +42,11 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	init_db(db).await?;
 
 	match m.subcommand().unwrap() {
+		("create", m) => create::run(m).await,
 		("delete", m) => delete::run(m).await,
 		("edit", m) => edit::run(m).await,
 		("fetch", m) => fetch::run(m).await,
 		("list", m) => list::run(m).await,
-		("publish", m) => publish::run(m).await,
 		("tag", m) => tag::run(m).await,
 		_ => unreachable!(),
 	}

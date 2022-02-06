@@ -53,20 +53,6 @@
       "nullable": []
     }
   },
-  "05625ce9c6a0781d90702656c5f1c64dbdf08d4d91d1934efc41ee85bd50ffb1": {
-    "query": "UPDATE post SET raw = $2, content = $3 WHERE post_id = $1",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text",
-          "Text"
-        ]
-      },
-      "nullable": []
-    }
-  },
   "0904f220361c0c35c0d5f290a80104d6e71d3674e0425bbdb6dfd5e4b620d9b2": {
     "query": "SELECT\n\ttitle,\n\t(CASE WHEN NOT $1 THEN raw END) AS raw,\n\t(CASE WHEN $1 THEN html END) AS html,\n\tsyntax AS \"syntax: Syntax\"\n\tFROM article\n\tWHERE article_id = $2\n\t",
     "describe": {
@@ -192,6 +178,32 @@
       "columns": [],
       "parameters": {
         "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "3649f230f670d7323e2951e977e3d01eacb9bd0f8ef6952b759d34730c4c65ca": {
+    "query": "UPDATE post SET raw = $1, content = $2,  syntax = $3 WHERE post_id = $4",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          },
           "Int4"
         ]
       },
@@ -406,30 +418,6 @@
       ]
     }
   },
-  "7ffd9bc6f4de8df6ff7389f81a8b4e5312da5a17b7b3b948a73f2705ba796417": {
-    "query": "SELECT post_id, raw FROM post ORDER BY post_id DESC LIMIT 1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "post_id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "raw",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false
-      ]
-    }
-  },
   "83c73dc093b0b65fc9a95b207f093cf7fed00c4cc6bb1023e0df5dbb0084f812": {
     "query": "SELECT\n\t\t\tp.post_id AS id,\n\t\t\tp.date_posted AS date,\n\t\t\tp.raw,\n\t\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\t\tFROM post p\n\t\t\tLEFT JOIN post_media m\n\t\t\tON m.post_id = p.post_id\n\t\t\tWHERE p.post_id = $1\n\t\t\tGROUP BY p.post_id",
     "describe": {
@@ -560,26 +548,6 @@
       ]
     }
   },
-  "a6786a11d6d03cb83f1d64d7b51dba1dfd7f5ff0117a2fbb8544cd3936d098cc": {
-    "query": "SELECT raw FROM post WHERE post_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "raw",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
   "afdbe5c3e7ee4722bd3b1cbb9b68093df509e6a1d123dc1fe2236f4e1a4efa35": {
     "query": "SELECT article_id, title FROM article WHERE article_id = $1",
     "describe": {
@@ -653,23 +621,39 @@
       "nullable": []
     }
   },
-  "ba4a6e7884ff51e37aa01146becaab5062a40e09500c8515cdca8ad418141ec7": {
-    "query": "INSERT INTO post(raw, content)\n\tVALUES($1, $2)\n\tRETURNING post_id",
+  "be2319d083c6da2843b445ea6c19de2ed0806c22e33146a470a5db527304a959": {
+    "query": "SELECT raw, syntax AS \"syntax: Syntax\" FROM post WHERE post_id = $1",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "post_id",
-          "type_info": "Int4"
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
         }
       ],
       "parameters": {
         "Left": [
-          "Text",
-          "Text"
+          "Int4"
         ]
       },
       "nullable": [
+        false,
         false
       ]
     }
@@ -690,6 +674,47 @@
         ]
       },
       "nullable": [
+        false
+      ]
+    }
+  },
+  "c8615abae35ec02e7af068865c8445614dd6146b785c88de31e55794d5e9e796": {
+    "query": "SELECT post_id, raw, syntax AS \"syntax: Syntax\" FROM post ORDER BY post_id DESC LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "post_id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
         false
       ]
     }
@@ -745,6 +770,39 @@
           "Text",
           "Text",
           "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "e4b67c39fe7063ed7bc1627291db4bfc88410eb6e893d3173db1d5768d7726a6": {
+    "query": "INSERT INTO post(raw, content, syntax)\n\tVALUES($1, $2, $3)\n\tRETURNING post_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "post_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
         ]
       },
       "nullable": [

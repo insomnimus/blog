@@ -8,8 +8,7 @@ pub fn app() -> App<'static> {
 		.about("Edit an existing post.")
 		.group(ArgGroup::new("handle").required(true).args(&["id", "last"]))
 		.args(&[
-			arg!(-s --syntax [SYNTAX] "The markup format of the source text.")
-				.default_value("markdown")
+			arg!(-s --syntax [SYNTAX] "The markup format of the post.")
 				.possible_values(Syntax::VALUES)
 				.ignore_case(true),
 			arg!(id: [ID] "The post id.")
@@ -21,19 +20,22 @@ pub fn app() -> App<'static> {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	let syntax = m.value_of_t_or_exit::<Syntax>("syntax");
-
-	let (id, raw) = match m.value_of_t::<i32>("id") {
-		Ok(id) => query!("SELECT raw FROM post WHERE post_id = $1", id)
-			.fetch_optional(db())
-			.await?
-			.map(|x| (id, x.raw))
-			.ok_or_else(|| anyhow!("no post found with the id {id}"))?,
-		Err(_) => query!("SELECT post_id, raw FROM post ORDER BY post_id DESC LIMIT 1")
-			.fetch_optional(db())
-			.await?
-			.map(|mut x| (x.post_id, x.raw.take()))
-			.ok_or_else(|| anyhow!("there are no posts in the database"))?,
+	let (id, raw, syntax) = match m.value_of_t::<i32>("id") {
+		Ok(id) => query!(
+			r#"SELECT raw, syntax AS "syntax: Syntax" FROM post WHERE post_id = $1"#,
+			id
+		)
+		.fetch_optional(db())
+		.await?
+		.map(|mut x| (id, x.raw.take(), x.syntax))
+		.ok_or_else(|| anyhow!("no post found with the id {id}"))?,
+		Err(_) => query!(
+			r#"SELECT post_id, raw, syntax AS "syntax: Syntax" FROM post ORDER BY post_id DESC LIMIT 1"#
+		)
+		.fetch_optional(db())
+		.await?
+		.map(|mut x| (x.post_id, x.raw.take(), x.syntax))
+		.ok_or_else(|| anyhow!("there are no posts in the database"))?,
 	};
 
 	let raw = match m.value_of("content") {
@@ -44,15 +46,18 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		},
 	};
 
+	let syntax = m.value_of_t("syntax").unwrap_or(syntax);
+
 	let content = syntax.render(&raw);
 
 	let mut tx = db().begin().await?;
 
 	query!(
-		"UPDATE post SET raw = $2, content = $3 WHERE post_id = $1",
-		id,
+		"UPDATE post SET raw = $1, content = $2,  syntax = $3 WHERE post_id = $4",
 		&raw,
-		&content
+		&content,
+		syntax as Syntax,
+		id,
 	)
 	.execute(&mut tx)
 	.await?;

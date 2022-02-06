@@ -7,7 +7,7 @@ use super::{
 use crate::prelude::*;
 
 pub fn app() -> App<'static> {
-	App::new("publish").about("Publish a new article.").args(&[
+	App::new("create").about("Publish a new article.").args(&[
 		arg!(-p --path <FILE> "The article."),
 		arg!(title: <TITLE> "The articles title.").validator(validate_title),
 		arg!(-a --about <DESCRIPTION> "The article description.")

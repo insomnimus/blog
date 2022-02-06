@@ -49,11 +49,12 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let mut tx = db().begin().await?;
 	let id = query!(
-		"INSERT INTO post(raw, content)
-	VALUES($1, $2)
+		"INSERT INTO post(raw, content, syntax)
+	VALUES($1, $2, $3)
 	RETURNING post_id",
 		&raw,
-		&content
+		&content,
+		syntax as Syntax,
 	)
 	.fetch_one(&mut tx)
 	.await?
