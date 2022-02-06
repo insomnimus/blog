@@ -1,4 +1,5 @@
 mod create;
+mod list;
 
 use crate::{
 	prelude::*,
@@ -14,7 +15,7 @@ pub fn app() -> App<'static> {
 				.env("BLOGCLI_DB_URL")
 				.hide_env_values(true),
 		)
-		.subcommands([create::app()])
+		.subcommands([create::app(), list::app()])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
@@ -23,16 +24,49 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	match m.subcommand().unwrap() {
 		("create", m) => create::run(m).await,
+		("list", m) => list::run(m).await,
 		_ => unreachable!(),
 	}
 }
 
+#[derive(Debug, Serialize)]
 struct Music {
 	pub id: i32,
 	pub title: Option<String>,
 	pub comment: Option<String>,
 	pub date: String,
 	pub media: String,
+}
+
+impl Formattable for Music {
+	fn human(&self) -> String {
+		let comment = self
+			.comment
+			.as_ref()
+			.map_or_else(String::new, |s| match s.len() {
+				0..=30 => format!(" - {}...", &s[..(s.len().min(27))]),
+				_ => format!(" - {s}"),
+			});
+		let id = self.id;
+		let title = self.title.as_deref().unwrap_or("untitled");
+		let date = &self.date;
+		let media = &self.media;
+
+		format!("#{id}> {title} on {date} ({media}){comment}")
+	}
+}
+
+impl Tsv for Music {
+	fn tsv(&self) -> String {
+		format!(
+			"{id}\t{title}\t{date}\t{media}\t{comment}",
+			id = self.id,
+			date = self.date.tsv(),
+			title = self.title.tsv(),
+			comment = self.comment.tsv(),
+			media = self.media.tsv(),
+		)
+	}
 }
 
 fn validate_music(s: &str) -> StdResult<(), String> {

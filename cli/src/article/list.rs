@@ -6,7 +6,7 @@ pub fn app() -> App<'static> {
 		.about("List metadata about published articles.")
 		.args(&[
 			arg!(--oldest "Show oldest articles first."),
-			arg!(n: -n [N] "Show N articles, 0 for all.").validator(validate::<usize>(
+			arg!(n: -n [LIMIT] "Output limit, 0 means no limit.").validator(validate::<usize>(
 				"The value must be a positive integer or 0.",
 			)),
 			arg!(-f --format [FORMAT] "The output format.")

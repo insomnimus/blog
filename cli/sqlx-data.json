@@ -210,6 +210,53 @@
       "nullable": []
     }
   },
+  "3c3a104c3d1a372b1c38bbf5c9c0a70b367ce9ce44850e938b32c98a86d4f8c5": {
+    "query": "SELECT\n\tmusic_id AS id,\n\tdate_uploaded AS date,\n\ttitle,\n\tfile_path AS media,\n\t(CASE WHEN $1 THEN comment END) AS comment\n\tFROM music\n\tWHERE $2 = '' OR LOWER(title) SIMILAR TO $2\n\tORDER BY\n\tCASE WHEN $3 THEN date_uploaded END ASC,\n\t CASE WHEN 'TRUE' THEN date_uploaded END DESC\n\tLIMIT $4",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 2,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "media",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "comment",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Text",
+          "Bool",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        null
+      ]
+    }
+  },
   "4a3c698a2d6960341eebfda26e5b22d8382e84eb2bcafb66f79f1cf959e8aa36": {
     "query": "UPDATE article\n\tSET\n\ttitle = COALESCE($1, title),\n\turl_title = COALESCE($2, url_title),\n\tabout = COALESCE($3, about),\n\thtml = COALESCE($4, html),\n\traw_hash = COALESCE($5, raw_hash),\n\traw = COALESCE($6, raw),\n\tsyntax = COALESCE($7, syntax),\n\tdate_updated = NOW() AT TIME ZONE 'UTC'\n\tWHERE article_id = $8\n\tRETURNING title",
     "describe": {
