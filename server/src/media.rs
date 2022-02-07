@@ -24,11 +24,13 @@ pub enum MediaType {
 }
 
 impl Media {
-	pub fn new(path: String) -> Self {
+	pub fn new<S: Into<String>>(path: S) -> Self {
 		// TODO: Rework this function.
 		fn ends(exts: &[&str], s: &str) -> bool {
 			exts.iter().any(|ext| s.ends_with(ext))
 		}
+
+		let path = path.into();
 
 		let kind = if ends(&[".ogg", ".mp3", ".wav"], &path) {
 			MediaType::Audio

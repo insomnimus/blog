@@ -435,6 +435,44 @@
       ]
     }
   },
+  "daea82f55a56939537daa2345d5de26cab35108caeaa16cce7f69106d2bc1c16": {
+    "query": "SELECT\n\ttitle,\n\tmusic_id AS id,\n\tdate_uploaded AS date,\n\tcomment\n\tFROM music\n\tWHERE LOWER(title) LIKE $1\n\tORDER BY date DESC",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "comment",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        true,
+        false,
+        false,
+        true
+      ]
+    }
+  },
   "ed461794a04bb5cf0e6a163744383f62638914e140ceb97eff50823133520e72": {
     "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title\n\t\tLIMIT 1",
     "describe": {

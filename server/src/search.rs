@@ -1,6 +1,6 @@
 use crate::{
-	music::Music,
 	article::ArticleInfo,
+	music::Music,
 	prelude::*,
 };
 
@@ -133,16 +133,19 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 
 async fn search_music(params: SearchParams) -> HttpResponse<SearchPage> {
 	let q = format!("%{}%", params.query.to_lowercase());
-	let mut stream = query!("SELECT
+	let mut stream = query!(
+		"SELECT
 	title,
 	music_id AS id,
 	date_uploaded AS date,
 	comment
 	FROM music
 	WHERE LOWER(title) LIKE $1
-	ORDER BY date DESC", q)
+	ORDER BY date DESC",
+		q
+	)
 	.fetch(db());
-	
+
 	let mut results = Vec::new();
 	while let Some(res) = stream.next().await {
 		let mut x = res.or_500()?;
@@ -154,7 +157,7 @@ async fn search_music(params: SearchParams) -> HttpResponse<SearchPage> {
 			media: Default::default(),
 		}));
 	}
-	
+
 	Ok(SearchPage {
 		is_base: false,
 		title: format!("Search Results for '{}'", &params.query),

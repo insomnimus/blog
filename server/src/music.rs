@@ -21,26 +21,25 @@ pub struct MusicPage {
 
 impl Music {
 	pub fn short_comment(&'_ self, max: usize) -> Option<Cow<'_, str>> {
-		self
-			.comment
-			.as_deref()
-		.and_then(|s| s.trim().split('\n').next().map(|s| {
-			if s.len() <= max {
-				s.into()
-			} else {
-				let mut buf = String::with_capacity(max);
-				for word in s.split_whitespace() {
-					if buf.len() + 4 + word.len() >= max {
-						buf.truncate(max - 3);
-						buf.push_str("...");
-						break;
+		self.comment.as_deref().and_then(|s| {
+			s.trim().split('\n').next().map(|s| {
+				if s.len() <= max {
+					s.into()
+				} else {
+					let mut buf = String::with_capacity(max);
+					for word in s.split_whitespace() {
+						if buf.len() + 4 + word.len() >= max {
+							buf.truncate(max - 3);
+							buf.push_str("...");
+							break;
+						}
+						buf.push(' ');
+						buf.push_str(word);
 					}
-					buf.push(' ');
-					buf.push_str(word);
+					buf.into()
 				}
-				buf.into()
-			}
-		}))
+			})
+		})
 	}
 }
 
