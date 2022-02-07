@@ -11,6 +11,8 @@
 	onkeypress="submit_search(event)">
 <input type="radio" id="searchtype-article" name="searchtype" value="article" checked>
 <label for="searchtype-article">Articles</label>
+<input type="radio" id="searchtype-music" name="searchtype" value="music">
+<label for="searchtype-music">Music</label>
 </div>
 
 {% if !self.is_base %} <H1> {{ self.title }} </h1> {% endif %}
@@ -19,6 +21,7 @@
 {% for result in self.results %}
 	{% match result %}
 	{% when SearchResult::Article with (article) %} {% include "search/article_result.html" %}
+	{% when SearchResult::Music with (music) %} {% include "search/music_result.html" %}
 	{% endmatch %}
 {% endfor %}
 

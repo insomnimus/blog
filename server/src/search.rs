@@ -1,4 +1,5 @@
 use crate::{
+	music::Music,
 	article::ArticleInfo,
 	prelude::*,
 };
@@ -23,6 +24,7 @@ impl Default for SearchPage {
 
 enum SearchResult {
 	Article(ArticleInfo),
+	Music(Music),
 }
 
 #[derive(Deserialize)]
@@ -42,6 +44,7 @@ pub async fn handle_search(params: Option<Query<SearchParams>>) -> HttpResponse<
 
 	match params.kind.as_str() {
 		"article" => search_article(params).await,
+		"music" => search_music(params).await,
 		_ => Err(E_BAD_REQUEST),
 	}
 }
@@ -124,6 +127,37 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 	Ok(SearchPage {
 		is_base: false,
 		title,
+		results,
+	})
+}
+
+async fn search_music(params: SearchParams) -> HttpResponse<SearchPage> {
+	let q = format!("%{}%", params.query.to_lowercase());
+	let mut stream = query!("SELECT
+	title,
+	music_id AS id,
+	date_uploaded AS date,
+	comment
+	FROM music
+	WHERE LOWER(title) LIKE $1
+	ORDER BY date DESC", q)
+	.fetch(db());
+	
+	let mut results = Vec::new();
+	while let Some(res) = stream.next().await {
+		let mut x = res.or_500()?;
+		results.push(SearchResult::Music(Music {
+			id: x.id,
+			date: x.date.format_utc(),
+			title: x.title.take(),
+			comment: x.comment.take(),
+			media: Default::default(),
+		}));
+	}
+	
+	Ok(SearchPage {
+		is_base: false,
+		title: format!("Search Results for '{}'", &params.query),
 		results,
 	})
 }

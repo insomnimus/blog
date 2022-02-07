@@ -20,15 +20,14 @@ pub struct MusicPage {
 }
 
 impl Music {
-	pub fn short_comment(&'_ self, max: usize) -> Cow<'_, str> {
-		match self
+	pub fn short_comment(&'_ self, max: usize) -> Option<Cow<'_, str>> {
+		self
 			.comment
 			.as_deref()
-			.and_then(|s| s.trim().split('\n').next())
-		{
-			None => "-".into(),
-			Some(s) if s.len() <= max => s.into(),
-			Some(s) => {
+		.and_then(|s| s.trim().split('\n').next().map(|s| {
+			if s.len() <= max {
+				s.into()
+			} else {
 				let mut buf = String::with_capacity(max);
 				for word in s.split_whitespace() {
 					if buf.len() + 4 + word.len() >= max {
@@ -41,7 +40,7 @@ impl Music {
 				}
 				buf.into()
 			}
-		}
+		}))
 	}
 }
 

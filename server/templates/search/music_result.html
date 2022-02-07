@@ -1,0 +1,9 @@
+<h4><a href="/music/{{ music.id }}"> {{ music.title.as_deref().unwrap_or("Untitled") }} </a></h4>
+<p><time datetime="{{ music.date }}"> {{ music.date }} </time></p>
+<p>
+
+{%- match music.short_comment(120) -%}
+{% when Some with (cmt) %} {{ cmt }}
+{% when None %} <i>No description provided</i>
+{% endmatch %}
+</p>
