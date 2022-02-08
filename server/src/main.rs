@@ -39,6 +39,11 @@ use tower::{
 };
 use tower_http::services::ServeDir;
 
+async fn robots_txt() -> &'static str {
+	"User-agent: *
+Disallow: /api/"
+}
+
 pub struct CacheData<T> {
 	pub time: NaiveDateTime,
 	pub data: T,
@@ -92,6 +97,7 @@ async fn main() -> anyhow::Result<()> {
 		.route("/search", get(search::handle_search))
 		.route("/music/:id", get(music::handle_music))
 		.route("/music", get(music::handle_music_page))
+		.route("/robots.txt", get(robots_txt))
 		.layer(
 			ServiceBuilder::new()
 			// this middleware goes above `TimeoutLayer` because it will receive
