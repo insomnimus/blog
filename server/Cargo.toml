@@ -1,6 +1,6 @@
 [package]
 name = "blog"
-version = "0.10.2"
+version = "0.11.1"
 edition = "2021"
 
 [[bin]]
@@ -16,6 +16,7 @@ chrono = "0.4.19"
 clap = { version = "3.0.13", features = ["env", "wrap_help", "unicode"] }
 futures = "0.3.19"
 html-escape = "0.2.9"
+indexmap = "1.8.0"
 log = "0.4.14"
 serde = { version = "1.0.136", features = ["derive"] }
 sqlx = { version = "0.5.10", features = ["runtime-tokio-rustls", "postgres", "chrono", "offline"] }

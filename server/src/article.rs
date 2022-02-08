@@ -1,3 +1,5 @@
+mod index;
+
 use axum::extract::Path;
 
 use crate::prelude::*;
@@ -23,9 +25,13 @@ pub struct ArticlesPage {
 pub struct Article {
 	info: ArticleInfo,
 	html: String,
+	prev: Option<index::IndexInfo>,
+	next: Option<index::IndexInfo>,
 }
 
 pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> {
+	let (prev, next) = index::get_adjacent(&title).await.or_500()?.or_404()?;
+
 	query!(
 		"SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,
 		ARRAY_AGG(t.tag_name) tags_array
@@ -33,16 +39,17 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 		LEFT JOIN article_tag t
 		ON a.article_id = t.article_id
 		WHERE url_title = $1
-		GROUP BY a.title, a.url_title
-		LIMIT 1",
+		GROUP BY a.title, a.url_title",
 		&title,
 	)
 	.fetch_optional(db())
 	.await
 	.or_500()
 	.and_then(|opt| {
-		opt.or_404().map(|mut x| Article {
+		opt.or_404().map(move |mut x| Article {
 			html: x.html.take(),
+			next,
+			prev,
 			info: ArticleInfo {
 				about: x.about.take(),
 				published: x.date_published.format_utc(),
@@ -57,9 +64,6 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 
 pub async fn handle_articles() -> HttpResponse<Html<String>> {
 	static CACHE: Cache = OnceCell::const_new();
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Default::default()) })
-		.await;
 
 	let last_updated = query!("SELECT articles FROM cache")
 		.fetch_one(db())
@@ -67,10 +71,14 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 		.or_500()?
 		.articles;
 
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
+
 	{
 		let cached = cache.read().await;
-		if cached.time == last_updated && !cached.html.is_empty() {
-			return Ok(Html(cached.html.clone()));
+		if cached.time == last_updated && !cached.data.is_empty() {
+			return Ok(Html(cached.data.clone()));
 		}
 	}
 	info!("updating articles cache");
@@ -108,8 +116,8 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 	let html = ArticlesPage { articles }.render().or_500()?;
 
 	let mut cached = cache.write().await;
-	cached.html.clear();
-	cached.html.push_str(&html);
+	cached.data.clear();
+	cached.data.push_str(&html);
 	cached.time = last_updated;
 
 	Ok(Html(html))

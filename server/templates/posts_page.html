@@ -4,10 +4,10 @@
 	<script src="/static/posts.js"> </script>
 	{% endblock %}
 
-{% block content %}
+{%- block content -%}
 <h1>Posts</h1>
 <div id="posts">
-{% for post in self.posts %}
+{%- for post in self.posts -%}
 	{% if !loop.first %} <hr> {% endif %}
 	{{ post|safe }}
 {% endfor %}

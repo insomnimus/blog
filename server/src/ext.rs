@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use sqlx::types::chrono::{
 	DateTime,
 	NaiveDateTime,
@@ -52,3 +54,34 @@ impl<T: Default> DefaultExt for T {
 		std::mem::take(self)
 	}
 }
+
+pub trait SplitWords: AsRef<str> {
+	fn first_words(&'_ self, max: usize) -> std::borrow::Cow<'_, str> {
+		let s = self.as_ref().trim();
+		if s.len() <= max {
+			return s.into();
+		}
+		let mut buf = String::with_capacity(max);
+		for word in s.split_whitespace() {
+			if buf.len() + 4 + word.len() >= max {
+				buf.truncate(max - 3);
+				buf.push_str("...");
+				break;
+			}
+			buf.push(' ');
+			buf.push_str(word);
+		}
+		buf.into()
+	}
+
+	fn first_line_words(&'_ self, max_len: usize) -> Cow<'_, str> {
+		self.as_ref()
+			.trim()
+			.split('\n')
+			.next()
+			.unwrap_or_default()
+			.first_words(max_len)
+	}
+}
+
+impl SplitWords for str {}

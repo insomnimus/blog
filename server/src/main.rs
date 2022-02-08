@@ -39,21 +39,21 @@ use tower::{
 };
 use tower_http::services::ServeDir;
 
-pub struct CacheData {
+pub struct CacheData<T> {
 	pub time: NaiveDateTime,
-	pub html: String,
+	pub data: T,
 }
 
-impl Default for CacheData {
+impl<T: Default> Default for CacheData<T> {
 	fn default() -> Self {
 		Self {
 			time: Utc::now().naive_utc(),
-			html: String::new(),
+			data: T::default(),
 		}
 	}
 }
 
-pub type Cache = OnceCell<RwLock<CacheData>>;
+pub type Cache<T = String> = OnceCell<RwLock<CacheData<T>>>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

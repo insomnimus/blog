@@ -2,6 +2,7 @@
 {% block title %}{{ self.title.as_deref().unwrap_or("Music") }}{% endblock %}
 
 {%- block content -%}
+<article>
 <h1><a href="/music/{{ self.id }}">
 {%- match self.title -%}
 {%- when Some with (ttl) -%} {{ ttl }}
@@ -15,4 +16,5 @@
 	{% when None %}
 {% endmatch %}
 {{ self.media.render_html()|safe }}
+</article>
 {% endblock %}

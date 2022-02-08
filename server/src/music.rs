@@ -21,25 +21,7 @@ pub struct MusicPage {
 
 impl Music {
 	pub fn short_comment(&'_ self, max: usize) -> Option<Cow<'_, str>> {
-		self.comment.as_deref().and_then(|s| {
-			s.trim().split('\n').next().map(|s| {
-				if s.len() <= max {
-					s.into()
-				} else {
-					let mut buf = String::with_capacity(max);
-					for word in s.split_whitespace() {
-						if buf.len() + 4 + word.len() >= max {
-							buf.truncate(max - 3);
-							buf.push_str("...");
-							break;
-						}
-						buf.push(' ');
-						buf.push_str(word);
-					}
-					buf.into()
-				}
-			})
-		})
+		self.comment.as_deref().map(|s| s.first_line_words(max))
 	}
 }
 
@@ -74,8 +56,8 @@ pub async fn handle_music_page() -> HttpResponse {
 		.await;
 	{
 		let cached = cache.read().await;
-		if cached.time == last && !cached.html.is_empty() {
-			return Ok(Html(cached.html.clone()));
+		if cached.time == last && !cached.data.is_empty() {
+			return Ok(Html(cached.data.clone()));
 		}
 	}
 	info!("updating music cache");
@@ -99,8 +81,8 @@ pub async fn handle_music_page() -> HttpResponse {
 
 	let html = MusicPage { music }.render().or_500()?;
 	let mut cached = cache.write().await;
-	cached.html.clear();
-	cached.html.push_str(&html);
+	cached.data.clear();
+	cached.data.push_str(&html);
 	cached.time = last;
 
 	Ok(Html(html))

@@ -94,8 +94,8 @@ pub async fn handle_posts() -> HttpResponse {
 
 	{
 		let cached = cache.read().await;
-		if cached.time == last_updated && !cached.html.is_empty() {
-			return Ok(Html(cached.html.clone()));
+		if cached.time == last_updated && !cached.data.is_empty() {
+			return Ok(Html(cached.data.clone()));
 		}
 	}
 	info!("updating posts cache");
@@ -104,8 +104,8 @@ pub async fn handle_posts() -> HttpResponse {
 	let html = PostsPage { posts }.render().or_500()?;
 
 	let mut cached = cache.write().await;
-	cached.html.clear();
-	cached.html.push_str(&html);
+	cached.data.clear();
+	cached.data.push_str(&html);
 	cached.time = last_updated;
 
 	Ok(Html(html))

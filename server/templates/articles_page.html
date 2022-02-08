@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Articles{% endblock %}
+{%- block description -%}Full articles index.{% endblock %}
 
-{% block content %}
+{%- block content -%}
 <h1>Articles</h1>
 {% for article in self.articles %}
 <div>

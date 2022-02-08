@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}{{ self.info.title }}{% endblock %}
-
-{% block content %}
+{%- block description -%} {{ self.info.about }} {% endblock %}
+{%- block content -%}
+<article>
 <h1>{{ self.info.title }}</h1>
 
 <div id="article-info">
@@ -27,5 +28,19 @@
 
 <div id="article">
 {{ self.html|safe }}
+</div>
+</article>
+<hr>
+<div>
+{%- match self.prev -%}
+	{%- when Some with (prev) -%}
+	<p><a id="prev-article" href="/articles/{{ prev.url_title }}"> Previous Article: {{ prev.title }} </a></p>
+	{% when None %}
+{% endmatch %}
+{%- match self.next -%}
+	{%- when Some with (next) -%}
+	<p><a id="next-article" href="/articles/{{ next.url_title }}"> Next Article: {{ next.title }} </a></p>
+	{% when None %}
+{% endmatch %}
 </div>
 {% endblock %}

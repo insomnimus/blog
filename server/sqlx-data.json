@@ -264,6 +264,98 @@
       ]
     }
   },
+  "9f2de6ef9a950c53d6bea0ccade89d87e64eddd42e44e9cb0205873dfac8448b": {
+    "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "about",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "date_published",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 4,
+          "name": "date_updated",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "html",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 6,
+          "name": "tags_array",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        null
+      ]
+    }
+  },
+  "bb5e353e33fd8bfc067101c9272a26262ecf68ed9170bf75da990c63c438ee4b": {
+    "query": "SELECT\n\turl_title,\n\ttitle,\n\tarticle_id AS id,\n\tdate_published\n\tFROM article\n\tORDER BY date_published  ASC",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "date_published",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "bf47e2e0e2c899fa293f024fb03f53460f39d45acaec5416df9c2e062ce40dab": {
     "query": "SELECT\n\ta.url_title,\n\ta.title,\n\ta.about,\n\ta.date_published AS published,\n\ta.date_updated AS updated,\n\tARRAY_AGG(t.tag_name) AS \"tags?: Vec<Option<String>>\"\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON a.article_id = t.article_id\n\tGROUP BY a.article_id, a.url_title, a.title\n\tORDER BY COALESCE(a.date_updated, a.date_published) DESC",
     "describe": {
@@ -470,62 +562,6 @@
         false,
         false,
         true
-      ]
-    }
-  },
-  "ed461794a04bb5cf0e6a163744383f62638914e140ceb97eff50823133520e72": {
-    "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title\n\t\tLIMIT 1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "about",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "date_published",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 4,
-          "name": "date_updated",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 5,
-          "name": "html",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags_array",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        null
       ]
     }
   }
