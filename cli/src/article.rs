@@ -22,11 +22,6 @@ pub fn app() -> App<'static> {
 	App::new("article")
 		.about("Manage articles.")
 		.setting(AppSettings::SubcommandRequiredElseHelp)
-		.arg(
-			arg!(-D --database [URL] "The database URL with write permissions.")
-				.env("BLOGCLI_DB_URL")
-				.hide_env_values(true),
-		)
 		.subcommands([
 			create::app(),
 			delete::app(),

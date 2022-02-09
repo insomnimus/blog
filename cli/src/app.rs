@@ -29,12 +29,16 @@ pub fn app() -> App<'static> {
 		.setting(AppSettings::SubcommandRequiredElseHelp)
 		.global_setting(AppSettings::InferSubcommands)
 		.global_setting(AppSettings::PropagateVersion)
-		.arg(
+		.args(&[
 			arg!(-C --config [PATH] "Path to the config file.")
 				.env("BLOG_CONFIG_PATH")
 				.hide_env_values(true)
 				.global(true),
-		)
+			arg!(-D --database [URL] "Database URL.")
+				.global(true)
+				.env("BLOG_DB_URL")
+				.hide_env_values(true),
+		])
 		.subcommands([article::app(), music::app(), post::app()])
 }
 
@@ -50,11 +54,18 @@ pub async fn run() -> Result<()> {
 }
 
 #[derive(serde::Deserialize, Default, Debug)]
+#[serde(rename_all = "kebab-case")]
 pub struct Config {
-	#[serde(rename = "cli_db_url")]
+	#[serde(rename = "db-url")]
 	pub db: Option<String>,
-	pub sftp_uri: Option<SftpUri>,
+	pub sftp_url: Option<SftpUri>,
 	pub ssh_config: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug, Default)]
+struct AppConfig {
+	#[serde(default)]
+	cli: Config,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
@@ -68,9 +79,11 @@ impl Config {
 		match path {
 			Some(p) => {
 				let data = fs::read_to_string(p.as_ref()).await?;
-				let config: Self =
+				let config: AppConfig =
 					toml::from_str(&data).context("failed to parse the config file")?;
-				CONFIG.set(config).expect("config was already initialized");
+				CONFIG
+					.set(config.cli)
+					.expect("config was already initialized");
 			}
 			None => {
 				if let Some(proj) = ProjectDirs::from("", "", "blog") {
@@ -79,9 +92,11 @@ impl Config {
 							CONFIG.set(Self::default()).ok();
 						}
 						Ok(data) => {
-							let config: Self =
+							let config: AppConfig =
 								toml::from_str(&data).context("failed to parse the config file")?;
-							CONFIG.set(config).expect("config was already initialized");
+							CONFIG
+								.set(config.cli)
+								.expect("config was already initialized");
 						}
 					}
 				}
@@ -107,7 +122,7 @@ impl Config {
 			Some(s) => s.parse::<SftpUri>()?,
 			None => Self::get_or_init(m.value_of("config"))
 				.await?
-				.sftp_uri
+				.sftp_url
 				.clone()
 				.ok_or_else(|| anyhow!("missing sftp uri"))?,
 		};
