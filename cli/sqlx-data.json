@@ -113,43 +113,6 @@
       ]
     }
   },
-  "0f9c30710ec25fe5aa647fdb14136b692d9c0dc772e533255f6e5060e9e76c90": {
-    "query": "INSERT INTO article(title, url_title, about, raw, html, raw_hash, syntax)\n\t\t\tVALUES($1, $2, $3, $4, $5, $6, $7)\n\t\t\tRETURNING article_id",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "article_id",
-          "type_info": "Int4"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Text",
-          "Bytea",
-          {
-            "Custom": {
-              "name": "syntax",
-              "kind": {
-                "Enum": [
-                  "plain",
-                  "markdown",
-                  "html"
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
   "1d896c81bbd4e4207091aacbbbb0f46ef4d78afe758a0dd598b5a79c3b21d622": {
     "query": "SELECT title FROM article WHERE article_id = $1",
     "describe": {
@@ -267,14 +230,14 @@
       ]
     }
   },
-  "4a3c698a2d6960341eebfda26e5b22d8382e84eb2bcafb66f79f1cf959e8aa36": {
-    "query": "UPDATE article\n\tSET\n\ttitle = COALESCE($1, title),\n\turl_title = COALESCE($2, url_title),\n\tabout = COALESCE($3, about),\n\thtml = COALESCE($4, html),\n\traw_hash = COALESCE($5, raw_hash),\n\traw = COALESCE($6, raw),\n\tsyntax = COALESCE($7, syntax),\n\tdate_updated = NOW() AT TIME ZONE 'UTC'\n\tWHERE article_id = $8\n\tRETURNING title",
+  "468f360d6c8600c273eac7ffa9c6cac8abf073cd37d38cec8c54b3881afab186": {
+    "query": "INSERT INTO article(title, url_title, about, raw, html, syntax)\n\t\t\tVALUES($1, $2, $3, $4, $5, $6)\n\t\t\tRETURNING article_id",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "title",
-          "type_info": "Text"
+          "name": "article_id",
+          "type_info": "Int4"
         }
       ],
       "parameters": {
@@ -283,7 +246,6 @@
           "Text",
           "Text",
           "Text",
-          "Bytea",
           "Text",
           {
             "Custom": {
@@ -296,8 +258,7 @@
                 ]
               }
             }
-          },
-          "Int4"
+          }
         ]
       },
       "nullable": [
@@ -1010,6 +971,43 @@
       "parameters": {
         "Left": [
           "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "fd9434ba5ee0c5abf422c816fc46ec64fa1704e304b97614f9e44792a322cf85": {
+    "query": "UPDATE article\n\tSET\n\ttitle = COALESCE($1, title),\n\turl_title = COALESCE($2, url_title),\n\tabout = COALESCE($3, about),\n\thtml = COALESCE($4, html),\n\traw = COALESCE($5, raw),\n\tsyntax = COALESCE($6, syntax),\n\tdate_updated = NOW() AT TIME ZONE 'UTC'\n\tWHERE article_id = $7\n\tRETURNING title",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "title",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          },
+          "Int4"
         ]
       },
       "nullable": [

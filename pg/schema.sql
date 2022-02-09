@@ -24,7 +24,6 @@ CREATE TABLE article (
 	date_updated TIMESTAMP,
 	html TEXT NOT NULL,
 	raw TEXT NOT NULL,
-	raw_hash BYTEA NOT NULL,
 	syntax syntax NOT NULL
 );
 

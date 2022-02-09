@@ -139,17 +139,15 @@ async fn update_article(m: &ArgMatches, id: i32, contents: Option<ArticleContent
 	url_title = COALESCE($2, url_title),
 	about = COALESCE($3, about),
 	html = COALESCE($4, html),
-	raw_hash = COALESCE($5, raw_hash),
-	raw = COALESCE($6, raw),
-	syntax = COALESCE($7, syntax),
+	raw = COALESCE($5, raw),
+	syntax = COALESCE($6, syntax),
 	date_updated = NOW() AT TIME ZONE 'UTC'
-	WHERE article_id = $8
+	WHERE article_id = $7
 	RETURNING title"#,
 		title,
 		url_title,
 		about,
 		contents.as_ref().map(|c| c.html.as_str()),
-		contents.as_ref().map(|c| &c.hash),
 		contents.as_ref().map(|c| c.raw.as_str()),
 		contents.as_ref().map(|c| c.syntax) as Option<Syntax>,
 		id,

@@ -7,10 +7,6 @@ mod tag;
 
 use std::path::Path;
 
-use sha2::{
-	Digest,
-	Sha256,
-};
 use tokio::{
 	fs,
 	io,
@@ -50,23 +46,15 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 struct ArticleContents {
 	raw: String,
 	html: String,
-	hash: Vec<u8>,
 	syntax: Syntax,
 }
 
 impl ArticleContents {
 	fn new<S: Into<String>>(raw: S, syntax: Syntax) -> Self {
 		let raw = raw.into();
-		let mut hasher = Sha256::new();
-		hasher.update(raw.trim().as_bytes());
 		let html = syntax.render(&raw).into_owned();
 
-		Self {
-			raw,
-			hash: hasher.finalize().to_vec(),
-			html,
-			syntax,
-		}
+		Self { raw, html, syntax }
 	}
 
 	async fn read_from_file<P: AsRef<Path>>(p: P, syntax: Option<Syntax>) -> io::Result<Self> {
@@ -80,13 +68,10 @@ impl ArticleContents {
 			.unwrap_or(Syntax::Plain)
 		});
 
-		let mut hasher = Sha256::new();
-		hasher.update(data.trim().as_bytes());
 		let html = syntax.render(&data).into_owned();
 
 		Ok(Self {
 			raw: data,
-			hash: hasher.finalize().to_vec(),
 			html,
 			syntax,
 		})
