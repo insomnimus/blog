@@ -15,9 +15,6 @@ pub fn app() -> App<'static> {
 			arg!(-a --attachment [ATTACHMENT] ... "An attachment as a file path or `file::rename_name`.")
 			.max_occurrences(3)
 			.validator(validate_send_file),
-			arg!(-r --sftp [URI] "The sftp servers connection uri in the form `user@domain:/path/to/store`.")
-			.env("BLOG_SFTP_URI")
-			.validator(validate_sftp_uri),
 		arg!(content: [CONTENT] "The post content. Omit to use your editor.").validator(validate_post),
 		Arg::new("sftp-args")
 		.multiple_values(true)

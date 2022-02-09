@@ -1,5 +1,3 @@
-use crate::sftp::SftpUri;
-
 macro_rules! clear {
 	(home) => {
 		sqlx::query!("INSERT INTO cache (_instance)
@@ -59,12 +57,6 @@ macro_rules! confirm{
 
 pub(crate) use clear;
 pub(crate) use confirm;
-
-pub fn validate_sftp_uri(s: &str) -> Result<(), String> {
-	s.parse::<SftpUri>()
-		.map(|_| {})
-		.map_err(|e| format!("the uri syntax is invalid: {e}"))
-}
 
 pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> std::io::Result<Option<String>> {
 	let mut b = edit::Builder::new();

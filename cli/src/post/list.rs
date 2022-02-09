@@ -4,7 +4,7 @@ use crate::prelude::*;
 pub fn app() -> App<'static> {
 	App::new("list").about("List posts.").args(&[
 		arg!(--oldest "Show oldest posts first."),
-		arg!(-r --rendered "Include the rendered HTML in the output."),
+		arg!(--rendered "Include the rendered HTML in the output."),
 		arg!(n: -n [N] "Show first N posts, 0 for all.")
 			.default_value("10")
 			.validator(validate::<u32>("the value must be a positive integer or 0")),

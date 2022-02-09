@@ -4,22 +4,12 @@ use crate::{
 };
 
 pub fn app() -> App<'static> {
-	App::new("create")
-	.about("Create a new music post.")
-	.args(&[
-	arg!(-p --path <PATH> "Path to an audio file or `PATH::RENAME`.")
-	.validator(super::validate_music),
-	arg!(-c --comment [COMMENT] "A plaintext comment.")
-	.validator(validate_comment),
-	arg!(-r --sftp <URI> "The sftp server connection uri in the form `user@host:/path/to/storage`")
-	.env("BLOG_SFTP_URI")
-	.validator(validate_sftp_uri),
-	arg!(title: [TITLE] "The title of the music post.")
-	.validator(crate::article::validate_title),
-	Arg::new("sftp-args")
-	.multiple_values(true)
-	.last(true)
-	.help("Extra args to pass to the sftp command."),
+	App::new("create").about("Create a new music post.").args(&[
+		arg!(-p --path <PATH> "Path to an audio file or `PATH::RENAME`.")
+			.validator(super::validate_music),
+		arg!(-c --comment [COMMENT] "A plaintext comment.").validator(validate_comment),
+		arg!(title: [TITLE] "The title of the music post.")
+			.validator(crate::article::validate_title),
 	])
 }
 

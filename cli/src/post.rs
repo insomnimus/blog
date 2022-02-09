@@ -9,11 +9,23 @@ pub fn app() -> App<'static> {
 	App::new("post")
 		.about("Manage short posts.")
 		.setting(AppSettings::SubcommandRequiredElseHelp)
-		.arg(
+		.args(&[
 			arg!(-D --database [URL] "Database URL.")
+			.global(true)
 				.env("BLOGCLI_DB_URL")
 				.hide_env_values(true),
-		)
+			arg!(--"ssh-config" [PATH] "The Optional ssh_config file, used in commands involving sftp.")
+			.global(true),
+					arg!(-r --sftp [URI] "The sftp servers connection uri in the form `sftp://[user@]domain[:port]/path/to/store`.")
+			.env("BLOG_SFTP_URI")
+			.global(true),
+			Arg::new("sftp-args")
+		.multiple_values(true)
+		.last(true)
+		.help("Extra args to pass to the sftp command.")
+		.global(true)
+		.required(false),
+		])
 		.subcommands([create::app(), delete::app(), edit::app(), list::app()])
 }
 

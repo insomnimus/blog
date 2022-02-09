@@ -14,15 +14,6 @@ pub fn app() -> App<'static> {
 			arg!(--dirty "Allow failure to delete the uploaded media, delete the entry from the database."),
 			arg!(--"keep-media" "Do not delete the uploaded media; just delete the post.")
 				.conflicts_with("dirty"),
-			arg!(-r --sftp [SFTP_URI] "The sftp server URI in the form `user@host:/path/to/store`")
-				.validator(validate_sftp_uri)
-				.required_unless_present("keep-media")
-				.env("BLOG_SFTP_URI"),
-			Arg::new("sftp-args")
-				.last(true)
-				.help("Extra arguments to pass to the sftp command.")
-				.conflicts_with("keep-media")
-				.multiple_values(true),
 		])
 }
 

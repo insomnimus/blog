@@ -6,24 +6,17 @@ use crate::prelude::*;
 
 pub fn app() -> App<'static> {
 	App::new("delete")
-	.about("Delete posts.")
-	.group(ArgGroup::new("handle").args(&["id", "last"]).required(true))
-	.args(&[
-	arg!(id: [ID] "The ID of the post.")
-	.validator(validate::<i32>("the value must be a whole number")),
-	arg!(--last "Delete the last post instead."),
-	arg!(-y --yes "Do not prompt for confirmation."),
-	arg!(--dirty "Do not abort the operation if the attachments could not be deleted."),
-	arg!(--"keep-attachments" "Do not attempt to delete attachments.").conflicts_with("dirty"),
-		arg!(-r --sftp [URI] "The sftp servers connection uri in the form `user@domain:/path/to/store`.")
-			.env("BLOG_SFTP_URI")
-			.validator(validate_sftp_uri),
-			Arg::new("sftp-args")
-		.multiple_values(true)
-		.last(true)
-		.help("Extra args to pass to the sftp command.")
-		.required(false),
-	])
+		.about("Delete posts.")
+		.group(ArgGroup::new("handle").args(&["id", "last"]).required(true))
+		.args(&[
+			arg!(id: [ID] "The ID of the post.")
+				.validator(validate::<i32>("the value must be a whole number")),
+			arg!(--last "Delete the last post instead."),
+			arg!(-y --yes "Do not prompt for confirmation."),
+			arg!(--dirty "Do not abort the operation if the attachments could not be deleted."),
+			arg!(--"keep-attachments" "Do not attempt to delete attachments.")
+				.conflicts_with("dirty"),
+		])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {

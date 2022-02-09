@@ -2,7 +2,10 @@ use std::path::Path;
 
 use anyhow::Context;
 use clap::crate_version;
-use directories::ProjectDirs;
+use directories::{
+	ProjectDirs,
+	UserDirs,
+};
 use tokio::{
 	fs,
 	sync::OnceCell,
@@ -15,7 +18,6 @@ use crate::{
 	prelude::*,
 	sftp::{
 		Sftp,
-		SftpCommand,
 		SftpUri,
 	},
 };
@@ -51,7 +53,8 @@ pub async fn run() -> Result<()> {
 pub struct Config {
 	#[serde(rename = "cli_db_url")]
 	pub db: Option<String>,
-	pub sftp_uri: Option<String>,
+	pub sftp_uri: Option<SftpUri>,
+	pub ssh_config: Option<String>,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
@@ -100,16 +103,32 @@ impl Config {
 	}
 
 	pub async fn sftp(m: &ArgMatches) -> Result<Sftp> {
-		let SftpUri { remote, root } = match m.value_of("sftp") {
-			Some(sftp) => sftp,
+		let uri = match m.value_of("sftp") {
+			Some(s) => s.parse::<SftpUri>()?,
 			None => Self::get_or_init(m.value_of("config"))
 				.await?
 				.sftp_uri
-				.as_deref()
-				.ok_or_else(|| anyhow!("the sftp uri is missing"))?,
-		}
-		.parse::<SftpUri>()
-		.map_err(|e| anyhow!("invalid sftp uri: {e}"))?;
+				.clone()
+				.ok_or_else(|| anyhow!("missing sftp uri"))?,
+		};
+
+		let ssh_config = match m.value_of("ssh-config") {
+			Some(p) => Some(p.to_string()),
+			None => Self::get_or_init(m.value_of("config"))
+				.await?
+				.ssh_config
+				.clone()
+				.or_else(|| {
+					UserDirs::new().and_then(|d| {
+						let p = d.home_dir().join(".ssh/config");
+						if p.is_file() {
+							Some(p.to_string_lossy().into_owned())
+						} else {
+							None
+						}
+					})
+				}),
+		};
 
 		let extra_args = m
 			.values_of("sftp-args")
@@ -119,12 +138,10 @@ impl Config {
 			.collect::<Vec<_>>();
 
 		Ok(Sftp {
-			root,
-			cmd: SftpCommand {
-				remote,
-				extra_args,
-				cmd_path: "sftp".into(),
-			},
+			uri,
+			cmd_path: "sftp".into(),
+			extra_args,
+			ssh_config,
 		})
 	}
 }
