@@ -320,6 +320,24 @@
       ]
     }
   },
+  "b864caae4145d36b1e1ceefbb247beb7d15b75c19d1d8b643fdd3f212556b62b": {
+    "query": "SELECT html FROM about",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "html",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "bb5e353e33fd8bfc067101c9272a26262ecf68ed9170bf75da990c63c438ee4b": {
     "query": "SELECT\n\turl_title,\n\ttitle,\n\tarticle_id AS id,\n\tdate_published\n\tFROM article\n\tORDER BY date_published  ASC",
     "describe": {

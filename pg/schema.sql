@@ -58,6 +58,15 @@ CREATE TABLE music (
 	date_uploaded TIMESTAMP NOT NULL DEFAULT(NOW() AT TIME ZONE 'UTC')
 );
 
+CREATE TABLE about (
+	_instance BOOL PRIMARY KEY NOT NULL DEFAULT TRUE,
+	last_updated TIMESTAMP NOT NULL DEFAULT(NOW() AT TIME ZONE 'UTC'),
+	html TEXT NOT NULL,
+	raw TEXT NOT NULL,
+	syntax syntax NOT NULL,
+	CONSTRAINT only_one_about CHECK(_instance)
+);
+
 -- Initialization --
 INSERT INTO cache(_instance, home, articles, posts)
 VALUES('TRUE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

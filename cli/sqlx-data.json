@@ -157,6 +157,61 @@
       "nullable": []
     }
   },
+  "33169c63d60199717517d44489874b159d74fe9b646353c0cc820337abdbff67": {
+    "query": "SELECT raw, syntax AS \"syntax: Syntax\" FROM about",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
+  "3380b342bbf5349b89564a1962bed94d7f563e80019a773c6111e5914b46dd91": {
+    "query": "SELECT\n\t(CASE WHEN $1 THEN html END,\n\tCASE WHEN 'TRUE' THEN raw END) AS \"contents!: String\"\n\tFROM about",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "contents!: String",
+          "type_info": "Record"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
   "3649f230f670d7323e2951e977e3d01eacb9bd0f8ef6952b759d34730c4c65ca": {
     "query": "UPDATE post SET raw = $1, content = $2,  syntax = $3 WHERE post_id = $4",
     "describe": {
@@ -464,6 +519,31 @@
         false,
         null
       ]
+    }
+  },
+  "74135f48709d07f5b2107f9949c63670358828a4840f63087ee08c7971f0430d": {
+    "query": "INSERT INTO about(raw, html, syntax)\n\t\t\tVALUES($1, $2, $3)\n\t\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\t\traw = $1,\n\t\t\thtml = $2,\n\t\t\tsyntax = $3,\n\t\t\tlast_updated = NOW() AT TIME ZONE 'UTC'",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "nullable": []
     }
   },
   "83c73dc093b0b65fc9a95b207f093cf7fed00c4cc6bb1023e0df5dbb0084f812": {

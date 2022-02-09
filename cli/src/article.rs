@@ -43,21 +43,21 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	}
 }
 
-struct ArticleContents {
-	raw: String,
-	html: String,
-	syntax: Syntax,
+pub struct ArticleContents {
+	pub raw: String,
+	pub html: String,
+	pub syntax: Syntax,
 }
 
 impl ArticleContents {
-	fn new<S: Into<String>>(raw: S, syntax: Syntax) -> Self {
+	pub fn new<S: Into<String>>(raw: S, syntax: Syntax) -> Self {
 		let raw = raw.into();
 		let html = syntax.render(&raw).into_owned();
 
 		Self { raw, html, syntax }
 	}
 
-	async fn read_from_file<P: AsRef<Path>>(p: P, syntax: Option<Syntax>) -> io::Result<Self> {
+	pub async fn read_from_file<P: AsRef<Path>>(p: P, syntax: Option<Syntax>) -> io::Result<Self> {
 		let data = fs::read_to_string(p.as_ref()).await?;
 		let syntax = syntax.unwrap_or_else(|| {
 			Syntax::from_ext(

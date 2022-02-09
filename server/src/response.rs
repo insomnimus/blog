@@ -6,7 +6,7 @@ use axum::{
 pub const E400: &str = "Bad request.";
 pub const E404: &str = "Page not found.";
 pub const E500: &str = "Something went wrong.";
-// pub const E503: &str = "Service unavailable.";
+pub const E503: &str = "Service unavailable.";
 
 pub const E_BAD_REQUEST: (StatusCode, &str) = (StatusCode::BAD_REQUEST, E400);
 
@@ -26,6 +26,10 @@ pub trait ResponseExt<T>: Sized {
 
 	fn or_500(self) -> Result<T, ErrorResponse> {
 		self.or_code(StatusCode::INTERNAL_SERVER_ERROR, E500)
+	}
+
+	fn or_503(self) -> Result<T, ErrorResponse> {
+		self.or_code(StatusCode::SERVICE_UNAVAILABLE, E503)
 	}
 }
 

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{%block title %}About{% endblock %}
+{% block description %}About this site.{% endblock %}
+{%- block content -%}
+<article>
+{{ self.html|safe }}
+</article>
+{% endblock %}

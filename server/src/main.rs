@@ -1,3 +1,4 @@
+mod about;
 mod app;
 mod article;
 mod db;
@@ -97,6 +98,7 @@ async fn main() -> anyhow::Result<()> {
 		.route("/search", get(search::handle_search))
 		.route("/music/:id", get(music::handle_music))
 		.route("/music", get(music::handle_music_page))
+		.route("/about", get(about::handle_about))
 		.route("/robots.txt", get(robots_txt))
 		.layer(
 			ServiceBuilder::new()

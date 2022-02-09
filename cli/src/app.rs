@@ -12,6 +12,7 @@ use tokio::{
 };
 
 use crate::{
+	about,
 	article,
 	music,
 	post,
@@ -39,13 +40,14 @@ pub fn app() -> App<'static> {
 				.env("BLOG_DB_URL")
 				.hide_env_values(true),
 		])
-		.subcommands([article::app(), music::app(), post::app()])
+		.subcommands([about::app(), article::app(), music::app(), post::app()])
 }
 
 pub async fn run() -> Result<()> {
 	let m = app().get_matches();
 
 	match m.subcommand().unwrap() {
+		("about", m) => about::run(m).await,
 		("article", m) => article::run(m).await,
 		("post", m) => post::run(m).await,
 		("music", m) => music::run(m).await,
