@@ -15,7 +15,7 @@ impl Config {
 			.about("The blog webserver.")
 			.args(&[
 				arg!(-d --database <URL> "The database url, must be postgresql.")
-					.env("BLOG_DB_URL"),
+					.env("BLOG_SERVER_DB_URL"),
 				arg!(-l --listen [ADDRESS] "Listen on the given address.")
 					.default_value("0.0.0.0:8080")
 					.env("BLOG_LISTEN_ADDRESS"),

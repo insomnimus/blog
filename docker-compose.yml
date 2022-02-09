@@ -23,7 +23,7 @@
     "blog": {
       "build": ".",
       "environment": {
-        "BLOG_DB_URL": "postgres://server:server@db:5432/blog",
+        "BLOG_SERVER_DB_URL": "postgres://server:server@db:5432/blog",
         "BLOG_LISTEN_ADDRESS": "0.0.0.0:8080"
       },
       "volumes": [
