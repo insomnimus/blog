@@ -258,7 +258,7 @@ dependencies = [
 
 [[package]]
 name = "blog"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "anyhow",
  "askama",
@@ -273,9 +273,9 @@ dependencies = [
  "serde",
  "sqlx",
  "tokio",
- "tower",
  "tower-http",
  "tracing-subscriber",
+ "url",
  "url-escape",
 ]
 

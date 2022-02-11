@@ -9,22 +9,18 @@ mod music;
 mod post;
 mod prelude;
 mod response;
+mod rss;
 mod search;
 
-use std::{
-	env,
-	time::Duration,
-};
+use std::env;
 
 use axum::{
-	error_handling::HandleErrorLayer,
 	http::StatusCode,
 	routing::{
 		get,
 		get_service,
 		Router,
 	},
-	BoxError,
 };
 use sqlx::types::chrono::{
 	NaiveDateTime,
@@ -34,13 +30,10 @@ use tokio::sync::{
 	OnceCell,
 	RwLock,
 };
-use tower::{
-	timeout::TimeoutLayer,
-	ServiceBuilder,
-};
 use tower_http::services::ServeDir;
 
 static COPYRIGHT: OnceCell<String> = OnceCell::const_new();
+static SITE_URL: OnceCell<String> = OnceCell::const_new();
 
 async fn robots_txt() -> &'static str {
 	"User-agent: *
@@ -103,16 +96,15 @@ async fn main() -> anyhow::Result<()> {
 		.route("/music/:id", get(music::handle_music))
 		.route("/music", get(music::handle_music_page))
 		.route("/about", get(about::handle_about))
-		.route("/robots.txt", get(robots_txt))
-		.layer(
-			ServiceBuilder::new()
-			// this middleware goes above `TimeoutLayer` because it will receive
-						// errors returned by `TimeoutLayer
-						.layer(HandleErrorLayer::new(|_: BoxError| async {
-							StatusCode::REQUEST_TIMEOUT
-							}))
-							.layer(TimeoutLayer::new(Duration::from_secs(10))),
-		);
+		.route("/robots.txt", get(robots_txt));
+
+	let app = match &config.url {
+		None => app,
+		Some(url) => {
+			SITE_URL.set(url.clone()).unwrap();
+			app.route("/rss", get(rss::handle_rss))
+		}
+	};
 
 	axum::Server::bind(&config.listen.parse()?)
 		.serve(app.into_make_service())

@@ -1,6 +1,6 @@
 [package]
 name = "blog"
-version = "0.13.2"
+version = "0.14.0"
 edition = "2021"
 
 [[bin]]
@@ -21,7 +21,8 @@ log = "0.4.14"
 serde = { version = "1.0.136", features = ["derive"] }
 sqlx = { version = "0.5.10", features = ["runtime-tokio-rustls", "postgres", "chrono", "offline"] }
 tokio = { version = "1.16.1", features = ["full"] }
-tower = { version = "0.4.11", features = ["timeout"], default-features = false }
+# tower = { version = "0.4.11", features = ["timeout"], default-features = false }
 tower-http = { version = "0.2.2", features = ["full"] }
 tracing-subscriber = "0.3.8"
+url = "2.2.2"
 url-escape = "0.1.0"
