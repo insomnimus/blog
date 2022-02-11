@@ -40,6 +40,8 @@ use tower::{
 };
 use tower_http::services::ServeDir;
 
+static COPYRIGHT: OnceCell<String> = OnceCell::const_new();
+
 async fn robots_txt() -> &'static str {
 	"User-agent: *
 Disallow: /api/"
@@ -69,6 +71,8 @@ async fn main() -> anyhow::Result<()> {
 	tracing_subscriber::fmt::init();
 
 	let config = app::Config::from_args();
+	COPYRIGHT.set(config.copyright.clone()).unwrap();
+
 	db::init(&config.db_url).await?;
 
 	let static_handler =

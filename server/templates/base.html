@@ -26,6 +26,6 @@
 <main>
 {% block content %}{% endblock %}
 </main>
-<footer> <small>&copy; Copyright {{ crate::prelude::current_year() }}</small> </footer>
+<footer> <small>&copy; Copyright {{ crate::prelude::current_year() }} {{ crate::COPYRIGHT.get().unwrap() }}</small> </footer>
 </body>
 </html>
