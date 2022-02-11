@@ -45,3 +45,8 @@ pub(crate) use crate::{
 };
 
 pub type HttpResponse<T = Html<String>> = ::std::result::Result<T, (StatusCode, &'static str)>;
+
+pub fn current_year() -> u32 {
+	use chrono::Datelike;
+	Utc::now().year_ce().1
+}

@@ -1,3 +1,4 @@
 {$BLOG_ADDRESS}
 
+encode zstd gzip
 reverse_proxy blog:8080
