@@ -3,14 +3,14 @@ WORKDIR app
 RUN cargo install cargo-chef
 
 FROM prep AS planner
-COPY . .
+COPY .. .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM prep AS build
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
-COPY . .
+COPY .. .
 RUN cargo build --bin blog-server --release
 
 FROM debian:buster-slim AS binary
@@ -21,7 +21,7 @@ RUN apt-get update && \
 	ca-certificates
 
 WORKDIR app
-COPY static static
+COPY ../static static
 COPY --from=build /app/target/release/blog-server blog-server
 
 CMD ["/app/blog-server"]
