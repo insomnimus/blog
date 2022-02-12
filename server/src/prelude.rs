@@ -7,7 +7,10 @@ pub use axum::{
 		Query,
 	},
 	http::StatusCode,
-	response::Html,
+	response::{
+		Headers,
+		Html,
+	},
 	Json,
 };
 pub use futures::prelude::*;

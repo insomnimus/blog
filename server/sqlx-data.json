@@ -190,6 +190,54 @@
       ]
     }
   },
+  "75dc9fc9c05b5e3b44cca383384937e46e03240fe53772c768ac9d72832b239d": {
+    "query": "SELECT\n\turl_title,\n\ttitle,\n\tabout,\n\tarticle_id AS id,\n\tdate_published AS published,\n\tdate_updated AS updated\n\tFROM article\n\tORDER BY published ASC",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "url_title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "title",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "about",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 4,
+          "name": "published",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "updated",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
   "900e0f53c05121018ef206481fbf6e36371842828e6ca0b25ab05fd402d51492": {
     "query": "SELECT music_id id, title, comment, date_uploaded date FROM music ORDER BY date DESC LIMIT 5",
     "describe": {
@@ -334,42 +382,6 @@
         "Left": []
       },
       "nullable": [
-        false
-      ]
-    }
-  },
-  "bb5e353e33fd8bfc067101c9272a26262ecf68ed9170bf75da990c63c438ee4b": {
-    "query": "SELECT\n\turl_title,\n\ttitle,\n\tarticle_id AS id,\n\tdate_published\n\tFROM article\n\tORDER BY date_published  ASC",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 3,
-          "name": "date_published",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
         false
       ]
     }

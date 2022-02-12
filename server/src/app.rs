@@ -38,7 +38,9 @@ impl Config {
 			listen: m.value_of("listen").unwrap().into(),
 			media_dir: m.value_of("media-dir").unwrap().into(),
 			copyright: m.value_of("copyright").unwrap_or_default().into(),
-			url: m.value_of("url").map(String::from),
+			url: m
+				.value_of("url")
+				.map(|s| s.trim_end_matches('/').to_string()),
 		}
 	}
 }

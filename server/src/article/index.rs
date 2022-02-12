@@ -9,7 +9,10 @@ static CACHE: Cache<IndexMap<String, IndexInfo>> = Cache::const_new();
 pub struct IndexInfo {
 	pub id: i32,
 	pub title: String,
+	pub about: String,
 	pub url_title: String,
+	pub published: NaiveDateTime,
+	pub updated: Option<NaiveDateTime>,
 }
 
 pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<String, IndexInfo>>>> {
@@ -32,10 +35,12 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 		r#"SELECT
 	url_title,
 	title,
+	about,
 	article_id AS id,
-	date_published
+	date_published AS published,
+	date_updated AS updated
 	FROM article
-	ORDER BY date_published  ASC"#
+	ORDER BY published ASC"#
 	)
 	.fetch(db());
 
@@ -51,6 +56,9 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 				id: x.id,
 				title: x.title.take(),
 				url_title,
+				about: x.about.take(),
+				published: x.published,
+				updated: x.updated,
 			},
 		);
 	}
