@@ -11,6 +11,7 @@ mod prelude;
 mod response;
 mod rss;
 mod search;
+mod xml;
 
 use std::env;
 

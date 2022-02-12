@@ -44,6 +44,7 @@ pub(crate) use crate::{
 	db::db,
 	ext::*,
 	response::*,
+	xml::Xml,
 	Cache,
 };
 

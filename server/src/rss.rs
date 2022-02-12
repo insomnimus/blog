@@ -10,24 +10,8 @@ use crate::{
 	prelude::*,
 };
 
-type XmlHeaders = Headers<Vec<(&'static str, &'static str)>>;
-
-pub async fn handle_rss() -> (StatusCode, XmlHeaders, String) {
-	match gen_feed().await {
-		Ok(s) => (
-			StatusCode::OK,
-			Headers(vec![("Content-Type", "application/xml")]),
-			s,
-		),
-		Err(e) => {
-			error!("{e}");
-			(
-				StatusCode::INTERNAL_SERVER_ERROR,
-				Headers(vec![]),
-				String::from("Something went wrong."),
-			)
-		}
-	}
+pub async fn handle_rss() -> HttpResponse<Xml<String>> {
+	gen_feed().await.or_500().map(Xml)
 }
 
 async fn gen_feed() -> anyhow::Result<String> {

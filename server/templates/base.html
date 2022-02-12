@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<meta charset="utf-8">
 	<title>{% block title %} {% endblock %} - Insomnia's Blog </title>
 	<meta name="description" content="{% block description %}Blog and short posts about programming, music and literature.{% endblock %}">
-	<meta charset="utf-8">
+	<meta name="keywords" content="Programming, Music, Literature">
 	{%- if crate::SITE_URL.initialized() -%} <link rel="alternate" type="application/rss+xml" href="/rss"/> {% endif %}
 	<script src="/static/global.js" defer></script>
 	<link rel="stylesheet" href="/static/normalize.css">
