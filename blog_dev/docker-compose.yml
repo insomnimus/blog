@@ -26,7 +26,7 @@
         "BLOG_SERVER_DB_URL": "postgres://server:server@db:5432/blog",
         "BLOG_LISTEN_ADDRESS": "0.0.0.0:8080",
         "BLOG_COPYRIGHT_NAME": "${BLOG_COPYRIGHT_NAME}",
-        "BLOG_URL": "${BLOG_URL?you msut set the full site url including the protocol for the rss feed to work}"
+        "BLOG_URL": "${BLOG_URL?you must set the full site url including the protocol for the rss feed to work; any dummy value is fine}"
       },
       "volumes": [
         "${BLOG_MEDIA_MOUNT?you need to set the bind mount point on your local filesystem for the media uploads to work}:/app/media"
