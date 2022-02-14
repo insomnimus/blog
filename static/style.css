@@ -1,28 +1,33 @@
 body {
-	background-color: #000038;
-	color: white;
+  background-color: #252428;
+  color: white;
 }
 
 nav a {
-	text-decoration: none;
-	color: #CDCEDE;
+  color: #ffb5da;
+}
+nav a:visited {
+  color: #ffb5da;
+}
+
+nav a:hover {
+  color: #ffb5da;
 }
 
 nav {
-	background-color: lightblue;
-	padding: 0 20px;
-	height: 50px;
+  border-bottom: 1px solid #ccc;
+  height: 5rem;
 }
 
 nav ul {
-	list-style-type: none;
-	height: 100%;
-	display: flex;
-	justify-content: space-evenly;
-	align-items: center;
+  list-style-type: none;
+  height: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
 }
 
 ul.tags {
-	list-style-type: none;
-	display: inline;
+  list-style-type: none;
+  display: inline;
 }
