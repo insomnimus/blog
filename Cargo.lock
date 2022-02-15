@@ -271,7 +271,7 @@ dependencies = [
 
 [[package]]
 name = "blog"
-version = "0.15.1"
+version = "0.15.2"
 dependencies = [
  "anyhow",
  "askama",
@@ -295,7 +295,7 @@ dependencies = [
 
 [[package]]
 name = "blog-cli"
-version = "0.22.0"
+version = "0.23.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -307,7 +307,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
- "shell-escape",
+ "shell-words",
  "sqlx",
  "tokio",
  "toml",
@@ -1617,12 +1617,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shell-escape"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45bb67a18fa91266cc7807181f62f9178a6873bfad7dc788c42e6430db40184f"
-
-[[package]]
 name = "shell-words"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2205,6 +2199,7 @@ dependencies = [
  "idna",
  "matches",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
