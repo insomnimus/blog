@@ -9,18 +9,14 @@ pub fn app() -> App<'static> {
 	App::new("post")
 		.about("Manage short posts.")
 		.setting(AppSettings::SubcommandRequiredElseHelp)
-		.args(&[
+			.args(&[
 			arg!(--"ssh-config" [PATH] "The Optional ssh_config file, used in commands involving sftp.")
 			.global(true),
 					arg!(-R --sftp [URL] "The sftp servers connection url in the form `sftp://[user@]domain[:port]/path/to/store`.")
 			.env("BLOG_SFTP_URL")
 			.global(true),
-			Arg::new("sftp-args")
-		.multiple_values(true)
-		.last(true)
-		.help("Extra args to pass to the sftp command.")
-		.global(true)
-		.required(false),
+			arg!(--"sftp-command" [COMMAND] "The sftp command. By default it is `sftp -b -`")
+			.validator(validate::<crate::cmd::Cmd>("the sftp command is not valid")),
 		])
 		.subcommands([create::app(), delete::app(), edit::app(), list::app()])
 }

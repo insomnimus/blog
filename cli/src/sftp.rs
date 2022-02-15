@@ -15,27 +15,23 @@ use tokio::{
 };
 
 pub use self::uri::SftpUri;
+use crate::cmd::Cmd;
 
 pub struct Sftp {
-	pub cmd_path: String,
+	pub cmd: Cmd,
 	pub uri: SftpUri,
-	pub extra_args: Vec<String>,
-	pub ssh_config: Option<String>,
 }
 
 impl Sftp {
 	fn command(&self) -> Command {
-		let mut cmd = Command::new(&self.cmd_path);
-		cmd.args(&self.extra_args)
-			.args(&["-b", "-"])
+		let mut cmd = self.cmd.to_tokio();
+		cmd
+			// .args(&["-b", "-"])
 			.args(self.uri.port.map(|p| format!("-oPort={p}")))
+			.arg(&self.uri.remote)
 			.stdin(Stdio::piped())
 			.stderr(Stdio::inherit());
 
-		if let Some(path) = &self.ssh_config {
-			cmd.arg("-F").arg(path);
-		}
-		cmd.arg(&self.uri.remote);
 		cmd
 	}
 }

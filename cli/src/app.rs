@@ -2,10 +2,7 @@ use std::path::Path;
 
 use anyhow::Context;
 use clap::crate_version;
-use directories::{
-	ProjectDirs,
-	UserDirs,
-};
+use directories::ProjectDirs;
 use serde::Deserialize;
 use tokio::{
 	fs,
@@ -36,7 +33,6 @@ pub fn app() -> App<'static> {
 		.args(&[
 			arg!(-C --config [PATH] "Path to the config file.")
 				.env("BLOG_CONFIG_PATH")
-				.hide_env_values(true)
 				.global(true),
 			arg!(-D --database [URL] "Database URL.")
 				.global(true)
@@ -64,7 +60,7 @@ pub struct Config {
 	#[serde(rename = "db-url")]
 	pub db: Option<Url>,
 	pub sftp_url: Option<SftpUri>,
-	pub ssh_config: Option<String>,
+	pub sftp_command: Option<Cmd>,
 	#[serde(default)]
 	pub hooks: Hooks,
 }
@@ -141,36 +137,18 @@ impl Config {
 				.ok_or_else(|| anyhow!("missing sftp uri"))?,
 		};
 
-		let ssh_config = match m.value_of("ssh-config") {
-			Some(p) => Some(p.to_string()),
-			None => Self::get_or_init(m.value_of("config"))
+		let cmd = match m.value_of_t::<Cmd>("sftp-command") {
+			Ok(c) => c,
+			Err(_) => Self::get_or_init(m.value_of("config"))
 				.await?
-				.ssh_config
+				.sftp_command
 				.clone()
-				.or_else(|| {
-					UserDirs::new().and_then(|d| {
-						let p = d.home_dir().join(".ssh/config");
-						if p.is_file() {
-							Some(p.to_string_lossy().into_owned())
-						} else {
-							None
-						}
-					})
+				.unwrap_or_else(|| Cmd {
+					cmd: "sftp".into(),
+					args: vec!["-b".to_string(), "-".to_string()],
 				}),
 		};
 
-		let extra_args = m
-			.values_of("sftp-args")
-			.into_iter()
-			.flatten()
-			.map(String::from)
-			.collect::<Vec<_>>();
-
-		Ok(Sftp {
-			uri,
-			cmd_path: "sftp".into(),
-			extra_args,
-			ssh_config,
-		})
+		Ok(Sftp { uri, cmd })
 	}
 }

@@ -17,18 +17,18 @@ pub fn app() -> App<'static> {
 					arg!(-R --sftp [URL] "The sftp servers connection url in the form `sftp://[user@]domain[:port]/path/to/store`.")
 			.env("BLOG_SFTP_URL")
 			.global(true),
-			Arg::new("sftp-args")
-		.multiple_values(true)
-		.last(true)
-		.help("Extra args to pass to the sftp command.")
-		.global(true)
-		.required(false),
+			arg!(--"sftp-command" [COMMAND] "The sftp command. By default it is `sftp -b -`")
+			.validator(validate::<crate::cmd::Cmd>("the sftp command is not valid")),
 		])
 		.subcommands([create::app(), delete::app(), list::app()])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let db = Config::database(m).await?;
+	let c = Config::get_or_init(m.value_of("config")).await?;
+	if let Some(cmd) = &c.hooks.pre_db {
+		task::block_in_place(|| cmd.to_std().status())?;
+	}
 	init_db(db).await?;
 
 	match m.subcommand().unwrap() {
