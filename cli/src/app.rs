@@ -6,14 +6,17 @@ use directories::{
 	ProjectDirs,
 	UserDirs,
 };
+use serde::Deserialize;
 use tokio::{
 	fs,
 	sync::OnceCell,
 };
+use url::Url;
 
 use crate::{
 	about,
 	article,
+	cmd::Cmd,
 	music,
 	post,
 	prelude::*,
@@ -55,16 +58,24 @@ pub async fn run() -> Result<()> {
 	}
 }
 
-#[derive(serde::Deserialize, Default, Debug)]
+#[derive(Deserialize, Default, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub struct Config {
 	#[serde(rename = "db-url")]
-	pub db: Option<String>,
+	pub db: Option<Url>,
 	pub sftp_url: Option<SftpUri>,
 	pub ssh_config: Option<String>,
+	#[serde(default)]
+	pub hooks: Hooks,
 }
 
-#[derive(serde::Deserialize, Debug, Default)]
+#[derive(Deserialize, Default, Debug, Clone)]
+#[serde(rename_all = "kebab-case", default)]
+pub struct Hooks {
+	pub pre_db: Option<Cmd>,
+}
+
+#[derive(Deserialize, Debug, Default)]
 struct AppConfig {
 	#[serde(default)]
 	cli: Config,
@@ -73,7 +84,7 @@ struct AppConfig {
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
 impl Config {
-	async fn get_or_init<P: AsRef<Path>>(path: Option<P>) -> Result<&'static Self> {
+	pub async fn get_or_init<P: AsRef<Path>>(path: Option<P>) -> Result<&'static Self> {
 		if let Some(c) = CONFIG.get() {
 			return Ok(c);
 		}
@@ -114,7 +125,8 @@ impl Config {
 			None => Self::get_or_init(m.value_of("config"))
 				.await?
 				.db
-				.as_deref()
+				.as_ref()
+				.map(|x| x.as_str())
 				.ok_or_else(|| anyhow!("the database url is missing")),
 		}
 	}

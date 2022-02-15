@@ -27,6 +27,11 @@ pub fn app() -> App<'static> {
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let db = Config::database(m).await?;
+	let c = Config::get_or_init(m.value_of("config")).await?;
+	if let Some(cmd) = &c.hooks.pre_db {
+		task::block_in_place(|| cmd.to_std().status())?;
+	}
+
 	init_db(db).await?;
 
 	match m.subcommand().unwrap() {

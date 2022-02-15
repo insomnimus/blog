@@ -22,7 +22,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 				.fetch_optional(db())
 				.await?
 				.ok_or_else(|| {
-					anyhow!("there is no about page in the database; pelase specify --path to create it")
+					anyhow!("there is no about page in the database; please specify a file to create it")
 				})?;
 			let syntax = m.value_of_t("syntax").unwrap_or(res.syntax);
 			let raw = edit_buf("about_page_", syntax.ext(), &res.raw).await?;

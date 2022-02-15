@@ -1,6 +1,7 @@
 mod about;
 mod app;
 mod article;
+mod cmd;
 mod display;
 mod ext;
 mod music;
@@ -13,7 +14,7 @@ mod utility;
 #[tokio::main]
 async fn main() {
 	if let Err(e) = app::run().await {
-		eprintln!("error: {e}");
+		eprintln!("error: {e:?}");
 		std::process::exit(1);
 	}
 }

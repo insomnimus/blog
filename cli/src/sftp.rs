@@ -1,25 +1,20 @@
 mod files;
 mod uri;
 
-use std::{
-	borrow::Cow,
-	process::Stdio,
-};
+use std::process::Stdio;
 
 use anyhow::{
 	ensure,
 	Result,
 };
 pub use files::*;
+use shell_words::quote as escape;
 use tokio::{
 	io::AsyncWriteExt,
 	process::Command,
 };
-pub use uri::SftpUri;
 
-fn escape(s: &'_ str) -> Cow<'_, str> {
-	shell_escape::unix::escape(Cow::Borrowed(s))
-}
+pub use self::uri::SftpUri;
 
 pub struct Sftp {
 	pub cmd_path: String,

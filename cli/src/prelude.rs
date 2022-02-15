@@ -27,6 +27,7 @@ pub use sqlx::{
 	},
 };
 use tokio::sync::OnceCell;
+pub use tokio::task;
 
 pub(crate) use crate::{
 	app::Config,
