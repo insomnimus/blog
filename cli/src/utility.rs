@@ -55,8 +55,21 @@ macro_rules! confirm{
 	};
 }
 
+macro_rules! run_hook {
+	($hook:ident, $matches:expr) => {
+		async {
+			let conf = $crate::app::Config::get_or_init($matches.value_of("config")).await?;
+			if let Some(hook) = &conf.hooks.$hook {
+				tokio::task::block_in_place(|| hook.to_std().status())?;
+			}
+			Ok::<_, anyhow::Error>(())
+		}
+	};
+}
+
 pub(crate) use clear;
 pub(crate) use confirm;
+pub(crate) use run_hook;
 
 pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> std::io::Result<Option<String>> {
 	let mut b = edit::Builder::new();

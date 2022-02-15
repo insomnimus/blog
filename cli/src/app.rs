@@ -69,6 +69,7 @@ pub struct Config {
 #[serde(rename_all = "kebab-case", default)]
 pub struct Hooks {
 	pub pre_db: Option<Cmd>,
+	pub pre_sftp: Option<Cmd>,
 }
 
 #[derive(Deserialize, Debug, Default)]

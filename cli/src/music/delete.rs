@@ -57,6 +57,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.await?;
 
 	if let Some(sftp) = sftp {
+		run_hook!(pre_sftp, m).await?;
 		let dirname = Path::new(&media).parent().unwrap().to_str().unwrap();
 		match sftp.rmdir(dirname).await {
 			Err(e) if dirty => eprintln!("warning: failed to delete the media: {e}"),

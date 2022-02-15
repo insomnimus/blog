@@ -116,6 +116,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.await?;
 
 	if let Some(sftp) = sftp {
+		run_hook!(pre_sftp, m).await?;
 		let dir = post_dir(post.id);
 		match sftp.rmdir(&dir).await {
 			Ok(_) => println!("✓ deleted attachments from the sftp server"),

@@ -21,6 +21,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let dir = format!("music_{}", rand_filename());
 	let path = format!("{dir}/{remote}", remote = media.remote());
+	run_hook!(pre_sftp, m).await?;
 	sftp.send_files(&dir, &[media]).await?;
 
 	println!("✓ uploaded file to the sftp server");
