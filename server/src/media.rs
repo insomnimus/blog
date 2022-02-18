@@ -1,88 +1,49 @@
 use std::path::Path;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Media {
 	pub path: String,
-	pub kind: MediaType,
-}
-
-impl Default for Media {
-	fn default() -> Self {
-		Self {
-			kind: MediaType::Other,
-			path: String::new(),
-		}
-	}
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum MediaType {
-	Audio,
-	Image,
-	Video,
-	Other,
+	pub alt: Option<String>,
 }
 
 impl Media {
 	pub fn new<S: Into<String>>(path: S) -> Self {
-		// TODO: Rework this function.
-		fn ends(exts: &[&str], s: &str) -> bool {
-			exts.iter().any(|ext| s.ends_with(ext))
+		Self {
+			path: path.into(),
+			alt: None,
 		}
-
-		let path = path.into();
-
-		let kind = if ends(&[".ogg", ".mp3", ".wav"], &path) {
-			MediaType::Audio
-		} else if ends(&[".mp4", ".webm"], &path) {
-			MediaType::Video
-		} else if ends(&[".gif", ".png", ".jpeg", ".jpg"], &path) {
-			MediaType::Image
-		} else {
-			MediaType::Other
-		};
-		Self { path, kind }
 	}
 
 	pub fn render_html(&self) -> String {
 		let path = url_escape::encode_path(&self.path);
+		let m = mime_guess::from_path(&self.path).first_or_text_plain();
 
-		match self.kind {
-			MediaType::Audio => {
-				let ext = if self.path.ends_with(".ogg") {
-					"ogg"
-				} else if self.path.ends_with(".mp3") {
-					"mpeg"
-				} else {
-					"wav"
-				};
-
+		match m.type_().as_str() {
+			"audio" => {
 				format!(
 					r#"<audio controls>
-<source src="/media/{path}" type="audio/{ext}">
+<source src="/media/{path}" type="{m}">
 Your browser does not support this media.
 </audio>"#
 				)
 			}
-			MediaType::Image => {
-				format!(r#"<img src="/media/{path}">"#)
+			"image" => {
+				let alt = self
+					.alt
+					.as_deref()
+					.map(html_escape::encode_text)
+					.unwrap_or_default();
+				format!(r#"<img src="/media/{path}" alt="{alt}">"#)
 			}
-			MediaType::Video => {
-				let ext = if self.path.ends_with(".mp4") {
-					"mp4"
-				} else if self.path.ends_with(".ogg") {
-					"ogg"
-				} else {
-					"webm"
-				};
+			"video" => {
 				format!(
 					r#"<video controls>
-<source src="/media/{path}" type="video/{ext}">
+<source src="/media/{path}" type="{m}">
 Your browser does not support this media type.
 </video>"#
 				)
 			}
-			MediaType::Other => {
+			_ => {
 				let name = Path::new(&self.path);
 				let name = name
 					.file_name()
