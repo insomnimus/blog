@@ -1,6 +1,6 @@
 use clap::{
 	arg,
-	App,
+	Command,
 };
 
 pub struct Config {
@@ -13,7 +13,7 @@ pub struct Config {
 
 impl Config {
 	pub fn from_args() -> Self {
-		let m = App::new("blog")
+		let m = Command::new("blog")
 			.about("The blog webserver.")
 			.args(&[
 				arg!(-d --database <URL> "The database url, must be postgresql.")
