@@ -1,7 +1,7 @@
 use super::ArticleInfo;
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("list")
 		.about("List metadata about published articles.")
 		.args(&[
@@ -18,7 +18,7 @@ pub fn app() -> App<'static> {
 				.help("Comma separated list of tags to search.")
 				.long("tags")
 				.multiple_values(true)
-				.use_delimiter(true),
+				.use_value_delimiter(true),
 		])
 }
 

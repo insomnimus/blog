@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("delete")
 		.about("Delete an article.")
 		.args(&[

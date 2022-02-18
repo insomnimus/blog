@@ -6,7 +6,7 @@ use super::{
 };
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("create").about("Publish a new article.").args(&[
 		arg!(-p --path <FILE> "The article."),
 		arg!(title: <TITLE> "The articles title.").validator(validate_title),
@@ -22,9 +22,9 @@ pub fn app() -> App<'static> {
 			.long("tags")
 			.multiple_values(true)
 			.required_unless_present("no-tags")
-			.use_delimiter(true)
+			.use_value_delimiter(true)
 			.validator(validate_tag)
-			.require_delimiter(true),
+			.require_value_delimiter(true),
 	])
 }
 

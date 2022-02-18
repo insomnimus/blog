@@ -5,10 +5,11 @@ mod list;
 
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("post")
 		.about("Manage short posts.")
-		.setting(AppSettings::SubcommandRequiredElseHelp)
+		.subcommand_required(true)
+		.arg_required_else_help(true)
 			.args(&[
 			arg!(--"ssh-config" [PATH] "The Optional ssh_config file, used in commands involving sftp.")
 			.global(true),

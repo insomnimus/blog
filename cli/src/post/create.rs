@@ -6,7 +6,7 @@ use crate::{
 	sftp::SendFile,
 };
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("create").about("Create a new post.").args(&[
 		arg!(-s --syntax [SYNTAX] "The markup format of the source text.")
 			.default_value("markdown")

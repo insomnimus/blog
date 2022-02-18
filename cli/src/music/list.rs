@@ -1,7 +1,7 @@
 use super::Music;
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("list")
 		.about("List published music posts.")
 		.args(&[

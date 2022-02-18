@@ -4,7 +4,7 @@ use tokio::fs;
 
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("fetch")
 		.about("Fetch an article from the database.")
 		.group(

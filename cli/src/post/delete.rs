@@ -4,7 +4,7 @@ use super::{
 };
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("delete")
 		.about("Delete posts.")
 		.group(ArgGroup::new("handle").args(&["id", "last"]).required(true))

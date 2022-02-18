@@ -1,7 +1,7 @@
 use super::Post;
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("list").about("List posts.").args(&[
 		arg!(--oldest "Show oldest posts first."),
 		arg!(--rendered "Include the rendered HTML in the output."),

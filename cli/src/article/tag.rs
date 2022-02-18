@@ -1,7 +1,7 @@
 use super::validate_tag;
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("tag")
 		.about("Display or modify an articles tags.")
 		.args(&[

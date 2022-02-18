@@ -3,10 +3,11 @@ mod fetch;
 
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("about")
 		.about("Update or fetch the about page.")
-		.setting(AppSettings::SubcommandRequiredElseHelp)
+		.subcommand_required(true)
+		.arg_required_else_help(true)
 		.subcommands([edit::app(), fetch::app()])
 }
 

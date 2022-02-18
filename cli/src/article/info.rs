@@ -1,4 +1,4 @@
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("info")
 	.about("Show information about published articles.")
 	.group(ArgGroup::new("handle")

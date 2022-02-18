@@ -6,7 +6,6 @@ pub use anyhow::{
 };
 pub use clap::{
 	arg,
-	App,
 	AppSettings,
 	Arg,
 	ArgGroup,
@@ -38,6 +37,7 @@ pub(crate) use crate::{
 };
 
 pub type StdResult<T, E> = ::std::result::Result<T, E>;
+pub type App = clap::Command<'static>;
 
 static DB: OnceCell<Pool> = OnceCell::const_new();
 

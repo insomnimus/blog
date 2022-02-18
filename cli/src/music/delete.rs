@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("delete")
 		.about("Delete posted music.")
 		.group(ArgGroup::new("handle").required(true).args(&["id", "last"]))

@@ -3,7 +3,7 @@ use crate::{
 	prelude::*,
 };
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("edit")
 	.about("Update the about page.")
 	.args(&[

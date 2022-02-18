@@ -14,10 +14,11 @@ use tokio::{
 
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("article")
 		.about("Manage articles.")
-		.setting(AppSettings::SubcommandRequiredElseHelp)
+		.subcommand_required(true)
+		.arg_required_else_help(true)
 		.subcommands([
 			create::app(),
 			delete::app(),

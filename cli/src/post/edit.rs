@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use super::validate_post;
 use crate::prelude::*;
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("edit")
 		.about("Edit an existing post.")
 		.group(ArgGroup::new("handle").required(true).args(&["id", "last"]))

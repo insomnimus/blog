@@ -23,13 +23,14 @@ use crate::{
 	},
 };
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("blog")
 		.about("Blog management cli.")
 		.version(crate_version!())
-		.setting(AppSettings::SubcommandRequiredElseHelp)
-		.global_setting(AppSettings::InferSubcommands)
-		.global_setting(AppSettings::PropagateVersion)
+		.subcommand_required(true)
+		.arg_required_else_help(true)
+		.propagate_version(true)
+		.infer_subcommands(true)
 		.args(&[
 			arg!(-C --config [PATH] "Path to the config file.")
 				.env("BLOG_CONFIG_PATH")

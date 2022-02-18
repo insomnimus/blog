@@ -3,7 +3,7 @@ use crate::{
 	sftp::SendFile,
 };
 
-pub fn app() -> App<'static> {
+pub fn app() -> App {
 	App::new("create").about("Create a new music post.").args(&[
 		arg!(-p --path <PATH> "Path to an audio file or `PATH::RENAME`.")
 			.validator(super::validate_music),
