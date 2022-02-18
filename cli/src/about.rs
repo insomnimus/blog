@@ -13,6 +13,7 @@ pub fn app() -> App {
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let db = Config::database(m).await?;
+	run_hook!(pre_db, m).await?;
 	init_db(db).await?;
 
 	match m.subcommand().unwrap() {
