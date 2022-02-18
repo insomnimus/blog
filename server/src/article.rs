@@ -65,15 +65,15 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 pub async fn handle_articles() -> HttpResponse<Html<String>> {
 	static CACHE: Cache = OnceCell::const_new();
 
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
+
 	let last_updated = query!("SELECT articles FROM cache")
 		.fetch_one(db())
 		.await
 		.or_500()?
 		.articles;
-
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Default::default()) })
-		.await;
 
 	{
 		let cached = cache.read().await;
@@ -101,8 +101,7 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 
 	let mut articles = Vec::new();
 
-	while let Some(res) = stream.next().await {
-		let mut x = res.or_500()?;
+	while let Some(mut x) = stream.next().await.transpose().or_500()? {
 		articles.push(ArticleInfo {
 			title: x.title.take(),
 			url_title: x.url_title.take(),

@@ -16,14 +16,14 @@ pub struct IndexInfo {
 }
 
 pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<String, IndexInfo>>>> {
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
+
 	let last = query!("SELECT articles FROM cache")
 		.fetch_one(db())
 		.await?
 		.articles;
-
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Default::default()) })
-		.await;
 
 	if cache.read().await.time == last {
 		return Ok(cache);
@@ -46,8 +46,7 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 
 	let mut index = IndexMap::new();
 
-	while let Some(res) = stream.next().await {
-		let mut x = res?;
+	while let Some(mut x) = stream.next().await.transpose()? {
 		let url_title = x.url_title.clone();
 		let key = x.url_title.take();
 		index.insert(

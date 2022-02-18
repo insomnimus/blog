@@ -45,15 +45,17 @@ pub async fn handle_music(Path(id): Path<i32>) -> HttpResponse<Music> {
 
 pub async fn handle_music_page() -> HttpResponse {
 	static CACHE: Cache = Cache::const_new();
+
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
+
 	let last = query!("SELECT music FROM cache")
 		.fetch_one(db())
 		.await
 		.or_500()?
 		.music;
 
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Default::default()) })
-		.await;
 	{
 		let cached = cache.read().await;
 		if cached.time == last && !cached.data.is_empty() {
@@ -68,8 +70,7 @@ pub async fn handle_music_page() -> HttpResponse {
 	.fetch(db());
 
 	let mut music = Vec::with_capacity(16);
-	while let Some(res) = stream.next().await {
-		let mut x = res.or_500()?;
+	while let Some(mut x) = stream.next().await.transpose().or_500()? {
 		music.push(Music {
 			id: x.id,
 			title: x.title.take(),

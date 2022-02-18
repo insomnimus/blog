@@ -41,7 +41,9 @@ async fn get_articles() -> anyhow::Result<Vec<ArticleInfo>> {
 }
 
 async fn get_posts() -> anyhow::Result<Vec<PostInfo>> {
-	let posts = query!(
+	let limit = 10;
+
+	let mut stream = query!(
 		r#"SELECT p.post_id AS id,
 		p.content,
 		p.date_posted AS date,
@@ -51,36 +53,43 @@ async fn get_posts() -> anyhow::Result<Vec<PostInfo>> {
 	ON m.post_id = p.post_id
 	GROUP BY p.post_id
 	ORDER BY p.post_id DESC
-	LIMIT 10"#
+	LIMIT $1"#,
+		limit as i64,
 	)
-	.fetch_all(db())
-	.await?
-	.into_iter()
-	.map(|mut x| PostInfo {
-		id: x.id,
-		content: x.content.take(),
-		n_attachments: x.n_attachments,
-		date: x.date.format_utc(),
-	})
-	.collect::<Vec<_>>();
+	.fetch(db());
+
+	let mut posts = Vec::with_capacity(limit);
+
+	while let Some(mut x) = stream.next().await.transpose()? {
+		posts.push(PostInfo {
+			id: x.id,
+			content: x.content.take(),
+			n_attachments: x.n_attachments,
+			date: x.date.format_utc(),
+		});
+	}
 
 	Ok(posts)
 }
 
 async fn get_music() -> anyhow::Result<Vec<Music>> {
-	let music = query!("SELECT music_id id, title, comment, date_uploaded date FROM music ORDER BY date DESC LIMIT 5")
-	.fetch_all(db())
-	.await?
-	.into_iter()
-	.map(|mut x| Music{
-		id: x.id,
-		date: x.date.format_utc(),
-		title: x.title.take(),
-		comment: x.comment.take(),
-		media: Default::default(),
-	});
+	let limit = 5;
+	let mut stream = query!("SELECT music_id id, title, comment, date_uploaded date FROM music ORDER BY date DESC LIMIT $1", limit as i64)
+	.fetch(db());
 
-	Ok(music.collect())
+	let mut music = Vec::with_capacity(limit);
+
+	while let Some(mut x) = stream.next().await.transpose()? {
+		music.push(Music {
+			id: x.id,
+			date: x.date.format_utc(),
+			title: x.title.take(),
+			comment: x.comment.take(),
+			media: Default::default(),
+		});
+	}
+
+	Ok(music)
 }
 
 pub async fn handle_home() -> HttpResponse {

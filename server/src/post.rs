@@ -42,7 +42,7 @@ pub struct PostParams {
 }
 
 async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
-	query!(
+	let mut stream = query!(
 		r#"SELECT
 	p.post_id AS id,
 	p.content,
@@ -57,26 +57,26 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 	LIMIT 25"#,
 		last_id,
 	)
-	.fetch_all(db())
-	.await
-	.map(|v| {
-		v.into_iter()
-			.map(|mut x| Post {
-				id: x.id,
-				content: x.content.take(),
-				date: x.date.format_utc(),
-				attachments: x
-					.attachments
-					.take()
-					.into_iter()
-					.flatten()
-					.flatten()
-					.map(Media::new)
-					.collect(),
-			})
-			.collect()
-	})
-	.map_err(|e| e.into())
+	.fetch(db());
+
+	let mut posts = Vec::with_capacity(25);
+	while let Some(mut x) = stream.next().await.transpose()? {
+		posts.push(Post {
+			id: x.id,
+			content: x.content.take(),
+			date: x.date.format_utc(),
+			attachments: x
+				.attachments
+				.take()
+				.into_iter()
+				.flatten()
+				.flatten()
+				.map(Media::new)
+				.collect(),
+		});
+	}
+
+	Ok(posts)
 }
 
 pub async fn handle_posts() -> HttpResponse {
