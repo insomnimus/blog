@@ -32,3 +32,7 @@ ul.tags {
 	list-style-type: none;
 	display: inline;
 }
+
+blockquote {
+	background-color: #1d7484;
+}
