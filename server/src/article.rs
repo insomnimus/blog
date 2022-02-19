@@ -81,7 +81,7 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 			return Ok(Html(cached.data.clone()));
 		}
 	}
-	info!("updating articles cache");
+	debug!("updating articles cache");
 
 	let mut stream = query!(
 		r#"SELECT

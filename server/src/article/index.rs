@@ -29,7 +29,7 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 		return Ok(cache);
 	}
 
-	info!("updating article index");
+	debug!("updating article index");
 
 	let mut stream = query!(
 		r#"SELECT

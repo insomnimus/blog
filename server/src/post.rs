@@ -98,7 +98,7 @@ pub async fn handle_posts() -> HttpResponse {
 			return Ok(Html(cached.data.clone()));
 		}
 	}
-	info!("updating posts cache");
+	debug!("updating posts cache");
 
 	let posts = get_posts(1).await.or_500()?;
 	let html = PostsPage { posts }.render().or_500()?;

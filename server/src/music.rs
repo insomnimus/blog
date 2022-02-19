@@ -62,7 +62,7 @@ pub async fn handle_music_page() -> HttpResponse {
 			return Ok(Html(cached.data.clone()));
 		}
 	}
-	info!("updating music cache");
+	debug!("updating music cache");
 
 	let mut stream = query!(
 		"SELECT music_id id, comment, title, date_uploaded date FROM music ORDER BY date DESC"

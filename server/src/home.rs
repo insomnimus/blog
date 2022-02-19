@@ -111,7 +111,7 @@ pub async fn handle_home() -> HttpResponse {
 			return Ok(Html(cached.data.clone()));
 		}
 	}
-	info!("updating home cache");
+	debug!("updating home cache");
 
 	let articles = get_articles().await.or_500()?;
 	let posts = get_posts().await.or_500()?;

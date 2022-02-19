@@ -15,6 +15,7 @@ pub use axum::{
 };
 pub use futures::prelude::*;
 pub use log::{
+	debug,
 	error,
 	info,
 };

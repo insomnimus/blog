@@ -26,6 +26,10 @@ use axum::{
 		Router,
 	},
 };
+use log::{
+	info,
+	warn,
+};
 use sqlx::types::chrono::{
 	NaiveDateTime,
 	Utc,
@@ -63,7 +67,7 @@ pub type Cache<T = String> = OnceCell<RwLock<CacheData<T>>>;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
 	if env::var_os("BLOG_LOG").is_none() {
-		env::set_var("BLOG_LOG", "error,blog=warn,tower_http=warn,sqlx=warn")
+		env::set_var("BLOG_LOG", "error,blog=info,tower_http=warn,sqlx=warn")
 	}
 	env_logger::Builder::from_env("BLOG_LOG")
 		.format(|buf, record| {
@@ -82,6 +86,7 @@ async fn main() -> anyhow::Result<()> {
 	COPYRIGHT.set(config.copyright.clone()).unwrap();
 
 	db::init(&config.db_url).await?;
+	info!("connected to the database");
 
 	let static_handler =
 		get_service(ServeDir::new("static")).handle_error(|e: std::io::Error| async move {
@@ -114,12 +119,17 @@ async fn main() -> anyhow::Result<()> {
 		.route("/robots.txt", get(robots_txt));
 
 	let app = match &config.url {
-		None => app,
+		None => {
+			warn!("no site url is set, the rss feed won't be available");
+			app
+		}
 		Some(url) => {
 			SITE_URL.set(url.clone()).unwrap();
 			app.route("/rss", get(rss::handle_rss))
 		}
 	};
+
+	info!("listening on {}", &config.listen);
 
 	axum::Server::bind(&config.listen.parse()?)
 		.serve(app.into_make_service())
