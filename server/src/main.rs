@@ -13,7 +13,10 @@ mod rss;
 mod search;
 mod xml;
 
-use std::env;
+use std::{
+	env,
+	io::Write,
+};
 
 use axum::{
 	http::StatusCode,
@@ -59,10 +62,21 @@ pub type Cache<T = String> = OnceCell<RwLock<CacheData<T>>>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-	if env::var_os("RUST_LOG").is_none() {
-		env::set_var("RUST_LOG", "blog=debug,tower_http=debug")
+	if env::var_os("BLOG_LOG").is_none() {
+		env::set_var("BLOG_LOG", "error,blog=warn,tower_http=warn,sqlx=warn")
 	}
-	tracing_subscriber::fmt::init();
+	env_logger::Builder::from_env("BLOG_LOG")
+		.format(|buf, record| {
+			writeln!(
+				buf,
+				"[{level} {src}] {msg} | {ts}",
+				ts = chrono::Utc::now().format("%Y-%m-%d %R"),
+				level = record.level(),
+				msg = record.args(),
+				src = record.target(),
+			)
+		})
+		.init();
 
 	let config = app::Config::from_args();
 	COPYRIGHT.set(config.copyright.clone()).unwrap();
