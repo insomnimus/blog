@@ -39,13 +39,13 @@ pub async fn handle_search(params: Option<Query<SearchParams>>) -> HttpResponse<
 		Some(p) => p.0,
 	};
 	if params.query.len() >= 200 {
-		return Err(E_BAD_REQUEST);
+		return Err(E400);
 	}
 
 	match params.kind.as_str() {
 		"article" => search_article(params).await,
 		"music" => search_music(params).await,
-		_ => Err(E_BAD_REQUEST),
+		_ => Err(E400),
 	}
 }
 

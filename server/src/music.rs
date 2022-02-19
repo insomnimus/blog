@@ -13,7 +13,7 @@ pub struct Music {
 	pub date: String,
 }
 
-#[derive(Debug, Template)]
+#[derive(Debug, Template, Default)]
 #[template(path = "music_page.html")]
 pub struct MusicPage {
 	music: Vec<Music>,
@@ -26,25 +26,36 @@ impl Music {
 }
 
 pub async fn handle_music(Path(id): Path<i32>) -> HttpResponse<Music> {
-	query!(
-		"SELECT title, comment, file_path, date_uploaded FROM music WHERE music_id = $1",
-		id
-	)
-	.fetch_optional(db())
-	.await
-	.or_500()?
-	.map(move |mut x| Music {
-		id,
-		title: x.title.take(),
-		comment: x.comment.take(),
-		date: x.date_uploaded.format_utc(),
-		media: Media::new(x.file_path.take()),
-	})
-	.or_404()
+	async fn inner(id: i32) -> Result<Option<Music>> {
+		let m = query!(
+			"SELECT title, comment, file_path, date_uploaded FROM music WHERE music_id = $1",
+			id
+		)
+		.fetch_optional(db())
+		.await?
+		.map(move |mut x| Music {
+			id,
+			title: x.title.take(),
+			comment: x.comment.take(),
+			date: x.date_uploaded.format_utc(),
+			media: Media::new(x.file_path.take()),
+		});
+
+		Ok(m)
+	}
+
+	match inner(id).await {
+		Ok(None) => Err(E404),
+		Ok(Some(m)) => Ok(m),
+		Err(e) => {
+			error!("{e}");
+			Err(E500)
+		}
+	}
 }
 
-pub async fn handle_music_page() -> HttpResponse {
-	static CACHE: Cache = Cache::const_new();
+async fn music_page() -> Result<String> {
+	static CACHE: Cache<MusicPage> = Cache::const_new();
 
 	let cache = CACHE
 		.get_or_init(|| async { RwLock::new(Default::default()) })
@@ -52,25 +63,24 @@ pub async fn handle_music_page() -> HttpResponse {
 
 	let last = query!("SELECT music FROM cache")
 		.fetch_one(db())
-		.await
-		.or_500()?
+		.await?
 		.music;
 
 	{
 		let cached = cache.read().await;
-		if cached.time == last && !cached.data.is_empty() {
-			return Ok(Html(cached.data.clone()));
+		if cached.time == last {
+			return cached.data.render().map_err(|e| e.into());
 		}
 	}
 	debug!("updating music cache");
 
 	let mut stream = query!(
-		"SELECT music_id id, comment, title, date_uploaded date FROM music ORDER BY date DESC"
+		"SELECT music_id AS id, comment, title, date_uploaded AS date FROM music ORDER BY date DESC"
 	)
 	.fetch(db());
 
 	let mut music = Vec::with_capacity(16);
-	while let Some(mut x) = stream.next().await.transpose().or_500()? {
+	while let Some(mut x) = stream.next().await.transpose()? {
 		music.push(Music {
 			id: x.id,
 			title: x.title.take(),
@@ -80,11 +90,22 @@ pub async fn handle_music_page() -> HttpResponse {
 		});
 	}
 
-	let html = MusicPage { music }.render().or_500()?;
+	let page = MusicPage { music };
+	let html = page.render()?;
+
 	let mut cached = cache.write().await;
-	cached.data.clear();
-	cached.data.push_str(&html);
+	cached.data = page;
 	cached.time = last;
 
-	Ok(Html(html))
+	Ok(html)
+}
+
+pub async fn handle_music_page() -> HttpResponse<Html<String>> {
+	match music_page().await {
+		Ok(s) => Ok(Html(s)),
+		Err(e) => {
+			error!("{e}");
+			Err(E500)
+		}
+	}
 }

@@ -1,5 +1,9 @@
 pub use std::borrow::Cow;
 
+pub use anyhow::{
+	anyhow,
+	Result,
+};
 pub use askama::Template;
 pub use axum::{
 	extract::{
