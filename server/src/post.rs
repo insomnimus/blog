@@ -41,7 +41,7 @@ pub struct PostParams {
 	cursor: i32,
 }
 
-async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
+async fn get_posts(last_id: i32) -> Result<Vec<Post>> {
 	let mut stream = query!(
 		r#"SELECT
 	p.post_id AS id,
@@ -82,15 +82,15 @@ async fn get_posts(last_id: i32) -> anyhow::Result<Vec<Post>> {
 pub async fn handle_posts() -> HttpResponse {
 	static CACHE: Cache = Cache::const_new();
 
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
+
 	let last_updated = query!("SELECT posts FROM cache")
 		.fetch_one(db())
 		.await
 		.or_500()?
 		.posts;
-
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Default::default()) })
-		.await;
 
 	{
 		let cached = cache.read().await;
@@ -100,7 +100,10 @@ pub async fn handle_posts() -> HttpResponse {
 	}
 	debug!("updating posts cache");
 
-	let posts = get_posts(1).await.or_500()?;
+	let posts = get_posts(1).await.map_err(|e| {
+		error!("{e}");
+		E500
+	})?;
 	let html = PostsPage { posts }.render().or_500()?;
 
 	let mut cached = cache.write().await;
@@ -114,7 +117,10 @@ pub async fn handle_posts() -> HttpResponse {
 pub async fn handle_api(Query(params): Query<PostParams>) -> HttpResponse<Json<PostsJson>> {
 	get_posts(params.cursor)
 		.await
-		.or_500()?
+		.map_err(|e| {
+			error!(target: "api/posts", "{e}");
+			E500
+		})?
 		.into_iter()
 		.map(|p| p.render())
 		.collect::<Result<Vec<_>, _>>()
@@ -138,7 +144,10 @@ pub async fn handle_post(Path(id): Path<i32>) -> HttpResponse<PostPage> {
 	)
 	.fetch_optional(db())
 	.await
-	.or_500()?
+	.map_err(|e| {
+		error!("{e}");
+		E500
+	})?
 	.or_404()
 	.map(|mut x| PostPage {
 		post: Post {
