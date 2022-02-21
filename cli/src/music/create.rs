@@ -48,6 +48,12 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	tx.commit().await?;
 
 	println!("✓ created a new music post (id = {id}, attachment = {path})");
+
+	std::env::set_var("SFTP_CREATED", &dir);
+	run_hook!(post_sftp, m)
+		.await
+		.map_err(|e| anyhow!("psot-sftp hook failed but the operation was successful: {e}"))?;
+
 	Ok(())
 }
 

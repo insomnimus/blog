@@ -1,6 +1,29 @@
 localize_dates();
 tags_to_links();
 
+function dates_callback(muts, _observer) {
+	for (const mut of muts) {
+		if (mut.type !== "childList") {
+			continue;
+		}
+		for (const n of mut.nodeList) {
+			for (const d of n.querySelectorAll("time")) {
+				const dt = n.getAttribute("datetime");
+				if (dt) {
+					d.textContent = time_since(new Date(dt));
+				}
+			}
+		}
+	}
+}
+
+const date_observer = new MutationObserver(dates_callback);
+date_observer.observe(document.querySelector("main"), {
+	attributes: false,
+	childList: true,
+	subtree: true,
+});
+
 function format_since(date) {
 	const month_names = [
 		"January",

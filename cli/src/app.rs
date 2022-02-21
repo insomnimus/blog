@@ -71,6 +71,7 @@ pub struct Config {
 pub struct Hooks {
 	pub pre_db: Option<Cmd>,
 	pub pre_sftp: Option<Cmd>,
+	pub post_sftp: Option<Cmd>,
 }
 
 #[derive(Deserialize, Debug, Default)]

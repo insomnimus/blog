@@ -1,27 +1,31 @@
 const container = document.querySelector("#posts");
-
-addEventListener("scroll", () => {
-	const { scrollHeight, scrollTop, clientHeight } = document.documentElement;
-	if (scrollTop + clientHeight > scrollHeight - 5) {
-		setTimeout(fetch_more, 5000);
+const more_button = document.querySelector("#loadmore");
+more_button.addEventListener("click", function () {
+	more_button.disabled = true;
+	const posts = container.querySelectorAll("article");
+	if (posts) {
+		const last_id = posts[posts.length - 1].id?.slice(1) ?? 1;
+		if (last_id <= 1) {
+			return;
+		}
+		try {
+			load_posts(last_id);
+		} catch (e) {
+			console.log(e);
+		} finally {
+			more_button.disabled = false;
+		}
 	}
 });
 
-function fetch_more() {
-	const posts = container.querySelector("article");
-	if (posts.length == 0) {
-		return;
-	}
-	const last_id = posts[posts.length - 1].id.substring(1);
-	if (last_id === "p1") {
-		return;
-	}
+function load_posts(last_id) {
 	const addr = "/api/posts?cursor=" + last_id;
 	fetch(addr)
 		.then((response) => response.json())
 		.then((data) => {
 			for (const p of data.posts) {
-				container.innerHTML += "\n<hr>\n" + p;
+				container.innerHTML += p;
+				container.innerHTML += "\n<br>\n";
 			}
 		});
 }

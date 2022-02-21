@@ -55,20 +55,37 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	query!("DELETE FROM media WHERE file_path = $1", &media)
 		.execute(&mut tx)
 		.await?;
+	let dirname = Path::new(&media).parent().unwrap().to_str().unwrap();
 
-	if let Some(sftp) = sftp {
-		run_hook!(pre_sftp, m).await?;
-		let dirname = Path::new(&media).parent().unwrap().to_str().unwrap();
-		match sftp.rmdir(dirname).await {
-			Err(e) if dirty => eprintln!("warning: failed to delete the media: {e}"),
-			Ok(_) => println!("✓ deleted uploaded media {media}"),
-			res => res?,
-		};
-	}
+	let sftp_ok = match &sftp {
+		Some(sftp) => {
+			run_hook!(pre_sftp, m).await?;
+			match sftp.rmdir(dirname).await {
+				Err(e) if dirty => {
+					eprintln!("warning: failed to delete the media: {e}");
+					false
+				}
+				Ok(_) => {
+					println!("✓ deleted uploaded media {media}");
+					true
+				}
+				Err(e) => return Err(e),
+			}
+		}
+		None => false,
+	};
 
 	clear!(music).execute(&mut tx).await?;
 	tx.commit().await?;
 
 	println!("✓ deleted music {music}");
+
+	if sftp_ok {
+		std::env::set_var("SFTP_DELETED", dirname);
+		run_hook!(post_sftp, m)
+			.await
+			.map_err(|e| anyhow!("post-sftp hook failed but the operation was successful: {e}"))?;
+	}
+
 	Ok(())
 }
