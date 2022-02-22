@@ -13,8 +13,6 @@ pub fn app() -> App {
 		.subcommand_required(true)
 		.arg_required_else_help(true)
 			.args(&[
-			arg!(--"ssh-config" [PATH] "The Optional ssh_config file, used in commands involving sftp.")
-			.global(true),
 					arg!(-R --sftp [URL] "The sftp servers connection url in the form `sftp://[user@]domain[:port]/path/to/store`.")
 			.env("BLOG_SFTP_URL")
 			.global(true),
