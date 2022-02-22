@@ -73,11 +73,9 @@ impl Sftp {
 
 	pub async fn rmdir(&self, dir: &str) -> Result<()> {
 		let cmds = format!(
-			"\
-			cd {root}
+			"cd {root}
 rm {dir}/*
-rmdir {dir}\
-",
+rmdir {dir}",
 			root = escape(&self.uri.root),
 			dir = escape(dir),
 		);
@@ -89,6 +87,37 @@ rmdir {dir}\
 
 		let handle = tokio::spawn(async move {
 			AsyncWriteExt::write_all(&mut stdin, cmds.as_bytes()).await?;
+			stdin.shutdown().await
+		});
+
+		let status = proc.wait().await?;
+		ensure!(status.success(), "sftp command exited with {status}");
+
+		handle.await??;
+
+		Ok(())
+	}
+
+	pub async fn remove_files<S: AsRef<str>>(&self, files: &[S]) -> Result<()> {
+		use std::io::Write;
+		assert!(
+			!files.is_empty(),
+			"files passed to Sftp::remove_files is empty"
+		);
+		let mut cmds = Vec::new();
+		writeln!(cmds, "cd {}", escape(&self.uri.root))?;
+
+		for f in files {
+			writeln!(cmds, "rm {}", escape(f.as_ref()))?;
+		}
+
+		let mut cmd = self.command();
+		let mut proc = cmd.spawn()?;
+
+		let mut stdin = proc.stdin.take().unwrap();
+
+		let handle = tokio::spawn(async move {
+			AsyncWriteExt::write_all(&mut stdin, &cmds).await?;
 			stdin.shutdown().await
 		});
 

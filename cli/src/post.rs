@@ -83,7 +83,3 @@ impl Formattable for Post {
 		)
 	}
 }
-
-fn post_dir(id: i32) -> String {
-	format!("post_{id}")
-}

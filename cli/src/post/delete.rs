@@ -1,7 +1,4 @@
-use super::{
-	post_dir,
-	Post,
-};
+use super::Post;
 use crate::prelude::*;
 
 pub fn app() -> App {
@@ -115,19 +112,35 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.execute(&mut tx)
 		.await?;
 
-	if let Some(sftp) = sftp {
-		run_hook!(pre_sftp, m).await?;
-		let dir = post_dir(post.id);
-		match sftp.rmdir(&dir).await {
-			Ok(_) => println!("✓ deleted attachments from the sftp server"),
-			Err(e) if dirty => eprintln!("warning: failed to delete attachments: {e}"),
-			Err(e) => return Err(e),
-		};
-	}
+	let sftp_ok = match sftp {
+		Some(sftp) => {
+			run_hook!(pre_sftp, m).await?;
+			match sftp.remove_files(&post.attachments).await {
+				Ok(_) => {
+					println!("✓ deleted attachments from the sftp server");
+					true
+				}
+				Err(e) if dirty => {
+					eprintln!("warning: failed to delete attachments: {e}");
+					false
+				}
+				Err(e) => return Err(e),
+			}
+		}
+		None => false,
+	};
 
 	clear!(posts).execute(&mut tx).await?;
 	tx.commit().await?;
 	println!("✓ deleted post #{}", post.id);
+
+	if sftp_ok {
+		let deleted = post.attachments.join(":");
+		std::env::set_var("SFTP_DELETED", &deleted);
+		run_hook!(post_sftp, m)
+			.await
+			.context("failed to execute the post-sftp hook but the operation was successful")?;
+	}
 
 	Ok(())
 }

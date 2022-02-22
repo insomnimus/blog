@@ -84,7 +84,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		std::env::set_var("SFTP_DELETED", dirname);
 		run_hook!(post_sftp, m)
 			.await
-			.map_err(|e| anyhow!("post-sftp hook failed but the operation was successful: {e}"))?;
+			.context("failed to run the post-sftp hook but the operation was successful")?;
 	}
 
 	Ok(())

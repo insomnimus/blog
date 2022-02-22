@@ -101,14 +101,19 @@ pub fn format_filename(s: &str) -> String {
 		.collect()
 }
 
-pub fn rand_filename() -> String {
+pub fn rand_filename(prefix: impl AsRef<str>) -> String {
 	use rand::{
 		distributions::Alphanumeric,
 		Rng,
 	};
-	rand::thread_rng()
-		.sample_iter(&Alphanumeric)
-		.take(7)
-		.map(char::from)
+	prefix
+		.as_ref()
+		.chars()
+		.chain(
+			rand::thread_rng()
+				.sample_iter(&Alphanumeric)
+				.take(7)
+				.map(char::from),
+		)
 		.collect()
 }

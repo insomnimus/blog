@@ -19,7 +19,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let comment = m.value_of("comment");
 	let media = m.value_of_t_or_exit::<SendFile>("path");
 
-	let dir = format!("music_{}", rand_filename());
+	let dir = rand_filename("music_");
 	let path = format!("{dir}/{remote}", remote = media.remote());
 	run_hook!(pre_sftp, m).await?;
 	sftp.send_files(&dir, &[media]).await?;
@@ -52,7 +52,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	std::env::set_var("SFTP_CREATED", &dir);
 	run_hook!(post_sftp, m)
 		.await
-		.map_err(|e| anyhow!("psot-sftp hook failed but the operation was successful: {e}"))?;
+		.context("failed to run the post-sftp hook but the operation was successful")?;
 
 	Ok(())
 }

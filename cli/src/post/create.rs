@@ -25,6 +25,14 @@ pub fn app() -> App {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
+	let files = m.values_of_t::<SendFile>("attachment").ok();
+	let dir = rand_filename("post_");
+	if let Some(files) = &files {
+		let sftp = Config::sftp(m).await?;
+		run_hook!(pre_sftp, m).await?;
+		sftp.send_files(&dir, files).await?;
+	}
+
 	let syntax = m.value_of_t_or_exit::<Syntax>("syntax");
 	let raw = match m.value_of("content") {
 		Some(s) => Cow::Borrowed(s.trim()),
@@ -57,12 +65,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	.await?
 	.post_id;
 
-	if let Ok(files) = m.values_of_t::<SendFile>("attachment") {
-		let sftp = Config::sftp(m).await?;
-		run_hook!(pre_sftp, m).await?;
-		let dir = format!("post_{id}");
-		sftp.send_files(&dir, &files).await?;
-		for f in &files {
+	if let Some(files) = &files {
+		for f in files {
 			let path = format!("{dir}/{remote}", remote = f.remote());
 
 			query!("INSERT INTO media(file_path) VALUES($1)", &path,)
@@ -87,6 +91,25 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	tx.commit().await?;
 
 	println!("✓ created new post (id = {id})");
+
+	if let Some(files) = files.as_ref().filter(|_| {
+		Config::try_get()
+			.and_then(|c| c.hooks.post_sftp.as_ref())
+			.is_some()
+	}) {
+		let mut created = String::new();
+		for (i, f) in files.iter().enumerate() {
+			if i > 0 {
+				created.push(':');
+			}
+			created.push_str(&format!("{dir}/{remote}", remote = f.remote()));
+		}
+		std::env::set_var("SFTP_CREATED", &created);
+		run_hook!(post_sftp, m)
+			.await
+			.context("failed to run the post-sftp hook but the operation was successful")?;
+	}
+
 	Ok(())
 }
 
