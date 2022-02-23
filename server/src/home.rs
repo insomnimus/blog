@@ -115,11 +115,5 @@ pub async fn handle_home() -> HttpResponse {
 		Ok(Html(html))
 	}
 
-	match inner().await {
-		Err(e) => {
-			error!("{e}");
-			Err(E500)
-		}
-		Ok(x) => Ok(x),
-	}
+	inner().await.map_err(|e| e500!(e))
 }

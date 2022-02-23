@@ -99,11 +99,5 @@ async fn music_page() -> Result<String> {
 }
 
 pub async fn handle_music_page() -> HttpResponse<Html<String>> {
-	match music_page().await {
-		Ok(s) => Ok(Html(s)),
-		Err(e) => {
-			error!("{e}");
-			Err(E500)
-		}
-	}
+	music_page().await.map(Html).map_err(|e| e500!(e))
 }

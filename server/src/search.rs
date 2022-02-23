@@ -44,10 +44,7 @@ pub async fn handle_search(params: Option<Query<SearchParams>>) -> HttpResponse<
 
 	match params.kind.as_str() {
 		"article" => search_article(params).await,
-		"music" => search_music(params).await.map_err(|e| {
-			error!("{e}");
-			E500
-		}),
+		"music" => search_music(params).await.map_err(|e| e500!(e)),
 		_ => Err(E400),
 	}
 }
@@ -106,10 +103,7 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 	})
 	.try_collect::<Vec<_>>()
 	.await
-	.map_err(|e| {
-		error!("{e}");
-		E500
-	})?;
+	.map_err(|e| e500!(e))?;
 
 	let title = if term.is_empty() {
 		let mut buf = String::from("Articles tagged");

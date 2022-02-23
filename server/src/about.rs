@@ -10,7 +10,9 @@ pub async fn handle_about() -> HttpResponse<About> {
 	query_as!(About, "SELECT html FROM about")
 		.fetch_optional(db())
 		.await
-		.or_500()?
-		.ok_or("about page missing from the database")
-		.or_503()
+		.map_err(|e| e500!(e))?
+		.ok_or_else(|| {
+			warn!("about page is missing from the database");
+			E503
+		})
 }

@@ -32,10 +32,7 @@ pub struct Article {
 pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> {
 	let (prev, next) = index::get_adjacent(&title)
 		.await
-		.map_err(|e| {
-			error!("{e}");
-			E500
-		})?
+		.map_err(|e| e500!(e))?
 		.or_404()?;
 
 	query!(
@@ -50,10 +47,7 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 	)
 	.fetch_optional(db())
 	.await
-	.map_err(|e| {
-		error!("{e}");
-		E500
-	})?
+	.map_err(|e| e500!(e))?
 	.or_404()
 	.map(move |mut x| Article {
 		html: x.html.take(),
@@ -127,11 +121,5 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 		Ok(html)
 	}
 
-	match inner().await {
-		Ok(x) => Ok(Html(x)),
-		Err(e) => {
-			error!("{e}");
-			Err(E500)
-		}
-	}
+	inner().await.map(Html).map_err(|e| e500!(e))
 }

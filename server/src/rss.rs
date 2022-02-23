@@ -11,10 +11,7 @@ use crate::{
 };
 
 pub async fn handle_rss() -> HttpResponse<Xml<String>> {
-	gen_feed().await.map(Xml).map_err(|e| {
-		error!("{e}");
-		E500
-	})
+	gen_feed().await.map(Xml).map_err(|e| e500!(e))
 }
 
 async fn gen_feed() -> anyhow::Result<String> {

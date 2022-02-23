@@ -25,6 +25,7 @@ pub use log::{
 	debug,
 	error,
 	info,
+	warn,
 };
 pub use serde::{
 	Deserialize,

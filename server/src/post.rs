@@ -107,26 +107,17 @@ pub async fn handle_posts() -> HttpResponse {
 		Ok(Html(html))
 	}
 
-	match inner().await {
-		Ok(x) => Ok(x),
-		Err(e) => {
-			error!("{e}");
-			Err(E500)
-		}
-	}
+	inner().await.map_err(|e| e500!(e))
 }
 
 pub async fn handle_api(Query(params): Query<PostParams>) -> HttpResponse<Json<PostsJson>> {
 	get_posts(params.cursor)
 		.await
-		.map_err(|e| {
-			error!(target: "api/posts", "{e}");
-			E500
-		})?
+		.map_err(|e| e500!(e))?
 		.into_iter()
 		.map(|p| p.render())
 		.collect::<Result<Vec<_>, _>>()
-		.or_500()
+		.map_err(|e| e500!(e))
 		.map(|posts| Json(PostsJson { posts }))
 }
 
@@ -146,10 +137,7 @@ pub async fn handle_post(Path(id): Path<i32>) -> HttpResponse<PostPage> {
 	)
 	.fetch_optional(db())
 	.await
-	.map_err(|e| {
-		error!("{e}");
-		E500
-	})?
+	.map_err(|e| e500!(e))?
 	.or_404()
 	.map(|mut x| PostPage {
 		post: Post {

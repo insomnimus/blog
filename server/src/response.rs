@@ -64,3 +64,13 @@ impl<T: Sized, E> ResultExt<T, E> for Result<T, E> {
 		self.map(Xml)
 	}
 }
+
+// macros
+macro_rules! e500 {
+	($e:expr) => {{
+		$crate::prelude::error!("{}", $e);
+		$crate::response::E500
+	}};
+}
+
+pub(crate) use e500;
