@@ -261,7 +261,7 @@ dependencies = [
 
 [[package]]
 name = "blog"
-version = "0.15.9"
+version = "0.15.10"
 dependencies = [
  "anyhow",
  "askama",
@@ -286,7 +286,7 @@ dependencies = [
 
 [[package]]
 name = "blog-cli"
-version = "0.26.0"
+version = "0.26.1"
 dependencies = [
  "anyhow",
  "clap",

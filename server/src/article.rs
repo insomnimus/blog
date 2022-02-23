@@ -30,7 +30,13 @@ pub struct Article {
 }
 
 pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> {
-	let (prev, next) = index::get_adjacent(&title).await.or_500()?.or_404()?;
+	let (prev, next) = index::get_adjacent(&title)
+		.await
+		.map_err(|e| {
+			error!("{e}");
+			E500
+		})?
+		.or_404()?;
 
 	query!(
 		"SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,
@@ -44,47 +50,49 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 	)
 	.fetch_optional(db())
 	.await
-	.or_500()
-	.and_then(|opt| {
-		opt.or_404().map(move |mut x| Article {
-			html: x.html.take(),
-			next,
-			prev,
-			info: ArticleInfo {
-				about: x.about.take(),
-				published: x.date_published.format_utc(),
-				updated: x.date_updated.format_utc(),
-				title: x.title.take(),
-				url_title: x.url_title.take(),
-				tags: x.tags_array.take().unwrap_or_default(),
-			},
-		})
+	.map_err(|e| {
+		error!("{e}");
+		E500
+	})?
+	.or_404()
+	.map(move |mut x| Article {
+		html: x.html.take(),
+		next,
+		prev,
+		info: ArticleInfo {
+			about: x.about.take(),
+			published: x.date_published.format_utc(),
+			updated: x.date_updated.format_utc(),
+			title: x.title.take(),
+			url_title: x.url_title.take(),
+			tags: x.tags_array.take().unwrap_or_default(),
+		},
 	})
 }
 
 pub async fn handle_articles() -> HttpResponse<Html<String>> {
 	static CACHE: Cache = OnceCell::const_new();
 
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Default::default()) })
-		.await;
+	async fn inner() -> Result<String> {
+		let cache = CACHE
+			.get_or_init(|| async { RwLock::new(Default::default()) })
+			.await;
 
-	let last_updated = query!("SELECT articles FROM cache")
-		.fetch_one(db())
-		.await
-		.or_500()?
-		.articles;
+		let last_updated = query!("SELECT articles FROM cache")
+			.fetch_one(db())
+			.await?
+			.articles;
 
-	{
-		let cached = cache.read().await;
-		if cached.time == last_updated && !cached.data.is_empty() {
-			return Ok(Html(cached.data.clone()));
+		{
+			let cached = cache.read().await;
+			if cached.time == last_updated && !cached.data.is_empty() {
+				return Ok(cached.data.clone());
+			}
 		}
-	}
-	debug!("updating articles cache");
+		debug!("updating articles cache");
 
-	let mut stream = query!(
-		r#"SELECT
+		let articles = query!(
+			r#"SELECT
 	a.url_title,
 	a.title,
 	a.about,
@@ -96,28 +104,34 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 	ON a.article_id = t.article_id
 	GROUP BY a.article_id, a.url_title, a.title
 	ORDER BY COALESCE(a.date_updated, a.date_published) DESC"#
-	)
-	.fetch(db());
-
-	let mut articles = Vec::new();
-
-	while let Some(mut x) = stream.next().await.transpose().or_500()? {
-		articles.push(ArticleInfo {
+		)
+		.fetch(db())
+		.map_ok(|mut x| ArticleInfo {
 			title: x.title.take(),
 			url_title: x.url_title.take(),
 			about: x.about.take(),
 			updated: x.updated.format_utc(),
 			published: x.published.format_utc(),
 			tags: x.tags.take().into_iter().flatten().flatten().collect(),
-		});
+		})
+		.try_collect::<Vec<_>>()
+		.await?;
+
+		let html = ArticlesPage { articles }.render()?;
+
+		let mut cached = cache.write().await;
+		cached.data.clear();
+		cached.data.push_str(&html);
+		cached.time = last_updated;
+
+		Ok(html)
 	}
 
-	let html = ArticlesPage { articles }.render().or_500()?;
-
-	let mut cached = cache.write().await;
-	cached.data.clear();
-	cached.data.push_str(&html);
-	cached.time = last_updated;
-
-	Ok(Html(html))
+	match inner().await {
+		Ok(x) => Ok(Html(x)),
+		Err(e) => {
+			error!("{e}");
+			Err(E500)
+		}
+	}
 }

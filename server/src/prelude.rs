@@ -17,7 +17,10 @@ pub use axum::{
 	},
 	Json,
 };
-pub use futures::prelude::*;
+pub use futures::{
+	prelude::*,
+	stream::TryStreamExt,
+};
 pub use log::{
 	debug,
 	error,
@@ -54,6 +57,7 @@ pub(crate) use crate::{
 };
 
 pub type HttpResponse<T = Html<String>> = ::std::result::Result<T, (StatusCode, &'static str)>;
+pub type DbResult<T> = ::std::result::Result<T, sqlx::Error>;
 
 pub fn current_year() -> u32 {
 	use chrono::Datelike;

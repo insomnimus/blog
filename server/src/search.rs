@@ -44,7 +44,10 @@ pub async fn handle_search(params: Option<Query<SearchParams>>) -> HttpResponse<
 
 	match params.kind.as_str() {
 		"article" => search_article(params).await,
-		"music" => search_music(params).await,
+		"music" => search_music(params).await.map_err(|e| {
+			error!("{e}");
+			E500
+		}),
 		_ => Err(E400),
 	}
 }
@@ -90,11 +93,8 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 		&title,
 		&tags,
 	)
-	.fetch_all(db())
-	.await
-	.or_500()?
-	.into_iter()
-	.map(|mut x| {
+	.fetch(db())
+	.map_ok(|mut x| {
 		SearchResult::Article(ArticleInfo {
 			title: x.title.take(),
 			url_title: x.url_title.take(),
@@ -104,7 +104,12 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 			tags: x.tags_array.take().unwrap_or_default(),
 		})
 	})
-	.collect::<Vec<_>>();
+	.try_collect::<Vec<_>>()
+	.await
+	.map_err(|e| {
+		error!("{e}");
+		E500
+	})?;
 
 	let title = if term.is_empty() {
 		let mut buf = String::from("Articles tagged");
@@ -131,9 +136,9 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 	})
 }
 
-async fn search_music(params: SearchParams) -> HttpResponse<SearchPage> {
+async fn search_music(params: SearchParams) -> DbResult<SearchPage> {
 	let q = format!("%{}%", params.query.to_lowercase());
-	let mut stream = query!(
+	let results = query!(
 		"SELECT
 	title,
 	music_id AS id,
@@ -144,19 +149,18 @@ async fn search_music(params: SearchParams) -> HttpResponse<SearchPage> {
 	ORDER BY date DESC",
 		q
 	)
-	.fetch(db());
-
-	let mut results = Vec::new();
-	while let Some(res) = stream.next().await {
-		let mut x = res.or_500()?;
-		results.push(SearchResult::Music(Music {
+	.fetch(db())
+	.map_ok(|mut x| {
+		SearchResult::Music(Music {
 			id: x.id,
 			date: x.date.format_utc(),
 			title: x.title.take(),
 			comment: x.comment.take(),
 			media: Default::default(),
-		}));
-	}
+		})
+	})
+	.try_collect::<Vec<_>>()
+	.await?;
 
 	Ok(SearchPage {
 		is_base: false,

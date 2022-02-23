@@ -74,21 +74,19 @@ async fn music_page() -> Result<String> {
 	}
 	debug!("updating music cache");
 
-	let mut stream = query!(
+	let music = query!(
 		"SELECT music_id AS id, comment, title, date_uploaded AS date FROM music ORDER BY date DESC"
 	)
-	.fetch(db());
-
-	let mut music = Vec::with_capacity(16);
-	while let Some(mut x) = stream.next().await.transpose()? {
-		music.push(Music {
-			id: x.id,
-			title: x.title.take(),
-			comment: x.comment.take(),
-			media: Media::default(),
-			date: x.date.format_utc(),
-		});
-	}
+	.fetch(db())
+	.map_ok(|mut x| Music {
+		id: x.id,
+		title: x.title.take(),
+		comment: x.comment.take(),
+		media: Media::default(),
+		date: x.date.format_utc(),
+	})
+	.try_collect::<Vec<_>>()
+	.await?;
 
 	let page = MusicPage { music };
 	let html = page.render()?;

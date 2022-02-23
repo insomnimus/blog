@@ -12,7 +12,10 @@ pub use clap::{
 	ArgGroup,
 	ArgMatches,
 };
-pub use futures::prelude::*;
+pub use futures::{
+	prelude::*,
+	stream::TryStreamExt,
+};
 pub use serde::Serialize;
 use sqlx::{
 	postgres::PgPoolOptions as Opts,

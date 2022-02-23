@@ -1,4 +1,3 @@
-use anyhow::Result;
 use indexmap::IndexMap;
 
 use crate::prelude::*;
@@ -15,7 +14,8 @@ pub struct IndexInfo {
 	pub updated: Option<NaiveDateTime>,
 }
 
-pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<String, IndexInfo>>>> {
+pub async fn get_index() -> DbResult<&'static RwLock<crate::CacheData<IndexMap<String, IndexInfo>>>>
+{
 	let cache = CACHE
 		.get_or_init(|| async { RwLock::new(Default::default()) })
 		.await;
@@ -28,10 +28,9 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 	if cache.read().await.time == last {
 		return Ok(cache);
 	}
-
 	debug!("updating article index");
 
-	let mut stream = query!(
+	let index = query!(
 		r#"SELECT
 	url_title,
 	title,
@@ -42,14 +41,11 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 	FROM article
 	ORDER BY published ASC"#
 	)
-	.fetch(db());
-
-	let mut index = IndexMap::new();
-
-	while let Some(mut x) = stream.next().await.transpose()? {
+	.fetch(db())
+	.map_ok(|mut x| {
 		let url_title = x.url_title.clone();
 		let key = x.url_title.take();
-		index.insert(
+		(
 			key,
 			IndexInfo {
 				id: x.id,
@@ -59,8 +55,10 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 				published: x.published,
 				updated: x.updated,
 			},
-		);
-	}
+		)
+	})
+	.try_collect::<IndexMap<_, _>>()
+	.await?;
 
 	let mut cached = cache.write().await;
 	cached.data = index;
@@ -72,7 +70,7 @@ pub async fn get_index() -> Result<&'static RwLock<crate::CacheData<IndexMap<Str
 
 pub async fn get_adjacent(
 	url_title: &str,
-) -> Result<Option<(Option<IndexInfo>, Option<IndexInfo>)>> {
+) -> DbResult<Option<(Option<IndexInfo>, Option<IndexInfo>)>> {
 	fn own((_, v): (&String, &IndexInfo)) -> IndexInfo {
 		v.clone()
 	}
