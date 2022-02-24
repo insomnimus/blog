@@ -3,8 +3,8 @@ mod delete;
 mod list;
 
 use crate::{
+	media::SendFile,
 	prelude::*,
-	sftp::SendFile,
 };
 
 pub fn app() -> App {
@@ -12,22 +12,12 @@ pub fn app() -> App {
 		.about("Manage music.")
 		.subcommand_required(true)
 		.arg_required_else_help(true)
-			.args(&[
-					arg!(-R --sftp [URL] "The sftp servers connection url in the form `sftp://[user@]domain[:port]/path/to/store`.")
-			.env("BLOG_SFTP_URL")
-			.global(true),
-			arg!(--"sftp-command" [COMMAND] "The sftp command. By default it is `sftp -b -`")
-			.validator(validate::<crate::cmd::Cmd>("the sftp command is not valid")),
-		])
 		.subcommands([create::app(), delete::app(), list::app()])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let db = Config::database(m).await?;
-	let c = Config::get_or_init(m.value_of("config")).await?;
-	if let Some(cmd) = &c.hooks.pre_db {
-		task::block_in_place(|| cmd.to_std().status())?;
-	}
+	run_hook!(pre_db, m).await?;
 	init_db(db).await?;
 
 	match m.subcommand().unwrap() {

@@ -1,4 +1,7 @@
-use std::path::Path;
+use std::path::{
+	Path,
+	PathBuf,
+};
 
 use anyhow::Context;
 use clap::crate_version;
@@ -8,7 +11,6 @@ use tokio::{
 	fs,
 	sync::OnceCell,
 };
-use url::Url;
 
 use crate::{
 	about,
@@ -17,10 +19,6 @@ use crate::{
 	music,
 	post,
 	prelude::*,
-	sftp::{
-		Sftp,
-		SftpUri,
-	},
 };
 
 pub fn app() -> App {
@@ -39,6 +37,9 @@ pub fn app() -> App {
 				.global(true)
 				.env("BLOG_DB_URL")
 				.hide_env_values(true),
+			arg!(-M --"media-dir" [DIR] "The path of the media directory for the attachments.")
+				.env("BLOG_MEDIA_DIR")
+				.global(true),
 		])
 		.subcommands([about::app(), article::app(), music::app(), post::app()])
 }
@@ -59,9 +60,8 @@ pub async fn run() -> Result<()> {
 #[serde(rename_all = "kebab-case")]
 pub struct Config {
 	#[serde(rename = "db-url")]
-	pub db: Option<Url>,
-	pub sftp_url: Option<SftpUri>,
-	pub sftp_command: Option<Cmd>,
+	pub db: Option<String>,
+	pub media_dir: Option<PathBuf>,
 	#[serde(default)]
 	pub hooks: Hooks,
 }
@@ -70,8 +70,8 @@ pub struct Config {
 #[serde(rename_all = "kebab-case", default)]
 pub struct Hooks {
 	pub pre_db: Option<Cmd>,
-	pub pre_sftp: Option<Cmd>,
-	pub post_sftp: Option<Cmd>,
+	pub pre_media: Option<Cmd>,
+	pub post_media: Option<Cmd>,
 }
 
 #[derive(Deserialize, Debug, Default)]
@@ -128,34 +128,20 @@ impl Config {
 			None => Self::get_or_init(m.value_of("config"))
 				.await?
 				.db
-				.as_ref()
-				.map(|x| x.as_str())
+				.as_deref()
 				.ok_or_else(|| anyhow!("the database url is missing")),
 		}
 	}
 
-	pub async fn sftp(m: &ArgMatches) -> Result<Sftp> {
-		let uri = match m.value_of("sftp") {
-			Some(s) => s.parse::<SftpUri>()?,
-			None => Self::get_or_init(m.value_of("config"))
-				.await?
-				.sftp_url
-				.clone()
-				.ok_or_else(|| anyhow!("missing sftp uri"))?,
-		};
-
-		let cmd = match m.value_of_t::<Cmd>("sftp-command") {
-			Ok(c) => c,
-			Err(_) => Self::get_or_init(m.value_of("config"))
-				.await?
-				.sftp_command
-				.clone()
-				.unwrap_or_else(|| Cmd {
-					cmd: "sftp".into(),
-					args: vec!["-b".to_string(), "-".to_string()],
-				}),
-		};
-
-		Ok(Sftp { uri, cmd })
+	pub async fn media_dir(m: &ArgMatches) -> Result<&Path> {
+		match m.value_of("media-dir") {
+			Some(x) => Ok(Path::new(x)),
+			None => {
+				let c = Self::get_or_init(m.value_of("config")).await?;
+				c.media_dir
+					.as_deref()
+					.ok_or_else(|| anyhow!("media-dir is required but not specified"))
+			}
+		}
 	}
 }

@@ -1,5 +1,8 @@
 use super::Post;
-use crate::prelude::*;
+use crate::{
+	media,
+	prelude::*,
+};
 
 pub fn app() -> App {
 	App::new("delete")
@@ -85,10 +88,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.ok_or_else(|| anyhow!("there are no posts in the database"))?,
 	};
 
-	let sftp = if post.attachments.is_empty() || keep_attachments {
+	let root = if post.attachments.is_empty() || keep_attachments {
 		None
 	} else {
-		Some(Config::sftp(m).await?)
+		Some(Config::media_dir(m).await?)
 	};
 
 	if !yes {
@@ -112,19 +115,19 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.execute(&mut tx)
 		.await?;
 
-	let sftp_ok = match sftp {
-		Some(sftp) => {
-			run_hook!(pre_sftp, m).await?;
-			match sftp.remove_files(&post.attachments).await {
+	let media_ok = match root {
+		Some(root) => {
+			run_hook!(pre_media, m).await?;
+			match media::remove_files(root, &post.attachments).await {
 				Ok(_) => {
-					println!("✓ deleted attachments from the sftp server");
+					println!("✓ deleted attachments from the media directory");
 					true
 				}
 				Err(e) if dirty => {
 					eprintln!("warning: failed to delete attachments: {e}");
 					false
 				}
-				Err(e) => return Err(e),
+				Err(e) => return Err(e.into()),
 			}
 		}
 		None => false,
@@ -134,12 +137,12 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	tx.commit().await?;
 	println!("✓ deleted post #{}", post.id);
 
-	if sftp_ok {
+	if media_ok {
 		let deleted = post.attachments.join(":");
-		std::env::set_var("SFTP_DELETED", &deleted);
-		run_hook!(post_sftp, m)
+		std::env::set_var("BLOG_DELETED", &deleted);
+		run_hook!(post_media, m)
 			.await
-			.context("failed to execute the post-sftp hook but the operation was successful")?;
+			.context("failed to execute the post-media hook but the operation was successful")?;
 	}
 
 	Ok(())

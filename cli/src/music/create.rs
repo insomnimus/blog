@@ -1,6 +1,9 @@
 use crate::{
+	media::{
+		self,
+		SendFile,
+	},
 	prelude::*,
-	sftp::SendFile,
 };
 
 pub fn app() -> App {
@@ -14,17 +17,17 @@ pub fn app() -> App {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	let sftp = Config::sftp(m).await?;
+	let root = Config::media_dir(m).await?;
 	let title = m.value_of("title");
 	let comment = m.value_of("comment");
 	let media = m.value_of_t_or_exit::<SendFile>("path");
 
 	let dir = rand_filename("music_");
 	let path = format!("{dir}/{remote}", remote = media.remote());
-	run_hook!(pre_sftp, m).await?;
-	sftp.send_files(&dir, &[media]).await?;
+	run_hook!(pre_media, m).await?;
+	media::send_files(&root.join(&dir), &[media]).await?;
 
-	println!("✓ uploaded file to the sftp server");
+	println!("✓ copied the file to the media directory");
 
 	let mut tx = db().begin().await?;
 
@@ -49,10 +52,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	println!("✓ created a new music post (id = {id}, attachment = {path})");
 
-	std::env::set_var("SFTP_CREATED", &dir);
-	run_hook!(post_sftp, m)
+	std::env::set_var("BLOG_CREATED", &dir);
+	run_hook!(post_media, m)
 		.await
-		.context("failed to run the post-sftp hook but the operation was successful")?;
+		.context("failed to run the post-media hook but the operation was successful")?;
 
 	Ok(())
 }

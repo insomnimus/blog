@@ -60,7 +60,12 @@ macro_rules! run_hook {
 		async {
 			let conf = $crate::app::Config::get_or_init($matches.value_of("config")).await?;
 			if let Some(hook) = &conf.hooks.$hook {
-				tokio::task::block_in_place(|| hook.to_std().status())?;
+				let stat = tokio::task::block_in_place(|| hook.to_std().status())?;
+				anyhow::ensure!(
+					stat.success(),
+					"{name} exited with {stat}",
+					name = stringify!($hook)
+				);
 			}
 			Ok::<_, anyhow::Error>(())
 		}

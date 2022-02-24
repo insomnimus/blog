@@ -2,8 +2,11 @@ use std::borrow::Cow;
 
 use super::validate_post;
 use crate::{
+	media::{
+		self,
+		SendFile,
+	},
 	prelude::*,
-	sftp::SendFile,
 };
 
 pub fn app() -> App {
@@ -16,11 +19,6 @@ pub fn app() -> App {
 			.max_occurrences(3)
 			.validator(validate_send_file),
 		arg!(content: [CONTENT] "The post content. Omit to use your editor.").validator(validate_post),
-		Arg::new("sftp-args")
-		.multiple_values(true)
-		.last(true)
-		.help("Extra args to pass to the sftp command.")
-		.required(false),
 	])
 }
 
@@ -28,9 +26,9 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let files = m.values_of_t::<SendFile>("attachment").ok();
 	let dir = rand_filename("post_");
 	if let Some(files) = &files {
-		let sftp = Config::sftp(m).await?;
-		run_hook!(pre_sftp, m).await?;
-		sftp.send_files(&dir, files).await?;
+		let root = Config::media_dir(m).await?;
+		run_hook!(pre_media, m).await?;
+		media::send_files(&root.join(&dir), files).await?;
 	}
 
 	let syntax = m.value_of_t_or_exit::<Syntax>("syntax");
@@ -94,7 +92,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	if let Some(files) = files.as_ref().filter(|_| {
 		Config::try_get()
-			.and_then(|c| c.hooks.post_sftp.as_ref())
+			.and_then(|c| c.hooks.post_media.as_ref())
 			.is_some()
 	}) {
 		let mut created = String::new();
@@ -104,10 +102,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 			}
 			created.push_str(&format!("{dir}/{remote}", remote = f.remote()));
 		}
-		std::env::set_var("SFTP_CREATED", &created);
-		run_hook!(post_sftp, m)
+		std::env::set_var("BLOG_CREATED", &created);
+		run_hook!(post_media, m)
 			.await
-			.context("failed to run the post-sftp hook but the operation was successful")?;
+			.context("failed to run the post-media hook but the operation was successful")?;
 	}
 
 	Ok(())

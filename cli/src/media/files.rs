@@ -8,8 +8,6 @@ use anyhow::{
 	ensure,
 };
 
-use super::escape;
-
 pub struct SendFile {
 	local: String,
 	remote: String,
@@ -22,10 +20,6 @@ impl SendFile {
 
 	pub fn remote(&self) -> &str {
 		&self.remote[..]
-	}
-
-	pub fn sftp_cmd(&self) -> String {
-		format!("put {} {}", escape(&self.local), escape(&self.remote))
 	}
 }
 

@@ -4,11 +4,11 @@ mod article;
 mod cmd;
 mod display;
 mod ext;
+mod media;
 mod music;
 mod post;
 mod prelude;
 mod render;
-mod sftp;
 mod utility;
 
 #[tokio::main]

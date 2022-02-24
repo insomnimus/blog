@@ -10,13 +10,6 @@ pub fn app() -> App {
 		.about("Manage short posts.")
 		.subcommand_required(true)
 		.arg_required_else_help(true)
-			.args(&[
-					arg!(-R --sftp [URL] "The sftp servers connection url in the form `sftp://[user@]domain[:port]/path/to/store`.")
-			.env("BLOG_SFTP_URL")
-			.global(true),
-			arg!(--"sftp-command" [COMMAND] "The sftp command. By default it is `sftp -b -`")
-			.validator(validate::<crate::cmd::Cmd>("the sftp command is not valid")),
-		])
 		.subcommands([create::app(), delete::app(), edit::app(), list::app()])
 }
 

@@ -23,12 +23,6 @@ enum SerCmd {
 }
 
 impl Cmd {
-	pub fn to_tokio(&self) -> tokio::process::Command {
-		let mut c = tokio::process::Command::new(&self.cmd);
-		c.args(&self.args);
-		c
-	}
-
 	pub fn to_std(&self) -> std::process::Command {
 		let mut c = std::process::Command::new(&self.cmd);
 		c.args(&self.args);

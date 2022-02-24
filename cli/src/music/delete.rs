@@ -1,6 +1,7 @@
-use std::path::Path;
-
-use crate::prelude::*;
+use crate::{
+	media,
+	prelude::*,
+};
 
 pub fn app() -> App {
 	App::new("delete")
@@ -21,10 +22,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let yes = m.is_present("yes");
 	let dirty = m.is_present("dirty");
 	let keep_media = m.is_present("keep-media");
-	let sftp = if keep_media {
+	let root = if keep_media {
 		None
 	} else {
-		Some(Config::sftp(m).await?)
+		Some(Config::media_dir(m).await?)
 	};
 
 	let (id, title, media) = match m.value_of_t::<i32>("id") {
@@ -55,21 +56,20 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	query!("DELETE FROM media WHERE file_path = $1", &media)
 		.execute(&mut tx)
 		.await?;
-	let dirname = Path::new(&media).parent().unwrap().to_str().unwrap();
 
-	let sftp_ok = match &sftp {
-		Some(sftp) => {
-			run_hook!(pre_sftp, m).await?;
-			match sftp.rmdir(dirname).await {
+	let media_ok = match &root {
+		Some(root) => {
+			run_hook!(pre_media, m).await?;
+			match media::remove_files(root, &[&media]).await {
 				Err(e) if dirty => {
-					eprintln!("warning: failed to delete the media: {e}");
+					eprintln!("warning: failed to delete the file: {e}");
 					false
 				}
 				Ok(_) => {
-					println!("✓ deleted uploaded media {media}");
+					println!("✓ deleted the file from the media directory:  {media}");
 					true
 				}
-				Err(e) => return Err(e),
+				Err(e) => return Err(e.into()),
 			}
 		}
 		None => false,
@@ -80,11 +80,11 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	println!("✓ deleted music {music}");
 
-	if sftp_ok {
-		std::env::set_var("SFTP_DELETED", dirname);
-		run_hook!(post_sftp, m)
+	if media_ok {
+		std::env::set_var("BLOG_DELETED", &media);
+		run_hook!(post_media, m)
 			.await
-			.context("failed to run the post-sftp hook but the operation was successful")?;
+			.context("failed to run the post-media hook but the operation was successful")?;
 	}
 
 	Ok(())
