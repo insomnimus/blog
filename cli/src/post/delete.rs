@@ -115,35 +115,22 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.execute(&mut tx)
 		.await?;
 
-	let media_ok = match root {
-		Some(root) => {
-			run_hook!(pre_media, m).await?;
-			match media::remove_files(root, &post.attachments).await {
-				Ok(_) => {
-					println!("✓ deleted attachments from the media directory");
-					true
-				}
-				Err(e) if dirty => {
-					eprintln!("warning: failed to delete attachments: {e}");
-					false
-				}
-				Err(e) => return Err(e.into()),
+	if let Some(root) = root {
+		run_hook!(pre_media, m).await?;
+		match media::remove_files(root, &post.attachments).await {
+			Ok(_) => {
+				println!("✓ deleted attachments from the media directory");
 			}
+			Err(e) if dirty => {
+				eprintln!("warning: failed to delete attachments: {e}");
+			}
+			Err(e) => return Err(e.into()),
 		}
-		None => false,
-	};
+	}
 
 	clear!(posts).execute(&mut tx).await?;
 	tx.commit().await?;
 	println!("✓ deleted post #{}", post.id);
-
-	if media_ok {
-		let deleted = post.attachments.join(":");
-		std::env::set_var("BLOG_DELETED", &deleted);
-		run_hook!(post_media, m)
-			.await
-			.context("failed to execute the post-media hook but the operation was successful")?;
-	}
 
 	Ok(())
 }

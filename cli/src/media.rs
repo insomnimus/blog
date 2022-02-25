@@ -1,12 +1,17 @@
 mod files;
 
-use std::path::Path;
+use std::{
+	path::Path,
+	sync::atomic::AtomicBool,
+};
 
 use tokio::fs;
 
 pub use self::files::*;
 
 type Result = std::io::Result<()>;
+
+pub static ACCESSED: AtomicBool = AtomicBool::new(false);
 
 pub async fn send_files<P: AsRef<Path>>(dir: P, files: &[SendFile]) -> Result {
 	assert!(!files.is_empty(), "files passed to send_fiels is empty");

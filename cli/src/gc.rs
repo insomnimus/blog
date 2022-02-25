@@ -17,14 +17,9 @@ pub fn app() -> App {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	let db = Config::database(m).await?;
-	run_hook!(pre_db, m).await?;
-	init_db(db).await?;
-
 	gc_db(m).await?;
 	if !m.is_present("only-db") {
 		gc_media(m).await?;
-		run_hook!(post_media, m).await?;
 	}
 
 	Ok(())

@@ -90,24 +90,6 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	println!("✓ created new post (id = {id})");
 
-	if let Some(files) = files.as_ref().filter(|_| {
-		Config::try_get()
-			.and_then(|c| c.hooks.post_media.as_ref())
-			.is_some()
-	}) {
-		let mut created = String::new();
-		for (i, f) in files.iter().enumerate() {
-			if i > 0 {
-				created.push(':');
-			}
-			created.push_str(&format!("{dir}/{remote}", remote = f.remote()));
-		}
-		std::env::set_var("BLOG_CREATED", &created);
-		run_hook!(post_media, m)
-			.await
-			.context("failed to run the post-media hook but the operation was successful")?;
-	}
-
 	Ok(())
 }
 

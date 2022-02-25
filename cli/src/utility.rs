@@ -56,6 +56,17 @@ macro_rules! confirm{
 }
 
 macro_rules! run_hook {
+	(pre_media, $matches:expr) => {{
+		$crate::media::ACCESSED.store(true, std::sync::atomic::Ordering::Relaxed);
+		async {
+			let conf = $crate::app::Config::get_or_init($matches.value_of("config")).await?;
+			if let Some(hook) = &conf.hooks.pre_media {
+				let stat = tokio::task::block_in_place(|| hook.to_std().status())?;
+				anyhow::ensure!(stat.success(), "the pre_media hook exited with {stat}");
+			}
+			Ok::<_, anyhow::Error>(())
+		}
+	}};
 	($hook:ident, $matches:expr) => {
 		async {
 			let conf = $crate::app::Config::get_or_init($matches.value_of("config")).await?;
@@ -63,7 +74,7 @@ macro_rules! run_hook {
 				let stat = tokio::task::block_in_place(|| hook.to_std().status())?;
 				anyhow::ensure!(
 					stat.success(),
-					"{name} exited with {stat}",
+					"the {name} hook exited with {stat}",
 					name = stringify!($hook)
 				);
 			}

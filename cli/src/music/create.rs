@@ -52,11 +52,6 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	println!("✓ created a new music post (id = {id}, attachment = {path})");
 
-	std::env::set_var("BLOG_CREATED", &dir);
-	run_hook!(post_media, m)
-		.await
-		.context("failed to run the post-media hook but the operation was successful")?;
-
 	Ok(())
 }
 

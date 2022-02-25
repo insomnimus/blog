@@ -57,35 +57,23 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.execute(&mut tx)
 		.await?;
 
-	let media_ok = match &root {
-		Some(root) => {
-			run_hook!(pre_media, m).await?;
-			match media::remove_files(root, &[&media]).await {
-				Err(e) if dirty => {
-					eprintln!("warning: failed to delete the file: {e}");
-					false
-				}
-				Ok(_) => {
-					println!("✓ deleted the file from the media directory:  {media}");
-					true
-				}
-				Err(e) => return Err(e.into()),
+	if let Some(root) = &root {
+		run_hook!(pre_media, m).await?;
+		match media::remove_files(root, &[&media]).await {
+			Err(e) if dirty => {
+				eprintln!("warning: failed to delete the file: {e}");
 			}
+			Ok(_) => {
+				println!("✓ deleted the file from the media directory:  {media}");
+			}
+			Err(e) => return Err(e.into()),
 		}
-		None => false,
-	};
+	}
 
 	clear!(music).execute(&mut tx).await?;
 	tx.commit().await?;
 
 	println!("✓ deleted music {music}");
-
-	if media_ok {
-		std::env::set_var("BLOG_DELETED", &media);
-		run_hook!(post_media, m)
-			.await
-			.context("failed to run the post-media hook but the operation was successful")?;
-	}
 
 	Ok(())
 }

@@ -1,6 +1,9 @@
-use std::path::{
-	Path,
-	PathBuf,
+use std::{
+	path::{
+		Path,
+		PathBuf,
+	},
+	sync::atomic::Ordering,
 };
 
 use anyhow::Context;
@@ -17,6 +20,7 @@ use crate::{
 	article,
 	cmd::Cmd,
 	gc,
+	media,
 	music,
 	post,
 	prelude::*,
@@ -53,14 +57,27 @@ pub fn app() -> App {
 
 pub async fn run() -> Result<()> {
 	let m = app().get_matches();
+	let db = Config::database(&m).await?;
+	run_hook!(pre_db, m).await?;
+	init_db(db).await?;
 
-	match m.subcommand().unwrap() {
+	let res = match m.subcommand().unwrap() {
 		("about", m) => about::run(m).await,
 		("article", m) => article::run(m).await,
 		("gc", m) => gc::run(m).await,
 		("post", m) => post::run(m).await,
 		("music", m) => music::run(m).await,
 		_ => unreachable!(),
+	};
+
+	if media::ACCESSED.load(Ordering::Relaxed) {
+		match run_hook!(post_media, m).await {
+			Ok(_) => res,
+			Err(_) if res.is_err() => res,
+			Err(e) => Err(e),
+		}
+	} else {
+		res
 	}
 }
 
@@ -91,10 +108,6 @@ struct AppConfig {
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
 impl Config {
-	pub fn try_get() -> Option<&'static Self> {
-		CONFIG.get()
-	}
-
 	pub async fn get_or_init<P: AsRef<Path>>(path: Option<P>) -> Result<&'static Self> {
 		if let Some(c) = CONFIG.get() {
 			return Ok(c);
