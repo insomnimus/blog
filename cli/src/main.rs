@@ -4,6 +4,7 @@ mod article;
 mod cmd;
 mod display;
 mod ext;
+mod gc;
 mod media;
 mod music;
 mod post;

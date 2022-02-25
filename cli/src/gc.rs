@@ -1,15 +1,18 @@
+use std::collections::{
+	HashMap,
+	HashSet,
+};
+
+use tokio::fs;
+
 use crate::prelude::*;
 
 pub fn app() -> App {
 	App::new("gc")
-	.about("Run cleanup on the database and the sftp server.")
-			.args(&[
-					arg!(-R --sftp [URL] "The sftp servers connection url in the form `sftp://[user@]domain[:port]/path/to/store`.")
-			.env("BLOG_SFTP_URL"),
-			arg!(--"sftp-command" [COMMAND] "The sftp command. By default it is `sftp -b -`")
-			.validator(validate::<crate::cmd::Cmd>("the sftp command is not valid")),
+		.about("Run cleanup on the database and the media directory.")
+		.args(&[
 			arg!(--dry "Do not perform any cleanup; only display actions."),
-			arg!(--"only-db" "Do not do cleanup on the sftp server; only clean the database."),
+			arg!(--"only-db" "Do not do cleanup on the media directory; only clean the database."),
 		])
 }
 
@@ -20,7 +23,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	gc_db(m).await?;
 	if !m.is_present("only-db") {
-		gc_sftp(m).await?;
+		gc_media(m).await?;
+		run_hook!(post_media, m).await?;
 	}
 
 	Ok(())
@@ -89,7 +93,72 @@ WHERE NOT EXISTS (
 	Ok(())
 }
 
-async fn gc_sftp(m: &ArgMatches) -> Result<()> {
-	// let dry = m.is_present("dry");
-	unimplemented!()
+async fn gc_media(m: &ArgMatches) -> Result<()> {
+	let dry = m.is_present("dry");
+	let root = Config::media_dir(m).await?;
+	run_hook!(pre_media, m).await?;
+	let mut dirs = task::block_in_place(|| {
+		let mut dirs = HashMap::new();
+		for res in root.read_dir()? {
+			let entry = res?;
+			if entry.file_type()?.is_dir() {
+				let mut files = Vec::new();
+				for file in entry.path().read_dir()? {
+					files.push(file?.file_name());
+				}
+				dirs.insert(entry.file_name(), files);
+			}
+		}
+		Ok::<_, std::io::Error>(dirs)
+	})?;
+
+	let media_files = query!("SELECT file_path FROM media")
+		.fetch(db())
+		.map_ok(|x| x.file_path)
+		.try_collect::<HashSet<_>>()
+		.await?;
+
+	let mut to_delete = Vec::new();
+	for (dir, files) in &mut dirs {
+		let dir = match dir.to_str() {
+			None => continue,
+			Some(s) => s,
+		};
+		files.retain(|file| {
+			let file = match file.to_str() {
+				None => return true,
+				Some(s) => s,
+			};
+			// String formatting is intentional; the values in the database are in the form
+			// dir/file.
+			let path = format!("{dir}/{file}");
+			if media_files.contains(&path) {
+				true
+			} else {
+				to_delete.push(path);
+				false
+			}
+		});
+	}
+
+	if to_delete.is_empty() {
+		return Ok(());
+	}
+
+	println!(
+		"deleting {} files with no database entries from the media directory",
+		to_delete.len()
+	);
+
+	if !dry {
+		for f in to_delete.iter().map(|p| root.join(p)) {
+			fs::remove_file(&f).await?;
+		}
+
+		for (dir, _) in dirs.iter().filter(|(_, files)| files.is_empty()) {
+			fs::remove_dir(&root.join(dir)).await?;
+		}
+	}
+
+	Ok(())
 }

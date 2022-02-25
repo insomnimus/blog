@@ -113,6 +113,24 @@
       ]
     }
   },
+  "1a2d957c128139e3a55c99caac8974e90f3f0387afe79bd00834e1bb63122461": {
+    "query": "SELECT file_path FROM media",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "file_path",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "1d896c81bbd4e4207091aacbbbb0f46ef4d78afe758a0dd598b5a79c3b21d622": {
     "query": "SELECT title FROM article WHERE article_id = $1",
     "describe": {
@@ -359,6 +377,18 @@
         "Left": [
           "Int4",
           "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "62d89affcd2edf0b891beb25a01d81ba9d9b32678825ef386ca07b154d98b4e5": {
+    "query": "DELETE FROM tag WHERE tag_name = ANY($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "TextArray"
         ]
       },
       "nullable": []
@@ -652,6 +682,24 @@
       ]
     }
   },
+  "9cf08441db917a006e650fd2640c46b71c8842abdf26c8b58886feee934a1720": {
+    "query": "SELECT m.file_path\nFROM media m\nWHERE NOT EXISTS (\n\tSELECT other.file_path FROM(\n\t\tSELECT file_path FROM music mu\n\t\tUNION\n\t\tSELECT file_path FROM post_media p\n\t) other\n\tWHERE m.file_path = other.file_path\n)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "file_path",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "a2400dc34ba7426058a0cfea0e40947d4d13c893f81c86e4302aa0873b3a7bd4": {
     "query": "SELECT\n\t\tp.post_id AS id,\n\t\tp.date_posted AS date,\n\t\tp.raw,\n\t\t(CASE WHEN $1 THEN p.content END) AS content,\n\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\tFROM post p\n\t\tLEFT JOIN post_media m\n\t\tON p.post_id = m.post_id\n\t\tGROUP BY p.post_id\n\t\tORDER BY\n\t\tCASE WHEN $2 THEN p.post_id END ASC,\n\t\tCASE WHEN NOT $2 THEN p.post_id END DESC\n\t\tLIMIT $3",
     "describe": {
@@ -777,6 +825,24 @@
       },
       "nullable": [
         false,
+        false
+      ]
+    }
+  },
+  "b52ab5f1641337bc40f39a3ac21c9b92baba5aa97e9d5e28d7d17eef65126788": {
+    "query": "SELECT t.tag_name\nFROM tag t\nWHERE NOT EXISTS (\n\tSELECT FROM article_tag art WHERE art.tag_name = t.tag_name\n)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "tag_name",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
         false
       ]
     }
@@ -945,6 +1011,18 @@
       "nullable": [
         false
       ]
+    }
+  },
+  "e027f412da4ef0b9bf42e6a8f48d0873cac9613983f17e58543696eaa6340bca": {
+    "query": "DELETE FROM media WHERE file_path = ANY($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "TextArray"
+        ]
+      },
+      "nullable": []
     }
   },
   "e049593183f9ffb5565a526ce98bd04c850fb996b25fa92cf88707a3d074f7a8": {

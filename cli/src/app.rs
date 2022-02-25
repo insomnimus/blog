@@ -16,6 +16,7 @@ use crate::{
 	about,
 	article,
 	cmd::Cmd,
+	gc,
 	music,
 	post,
 	prelude::*,
@@ -41,7 +42,13 @@ pub fn app() -> App {
 				.env("BLOG_MEDIA_DIR")
 				.global(true),
 		])
-		.subcommands([about::app(), article::app(), music::app(), post::app()])
+		.subcommands([
+			about::app(),
+			article::app(),
+			gc::app(),
+			music::app(),
+			post::app(),
+		])
 }
 
 pub async fn run() -> Result<()> {
@@ -50,6 +57,7 @@ pub async fn run() -> Result<()> {
 	match m.subcommand().unwrap() {
 		("about", m) => about::run(m).await,
 		("article", m) => article::run(m).await,
+		("gc", m) => gc::run(m).await,
 		("post", m) => post::run(m).await,
 		("music", m) => music::run(m).await,
 		_ => unreachable!(),
