@@ -136,21 +136,16 @@ async fn gc_media(m: &ArgMatches) -> Result<()> {
 		});
 	}
 
-	if to_delete.is_empty() {
-		return Ok(());
+	for f in &to_delete {
+		println!("deleting unreferenced file: {f}");
+		if !dry {
+			fs::remove_file(&root.join(f)).await?;
+		}
 	}
 
-	println!(
-		"deleting {} files with no database entries from the media directory",
-		to_delete.len()
-	);
-
-	if !dry {
-		for f in to_delete.iter().map(|p| root.join(p)) {
-			fs::remove_file(&f).await?;
-		}
-
-		for (dir, _) in dirs.iter().filter(|(_, files)| files.is_empty()) {
+	for (dir, _) in dirs.iter().filter(|(_, files)| files.is_empty()) {
+		println!("deleting empty directory: {dir:?}");
+		if !dry {
 			fs::remove_dir(&root.join(dir)).await?;
 		}
 	}
