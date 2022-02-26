@@ -61,24 +61,20 @@ pub async fn run() -> Result<()> {
 	run_hook!(pre_db, m).await?;
 	init_db(db).await?;
 
-	let res = match m.subcommand().unwrap() {
+	match m.subcommand().unwrap() {
 		("about", m) => about::run(m).await,
 		("article", m) => article::run(m).await,
 		("gc", m) => gc::run(m).await,
 		("post", m) => post::run(m).await,
 		("music", m) => music::run(m).await,
 		_ => unreachable!(),
-	};
+	}?;
 
 	if media::ACCESSED.load(Ordering::Relaxed) {
-		match run_hook!(post_media, m).await {
-			Ok(_) => res,
-			Err(_) if res.is_err() => res,
-			Err(e) => Err(e),
-		}
-	} else {
-		res
+		run_hook!(post_media, m).await?;
 	}
+
+	Ok(())
 }
 
 #[derive(Deserialize, Default, Debug)]
