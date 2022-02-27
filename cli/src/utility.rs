@@ -1,3 +1,5 @@
+use crate::editor;
+
 macro_rules! clear {
 	(home) => {
 		sqlx::query!("INSERT INTO cache (_instance)
@@ -87,13 +89,13 @@ pub(crate) use clear;
 pub(crate) use confirm;
 pub(crate) use run_hook;
 
-pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> std::io::Result<Option<String>> {
-	let mut b = edit::Builder::new();
+pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> anyhow::Result<Option<String>> {
+	let mut b = editor::Builder::new();
 	b.prefix(prefix).rand_bytes(4).suffix(ext);
 
 	let edited = tokio::task::block_in_place(move || {
 		println!("waiting for you to finish editing");
-		edit::edit_with_builder(buf, &b)
+		editor::edit_with_builder(buf, &b)
 	})?;
 
 	let trimmed = edited.trim();

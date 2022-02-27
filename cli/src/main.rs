@@ -3,6 +3,7 @@ mod app;
 mod article;
 mod cmd;
 mod display;
+mod editor;
 mod ext;
 mod gc;
 mod media;
