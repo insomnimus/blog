@@ -1,4 +1,7 @@
-use crate::editor;
+use crate::{
+	app::Config,
+	editor,
+};
 
 macro_rules! clear {
 	(home) => {
@@ -95,7 +98,8 @@ pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> anyhow::Result<Opti
 
 	let edited = tokio::task::block_in_place(move || {
 		println!("waiting for you to finish editing");
-		editor::edit_with_builder(buf, &b)
+		let edt = Config::try_get().and_then(|c| c.editor.as_ref());
+		editor::edit_with_builder(buf, &b, edt)
 	})?;
 
 	let trimmed = edited.trim();

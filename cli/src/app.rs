@@ -85,6 +85,7 @@ pub struct Config {
 	pub media_dir: Option<PathBuf>,
 	#[serde(default)]
 	pub hooks: Hooks,
+	pub editor: Option<Cmd>,
 }
 
 #[derive(Deserialize, Default, Debug, Clone)]
@@ -104,6 +105,10 @@ struct AppConfig {
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
 impl Config {
+	pub fn try_get() -> Option<&'static Self> {
+		CONFIG.get()
+	}
+
 	pub async fn get_or_init<P: AsRef<Path>>(path: Option<P>) -> Result<&'static Self> {
 		if let Some(c) = CONFIG.get() {
 			return Ok(c);

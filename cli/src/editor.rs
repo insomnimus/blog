@@ -3,7 +3,10 @@ use std::{
 	env,
 	fs,
 	io::Write,
-	path::PathBuf,
+	path::{
+		Path,
+		PathBuf,
+	},
 	process::Command,
 };
 
@@ -87,8 +90,6 @@ fn editor_cmd() -> Option<(PathBuf, Vec<String>)> {
 		.map(Cow::Owned)
 		.chain(HARDCODED_NAMES.iter().cloned().map(Cow::Borrowed))
 		.filter_map(|s| {
-			#[cfg(windows)]
-			let s = s.replace('\\', "/");
 			let cmd = s.parse::<Cmd>().ok()?;
 			let path = which::which(&cmd.cmd).ok()?;
 			Some((path, cmd.args))
@@ -96,13 +97,25 @@ fn editor_cmd() -> Option<(PathBuf, Vec<String>)> {
 		.next()
 }
 
-pub fn edit_with_builder<S: AsRef<[u8]>>(text: S, builder: &Builder) -> Result<String> {
-	let (editor, args) = editor_cmd().ok_or_else(|| anyhow!("no editor could be found"))?;
+pub fn edit_with_builder<S>(data: S, builder: &Builder, cmd: Option<&Cmd>) -> Result<String>
+where
+	S: AsRef<[u8]>,
+{
+	match cmd {
+		Some(cmd) => edit(&cmd.cmd, &cmd.args, data.as_ref(), builder),
+		None => {
+			let (path, args) = editor_cmd().ok_or_else(|| anyhow!("no editor could be found"))?;
+			edit(&path, &args, data.as_ref(), builder)
+		}
+	}
+}
+
+fn edit<P: AsRef<Path>>(cmd: P, args: &[String], data: &[u8], builder: &Builder) -> Result<String> {
 	let mut file = builder.tempfile()?;
-	file.write_all(text.as_ref())?;
+	file.write_all(data)?;
 	let path = file.into_temp_path();
 
-	let status = Command::new(&editor).args(&args).arg(&path).status()?;
+	let status = Command::new(cmd.as_ref()).args(args).arg(&path).status()?;
 
 	ensure!(status.success(), "editor command exited with {status}");
 
