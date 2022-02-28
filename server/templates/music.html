@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ self.title.as_deref().unwrap_or("Music") }}{% endblock %}
 
+{%- block description -%}
+{%- match self.comment -%}
+	{%- when Some with (comment) -%}
+	{{ comment.first_words(200) }}
+	{%- when None -%} {%- call super() -%}
+{%- endmatch -%}
+{%- endblock -%}
 {%- block content -%}
 <article>
 <h1><a href="/music/{{ self.id }}">
