@@ -1,48 +1,48 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+{%- block title -%}Home{% endblock %}
 
-{% block content %}
+{%- block content -%}
 <section id="recent-articles">
 <h1>Recent Articles</h1>
-{% for article in self.articles %}
+{%- for article in self.articles -%}
 <div>
 	<h4><a href="/articles/{{ article.url_title }}">{{ article.title }}</a></h4>
 	<p>Published <time datetime="{{ article.published }}"> {{ article.published }} </time></p>
-	<p class="article-about"> {{ article.about }} </p>
+	<p class="article-about"> {{- article.about -}} </p>
 	</div>
-{% endfor %}
+{%- endfor -%}
 </section>
 
 <section id="recent-posts">
 <h1> Recent Posts </h1>
-{% for post in self.posts %}
+{%- for post in self.posts -%}
 	<div class="post-preview">
 	<a href="/posts/{{ post.id }}">
 	<time datetime="{{ post.date }}"> {{ post.date }} </time>
 	</a>
 	{%- if !post.content.is_empty() -%}
-	{{ post.content|safe }}
-	{% endif %}
+	{{- post.content|safe -}}
+	{%- endif -%}
 	{%- if post.n_attachments == 1 -%}
 	<p>(Has 1 attachment)</p>
 	{%- else if post.n_attachments != 0 -%}
 	<p> (Has {{ post.n_attachments }} attachments) </p>
-	{% endif %}
+	{%- endif -%}
 	</div>
-{% endfor %}
+{%- endfor -%}
 </section>
 <section id="recent-music">
 <h1>Recent Music</h1>
 {%- for music in self.music -%}
 	<div>
 	<a href="/music/{{ music.id }}">
-	{{ music.title.as_deref().unwrap_or("untitled") }} - <time datetime="{{ music.date }}"> {{ music.date }} </time>
+	{{- music.title.as_deref().unwrap_or("untitled") -}} - <time datetime="{{ music.date }}"> {{ music.date }} </time>
 	</a>
 	{%- match music.short_comment(50) -%}
 	{%- when Some with (cmt) -%} <p>{{ cmt}}</p>
-	{% when None %}
-	{% endmatch %}
+	{%- when None -%}
+	{%- endmatch -%}
 	</div>
-{% endfor %}
+{%- endfor -%}
 </section>
-{% endblock %}
+{%- endblock -%}

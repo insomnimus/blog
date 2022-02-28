@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ self.info.title }}{% endblock %}
+{%- block title -%}{{ self.info.title }}{%- endblock -%}
 {%- block description -%} {{ self.info.about }} {% endblock %}
 {%- block content -%}
 <article>
@@ -8,26 +8,26 @@
 <div id="article-info">
 <div><p>
 <span id="published"> Published <time datetime="{{ self.info.published }}"> {{ self.info.published }} </time> </span>
-{% match self.info.updated %}
-{% when Some with (updated) %}
+{%- match self.info.updated -%}
+{%- when Some with (updated) -%}
 <br><span id="updated"> Updated <time datetime="{{ updated }}"> {{ updated }} </time> </span>
-{% when None %}
-{% endmatch %}
+{%- when None -%}
+{%- endmatch -%}
 </p></div>
-{% if !self.info.tags.is_empty() %}
+{%- if !self.info.tags.is_empty() -%}
 	<ul class="tags">
-	{% 	for tag in self.info.tags %}
+	{%- 	for tag in self.info.tags -%}
 		<li> #{{ tag }} </li>
-	{% endfor %}
+	{%- endfor -%}
 	</ul>
 	<p id="article-about"> {{ self.info.about }} </p>
 </div>
-{% endif %}
+{%- endif -%}
 
 <hr>
 
 <div id="article">
-{{ self.html|safe }}
+{{- self.html|safe -}}
 </div>
 </article>
 <hr>
@@ -35,12 +35,12 @@
 {%- match self.prev -%}
 	{%- when Some with (prev) -%}
 	<p><a id="prev-article" href="/articles/{{ prev.url_title }}"> Previous Article: {{ prev.title }} </a></p>
-	{% when None %}
-{% endmatch %}
+	{%- when None -%}
+{%- endmatch -%}
 {%- match self.next -%}
 	{%- when Some with (next) -%}
 	<p><a id="next-article" href="/articles/{{ next.url_title }}"> Next Article: {{ next.title }} </a></p>
-	{% when None %}
-{% endmatch %}
+	{%- when None -%}
+{%- endmatch -%}
 </div>
-{% endblock %}
+{%- endblock -%}

@@ -14,14 +14,14 @@
 {%- match self.title -%}
 {%- when Some with (ttl) -%} {{ ttl }}
 	{%- when None -%} Music #{{ self.id }}
-{% endmatch %}
+{%- endmatch -%}
 </a></h1>
 <p>Uploaded <time datetime="{{ self.date }}"> {{ self.date }}</time></p>
 {%- match self.comment -%}
 	{%- when Some with (cmt) -%}
 	<p>{{ cmt }}</p>
-	{% when None %}
-{% endmatch %}
-{{ self.media.render_html()|safe }}
+	{%- when None -%}
+{%- endmatch -%}
+{{- self.media.render_html()|safe -}}
 </article>
-{% endblock %}
+{%- endblock -%}
