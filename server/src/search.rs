@@ -147,7 +147,7 @@ async fn search_music(params: SearchParams) -> DbResult<SearchPage> {
 	.map_ok(|mut x| {
 		SearchResult::Music(Music {
 			id: x.id,
-			date: x.date.format_utc(),
+			date: x.date,
 			title: x.title.take(),
 			comment: x.comment.take(),
 			media: Default::default(),

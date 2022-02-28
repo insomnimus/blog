@@ -8,6 +8,7 @@
 	{%- when None -%} {%- call super() -%}
 {%- endmatch -%}
 {%- endblock -%}
+
 {%- block content -%}
 <article>
 <h1><a href="/music/{{ self.id }}">
@@ -16,7 +17,7 @@
 	{%- when None -%} Music #{{ self.id }}
 {%- endmatch -%}
 </a></h1>
-<p>Uploaded <time datetime="{{ self.date }}"> {{ self.date }}</time></p>
+<p>Uploaded {{ self.date|date|safe }}</p>
 {%- match self.comment -%}
 	{%- when Some with (cmt) -%}
 	<p>{{ cmt }}</p>

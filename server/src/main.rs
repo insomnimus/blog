@@ -3,6 +3,7 @@ mod app;
 mod article;
 mod db;
 mod ext;
+mod filters;
 mod home;
 mod media;
 mod music;

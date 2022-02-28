@@ -69,7 +69,7 @@ async fn get_music() -> DbResult<Vec<Music>> {
 	.fetch(db())
 	.map_ok(|mut x| Music {
 			id: x.id,
-			date: x.date.format_utc(),
+			date: x.date,
 			title: x.title.take(),
 			comment: x.comment.take(),
 			media: Default::default(),

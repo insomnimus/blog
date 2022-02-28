@@ -11,7 +11,7 @@
 {%- for music in self.music -%}
 	<tr id="m{{ music.id }}">
 		<td><a href="/music/{{ music.id }}">{{ music.title.as_deref().unwrap_or("untitled") }}</a></td>
-		<td><time datetime="{{ music.date }}">{{ music.date }}</time></td>
+		<td> {{ music.date|date|safe }} </td>
 		<td>{%- match music.short_comment(50) -%}
 		{%- when Some with (cmt) -%} <p>{{ cmt }}</p>
 		{%- when None -%} -

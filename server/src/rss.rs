@@ -7,6 +7,7 @@ use rss::{
 
 use crate::{
 	article::index,
+	music,
 	prelude::*,
 };
 
@@ -16,20 +17,28 @@ pub async fn handle_rss() -> HttpResponse<Xml<String>> {
 
 async fn gen_feed() -> anyhow::Result<String> {
 	static CACHE: Cache<String> = Cache::const_new();
+
 	let cache = CACHE
 		.get_or_init(|| async { RwLock::new(Default::default()) })
 		.await;
+
+	let music = music::CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await
+		.read()
+		.await;
 	let articles = index::get_index().await?.read().await;
+
 	{
 		let cached = cache.read().await;
-		if cached.time == articles.time && !cached.data.is_empty() {
+		if cached.time == articles.time && music.time == cached.time && !cached.data.is_empty() {
 			return Ok(cached.data.clone());
 		}
 	}
 
 	let home = crate::SITE_URL.get().unwrap();
 
-	let last_date = articles.time;
+	let last_date = articles.time.max(music.time);
 
 	let items = articles
 		.data
@@ -58,9 +67,29 @@ async fn gen_feed() -> anyhow::Result<String> {
 				})
 				.build()
 		})
+		.chain(
+			music
+				.data
+				.music
+				.iter()
+				.map(|x| {
+					ItemBuilder::default()
+						.title(x.title.clone())
+						.link(format!("{home}/music/{id}", id = x.id))
+						.description(x.comment.clone())
+						.pub_date(x.date.format_rss())
+						.guid(Guid {
+							value: format!("{home}/music/{id}", id = x.id),
+							permalink: true,
+						})
+						.build()
+				})
+				.take(15),
+		)
 		.collect::<Vec<_>>();
 
 	drop(articles);
+	drop(music);
 
 	let ch = ChannelBuilder::default()
 		.title("Articles")

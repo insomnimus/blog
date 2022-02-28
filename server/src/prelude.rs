@@ -52,6 +52,7 @@ pub use tokio::sync::{
 pub(crate) use crate::{
 	db::db,
 	ext::*,
+	filters,
 	response::*,
 	xml::Xml,
 	Cache,

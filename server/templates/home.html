@@ -36,7 +36,7 @@
 {%- for music in self.music -%}
 	<div>
 	<a href="/music/{{ music.id }}">
-	{{- music.title.as_deref().unwrap_or("untitled") -}} - <time datetime="{{ music.date }}"> {{ music.date }} </time>
+	{{- music.title.as_deref().unwrap_or("untitled") -}} - {{ music.date|date|safe }}
 	</a>
 	{%- match music.short_comment(50) -%}
 	{%- when Some with (cmt) -%} <p>{{ cmt}}</p>

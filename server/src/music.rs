@@ -3,6 +3,8 @@ use crate::{
 	prelude::*,
 };
 
+pub static CACHE: Cache<MusicPage> = Cache::const_new();
+
 #[derive(Debug, Template)]
 #[template(path = "music.html")]
 pub struct Music {
@@ -10,13 +12,13 @@ pub struct Music {
 	pub title: Option<String>,
 	pub comment: Option<String>,
 	pub media: Media,
-	pub date: String,
+	pub date: NaiveDateTime,
 }
 
 #[derive(Debug, Template, Default)]
 #[template(path = "music_page.html")]
 pub struct MusicPage {
-	music: Vec<Music>,
+	pub music: Vec<Music>,
 }
 
 impl Music {
@@ -37,7 +39,7 @@ pub async fn handle_music(Path(id): Path<i32>) -> HttpResponse<Music> {
 			id,
 			title: x.title.take(),
 			comment: x.comment.take(),
-			date: x.date_uploaded.format_utc(),
+			date: x.date_uploaded,
 			media: Media::new(x.file_path.take()),
 		});
 
@@ -55,8 +57,6 @@ pub async fn handle_music(Path(id): Path<i32>) -> HttpResponse<Music> {
 }
 
 async fn music_page() -> Result<String> {
-	static CACHE: Cache<MusicPage> = Cache::const_new();
-
 	let cache = CACHE
 		.get_or_init(|| async { RwLock::new(Default::default()) })
 		.await;
@@ -83,7 +83,7 @@ async fn music_page() -> Result<String> {
 		title: x.title.take(),
 		comment: x.comment.take(),
 		media: Media::default(),
-		date: x.date.format_utc(),
+		date: x.date,
 	})
 	.try_collect::<Vec<_>>()
 	.await?;
