@@ -31,8 +31,8 @@ async fn get_articles() -> DbResult<Vec<ArticleInfo>> {
 		title: x.title.take(),
 		url_title: x.url_title.take(),
 		about: x.about.take(),
-		published: x.published.format_utc(),
-		updated: x.updated.map(|d| d.format_utc()),
+		published: x.published,
+		updated: x.updated,
 		tags: Vec::new(),
 	})
 	.collect::<Vec<_>>();

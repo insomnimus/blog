@@ -7,7 +7,11 @@
 {%- for article in self.articles -%}
 <div>
 	<h4><a href="/articles/{{ article.url_title }}">{{ article.title }}</a></h4>
-	<p>Published <time datetime="{{ article.published }}"> {{ article.published }} </time></p>
+	<p> Published {{ article.published|date|safe }} {%- match article.updated -%}
+		{%- when Some with (updated) -%}
+		(Updated {{ updated|date|safe }})
+	{%- when None -%}
+	{%- endmatch -%}</p>
 	<p class="article-about"> {{- article.about -}} </p>
 	</div>
 {%- endfor -%}

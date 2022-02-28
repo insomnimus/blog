@@ -4,17 +4,16 @@
 
 {%- block content -%}
 <h1>Articles</h1>
-{% for article in self.articles %}
+{%- for article in self.articles -%}
 <div>
 <h3><a href="/articles/{{ article.url_title|safe }}"> {{ article.title }} </a></h3>
 <p class="article-info">
 <span class="article-info-dates">
-Published <time datetime="{{ article.published }}"> {{ article.published }} </time>
-{% match article.updated %}
-{% when None %}
-{%- when Some with (pbl) -%}
-Updated <time datetime="{{ pbl }}"> {{ pbl }} </time>
-{% endmatch %}
+Published {{ article.published|date|safe }}
+{%- match article.updated -%}
+	{%- when Some with (updated) -%} (Updated {{ updated|date|safe }})
+	{%- when None -%}
+{%- endmatch -%}
 </span>
 <ul class="tags">
 {% for tag in article.tags %}

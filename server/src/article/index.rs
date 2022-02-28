@@ -1,21 +1,12 @@
 use indexmap::IndexMap;
 
+use super::ArticleInfo;
 use crate::prelude::*;
 
-static CACHE: Cache<IndexMap<String, IndexInfo>> = Cache::const_new();
+static CACHE: Cache<IndexMap<String, ArticleInfo>> = Cache::const_new();
 
-#[derive(Debug, Clone)]
-pub struct IndexInfo {
-	pub id: i32,
-	pub title: String,
-	pub about: String,
-	pub url_title: String,
-	pub published: NaiveDateTime,
-	pub updated: Option<NaiveDateTime>,
-}
-
-pub async fn get_index() -> DbResult<&'static RwLock<crate::CacheData<IndexMap<String, IndexInfo>>>>
-{
+pub async fn get_index(
+) -> DbResult<&'static RwLock<crate::CacheData<IndexMap<String, ArticleInfo>>>> {
 	let cache = CACHE
 		.get_or_init(|| async { RwLock::new(Default::default()) })
 		.await;
@@ -35,7 +26,7 @@ pub async fn get_index() -> DbResult<&'static RwLock<crate::CacheData<IndexMap<S
 	url_title,
 	title,
 	about,
-	article_id AS id,
+	-- article_id AS id,
 	date_published AS published,
 	date_updated AS updated
 	FROM article
@@ -47,13 +38,13 @@ pub async fn get_index() -> DbResult<&'static RwLock<crate::CacheData<IndexMap<S
 		let key = x.url_title.take();
 		(
 			key,
-			IndexInfo {
-				id: x.id,
+			ArticleInfo {
 				title: x.title.take(),
 				url_title,
 				about: x.about.take(),
 				published: x.published,
 				updated: x.updated,
+				tags: Vec::new(),
 			},
 		)
 	})
@@ -70,8 +61,8 @@ pub async fn get_index() -> DbResult<&'static RwLock<crate::CacheData<IndexMap<S
 
 pub async fn get_adjacent(
 	url_title: &str,
-) -> DbResult<Option<(Option<IndexInfo>, Option<IndexInfo>)>> {
-	fn own((_, v): (&String, &IndexInfo)) -> IndexInfo {
+) -> DbResult<Option<(Option<ArticleInfo>, Option<ArticleInfo>)>> {
+	fn own((_, v): (&String, &ArticleInfo)) -> ArticleInfo {
 		v.clone()
 	}
 

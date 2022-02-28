@@ -4,13 +4,13 @@ use axum::extract::Path;
 
 use crate::prelude::*;
 
-#[derive(Serialize)]
+#[derive(Clone, Debug)]
 pub struct ArticleInfo {
 	pub title: String,
 	pub url_title: String,
 	pub about: String,
-	pub published: String,
-	pub updated: Option<String>,
+	pub published: NaiveDateTime,
+	pub updated: Option<NaiveDateTime>,
 	pub tags: Vec<String>,
 }
 
@@ -25,8 +25,8 @@ pub struct ArticlesPage {
 pub struct Article {
 	info: ArticleInfo,
 	html: String,
-	prev: Option<index::IndexInfo>,
-	next: Option<index::IndexInfo>,
+	prev: Option<ArticleInfo>,
+	next: Option<ArticleInfo>,
 }
 
 pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> {
@@ -55,8 +55,8 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 		prev,
 		info: ArticleInfo {
 			about: x.about.take(),
-			published: x.date_published.format_utc(),
-			updated: x.date_updated.format_utc(),
+			published: x.date_published,
+			updated: x.date_updated,
 			title: x.title.take(),
 			url_title: x.url_title.take(),
 			tags: x.tags_array.take().unwrap_or_default(),
@@ -104,8 +104,8 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 			title: x.title.take(),
 			url_title: x.url_title.take(),
 			about: x.about.take(),
-			updated: x.updated.format_utc(),
-			published: x.published.format_utc(),
+			updated: x.updated,
+			published: x.published,
 			tags: x.tags.take().into_iter().flatten().flatten().collect(),
 		})
 		.try_collect::<Vec<_>>()

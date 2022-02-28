@@ -95,8 +95,8 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 		SearchResult::Article(ArticleInfo {
 			title: x.title.take(),
 			url_title: x.url_title.take(),
-			published: x.date_published.format_utc(),
-			updated: x.date_updated.map(|d| d.format_utc()),
+			published: x.date_published,
+			updated: x.date_updated,
 			about: x.about.take(),
 			tags: x.tags_array.take().unwrap_or_default(),
 		})

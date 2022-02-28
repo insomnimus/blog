@@ -1,11 +1,9 @@
 use askama::Result;
+use sqlx::types::chrono::NaiveDateTime;
 
 use crate::ext::*;
 
-pub fn date<D>(d: &D) -> Result<String>
-where
-	D: DateTimeExt<Output = String>,
-{
+pub fn date(d: &NaiveDateTime) -> Result<String> {
 	let s = format!(r#"<time datetime="{t}">{t}</time>"#, t = d.format_utc(),);
 
 	Ok(s)

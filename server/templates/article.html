@@ -7,10 +7,10 @@
 
 <div id="article-info">
 <div><p>
-<span id="published"> Published <time datetime="{{ self.info.published }}"> {{ self.info.published }} </time> </span>
+<span> Published {{ self.info.published|date|safe }} </span>
 {%- match self.info.updated -%}
 {%- when Some with (updated) -%}
-<br><span id="updated"> Updated <time datetime="{{ updated }}"> {{ updated }} </time> </span>
+<br><span> {{ updated|date|safe }} </span>
 {%- when None -%}
 {%- endmatch -%}
 </p></div>
