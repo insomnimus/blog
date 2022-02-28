@@ -4,7 +4,7 @@
 
 {%- block content -%}
 <h1>Articles</h1>
-{%- for article in self.articles -%}
+{%- for article in self.articles.values() -%}
 <div>
 <h3><a href="/articles/{{ article.url_title|safe }}"> {{ article.title }} </a></h3>
 <p class="article-info">

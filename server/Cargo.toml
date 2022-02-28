@@ -1,6 +1,6 @@
 [package]
 name = "blog"
-version = "0.15.15"
+version = "0.15.17"
 edition = "2021"
 
 [[bin]]

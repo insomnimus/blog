@@ -1,5 +1,8 @@
 use crate::{
-	article::ArticleInfo,
+	article::{
+		self,
+		ArticleInfo,
+	},
 	music::Music,
 	prelude::*,
 };
@@ -55,7 +58,7 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 	for s in params.query.split_whitespace() {
 		if let Some(tag) = s.strip_prefix('#') {
 			if !tag.is_empty() {
-				tags.push(tag.to_lowercase());
+				tags.push(tag);
 			}
 		} else {
 			if !term.is_empty() {
@@ -72,38 +75,21 @@ async fn search_article(params: SearchParams) -> HttpResponse<SearchPage> {
 	let title = if term.is_empty() {
 		String::new()
 	} else {
-		format!("%{}%", term.to_lowercase())
+		term.to_lowercase()
 	};
 
-	let results = query!(
-		"SELECT
-	a.title, a.url_title,
-	a.date_published, a.date_updated,
-	a.about, ARRAY_AGG(t.tag_name) tags_array
-	FROM article a
-	LEFT JOIN article_tag t
-	ON t.article_id = a.article_id
-	WHERE $1 = '' OR LOWER(a.title) LIKE $1
-	GROUP BY a.title, a.url_title
-	HAVING ARRAY_AGG(t.tag_name) @> $2
-	ORDER BY COALESCE(a.date_updated, a.date_published) DESC",
-		&title,
-		&tags,
-	)
-	.fetch(db())
-	.map_ok(|mut x| {
-		SearchResult::Article(ArticleInfo {
-			title: x.title.take(),
-			url_title: x.url_title.take(),
-			published: x.date_published,
-			updated: x.date_updated,
-			about: x.about.take(),
-			tags: x.tags_array.take().unwrap_or_default(),
-		})
-	})
-	.try_collect::<Vec<_>>()
-	.await
-	.map_err(|e| e500!(e))?;
+	let results = article::get_cache()
+		.await
+		.map_err(|e| e500!(e))?
+		.read()
+		.await
+		.data
+		.articles
+		.values()
+		.filter(|a| title.is_empty() || a.title.to_lowercase().contains(&title))
+		.filter(|a| is_subset(&tags, &a.tags, |a, b| a.eq_ignore_ascii_case(b)))
+		.map(|a| SearchResult::Article(a.clone()))
+		.collect::<Vec<_>>();
 
 	let title = if term.is_empty() {
 		let mut buf = String::from("Articles tagged");
@@ -161,4 +147,43 @@ async fn search_music(params: SearchParams) -> DbResult<SearchPage> {
 		title: format!("Search Results for '{}'", &params.query),
 		results,
 	})
+}
+
+#[inline]
+fn is_subset<'a, Set, Sub, F>(sub: &'a [Sub], set: &'a [Set], mut comp: F) -> bool
+where
+	F: FnMut(&'a Sub, &'a Set) -> bool,
+{
+	set.len() >= sub.len() && sub.iter().all(|s| set.iter().any(|x| comp(s, x)))
+}
+
+#[cfg(test)]
+#[test]
+fn test_subset() {
+	const TESTS: &[(&[i32], &[i32])] = &[
+		(&[1, 2, 3, 4, 5, 6], &[2, 4]),
+		(&[5, 10, 2, 30], &[30]),
+		(&[2], &[2]),
+		(&[5, 4, 3, 2], &[2, 3, 4]),
+	];
+
+	for (set, sub) in TESTS {
+		assert!(
+			is_subset(sub, set, |a, b| a == b),
+			"expected to be supset:\nset: {set:?}\nsub: {sub:?}"
+		);
+	}
+
+	const FAIL: &[(&[&str], &[&str])] = &[
+		(&["a", "b", "c", "d"], &[""]),
+		(&["hey", "jude"], &["j"]),
+		(&["lol"], &["lol", "bar"]),
+	];
+
+	for (set, sub) in FAIL {
+		assert!(
+			!is_subset(sub, set, |a, b| a.eq_ignore_ascii_case(b)),
+			"not supposed to be subset but is:\nset: {set:?}\nsub: {sub:?}",
+		);
+	}
 }

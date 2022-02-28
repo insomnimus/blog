@@ -1,8 +1,12 @@
 pub mod index;
 
 use axum::extract::Path;
+use indexmap::IndexMap;
 
 use crate::prelude::*;
+
+// Items are ordered by date last modified, descending.
+static CACHE: Cache<ArticlesPage> = Cache::const_new();
 
 #[derive(Clone, Debug)]
 pub struct ArticleInfo {
@@ -14,10 +18,10 @@ pub struct ArticleInfo {
 	pub tags: Vec<String>,
 }
 
-#[derive(Template)]
+#[derive(Template, Default, Debug)]
 #[template(path = "articles_page.html")]
 pub struct ArticlesPage {
-	articles: Vec<ArticleInfo>,
+	pub articles: IndexMap<String, ArticleInfo>,
 }
 
 #[derive(Template)]
@@ -65,28 +69,36 @@ pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> 
 }
 
 pub async fn handle_articles() -> HttpResponse<Html<String>> {
-	static CACHE: Cache = OnceCell::const_new();
+	match get_cache().await {
+		Ok(cached) => cached
+			.read()
+			.await
+			.data
+			.render()
+			.html()
+			.map_err(|e| e500!(e)),
+		Err(e) => Err(e500!(e)),
+	}
+}
 
-	async fn inner() -> Result<String> {
-		let cache = CACHE
-			.get_or_init(|| async { RwLock::new(Default::default()) })
-			.await;
+pub async fn get_cache() -> DbResult<&'static RwLock<crate::CacheData<ArticlesPage>>> {
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
 
-		let last_updated = query!("SELECT articles FROM cache")
-			.fetch_one(db())
-			.await?
-			.articles;
+	let last = query!("SELECT articles FROM cache")
+		.fetch_one(db())
+		.await?
+		.articles;
 
-		{
-			let cached = cache.read().await;
-			if cached.time == last_updated && !cached.data.is_empty() {
-				return Ok(cached.data.clone());
-			}
-		}
-		debug!("updating articles cache");
+	if cache.read().await.time == last {
+		return Ok(cache);
+	}
 
-		let articles = query!(
-			r#"SELECT
+	debug!("updating articles cache");
+
+	let articles = query!(
+		r#"SELECT
 	a.url_title,
 	a.title,
 	a.about,
@@ -98,28 +110,24 @@ pub async fn handle_articles() -> HttpResponse<Html<String>> {
 	ON a.article_id = t.article_id
 	GROUP BY a.article_id, a.url_title, a.title
 	ORDER BY COALESCE(a.date_updated, a.date_published) DESC"#
-		)
-		.fetch(db())
-		.map_ok(|mut x| ArticleInfo {
-			title: x.title.take(),
-			url_title: x.url_title.take(),
-			about: x.about.take(),
-			updated: x.updated,
-			published: x.published,
-			tags: x.tags.take().into_iter().flatten().flatten().collect(),
-		})
-		.try_collect::<Vec<_>>()
-		.await?;
+	)
+	.fetch(db())
+	.map_ok(|mut x| ArticleInfo {
+		title: x.title.take(),
+		url_title: x.url_title.take(),
+		about: x.about.take(),
+		updated: x.updated,
+		published: x.published,
+		tags: x.tags.take().into_iter().flatten().flatten().collect(),
+	})
+	.map_ok(|info| (info.url_title.clone(), info))
+	.try_collect::<IndexMap<_, _>>()
+	.await?;
 
-		let html = ArticlesPage { articles }.render()?;
+	let mut cached = cache.write().await;
+	cached.time = last;
+	cached.data.articles = articles;
+	drop(cached);
 
-		let mut cached = cache.write().await;
-		cached.data.clear();
-		cached.data.push_str(&html);
-		cached.time = last_updated;
-
-		Ok(html)
-	}
-
-	inner().await.map(Html).map_err(|e| e500!(e))
+	Ok(cache)
 }

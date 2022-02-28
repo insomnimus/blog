@@ -6,7 +6,7 @@ use rss::{
 };
 
 use crate::{
-	article::index,
+	article,
 	music,
 	prelude::*,
 };
@@ -27,7 +27,7 @@ async fn gen_feed() -> anyhow::Result<String> {
 		.await
 		.read()
 		.await;
-	let articles = index::get_index().await?.read().await;
+	let articles = article::get_cache().await?.read().await;
 
 	{
 		let cached = cache.read().await;
@@ -42,27 +42,23 @@ async fn gen_feed() -> anyhow::Result<String> {
 
 	let items = articles
 		.data
-		.clone()
-		.sorted_by(|_, a, _, b| {
-			b.updated
-				.unwrap_or(b.published)
-				.cmp(&a.updated.unwrap_or(a.published))
-		})
+		.articles
+		.values()
 		.take(15)
-		.map(|(_, mut a)| {
+		.map(|a| {
 			ItemBuilder::default()
-				.title(a.title.take())
+				.title(a.title.clone())
 				.link(format!(
 					"{home}/articles/{url_title}",
 					url_title = &a.url_title
 				))
 				.description(match a.updated {
-					None => a.about.take(),
-					Some(_) => format!("(update): {}", &a.about),
+					None => a.about.clone(),
+					Some(updated) => format!("(updated {}): {}", updated.format_rss(), &a.about),
 				})
 				.pub_date(a.updated.unwrap_or(a.published).format_rss())
 				.guid(Guid {
-					value: a.title.take(),
+					value: format!("{} - {}", a.updated.unwrap_or(a.published), a.title),
 					permalink: false,
 				})
 				.build()

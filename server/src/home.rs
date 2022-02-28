@@ -1,5 +1,8 @@
 use crate::{
-	article::ArticleInfo,
+	article::{
+		self,
+		ArticleInfo,
+	},
 	music::Music,
 	post::PostInfo,
 	prelude::*,
@@ -14,30 +17,8 @@ struct Home {
 }
 
 async fn get_articles() -> DbResult<Vec<ArticleInfo>> {
-	let articles = query!(
-		"SELECT title,
-			url_title,
-			about,
-			date_published AS published,
-			date_updated AS updated
-			FROM article
-	ORDER BY COALESCE(date_updated, date_published) DESC
-	LIMIT 5"
-	)
-	.fetch_all(db())
-	.await?
-	.into_iter()
-	.map(|mut x| ArticleInfo {
-		title: x.title.take(),
-		url_title: x.url_title.take(),
-		about: x.about.take(),
-		published: x.published,
-		updated: x.updated,
-		tags: Vec::new(),
-	})
-	.collect::<Vec<_>>();
-
-	Ok(articles)
+	let cache = article::get_cache().await?.read().await;
+	Ok(cache.data.articles.values().take(5).cloned().collect())
 }
 
 async fn get_posts() -> DbResult<Vec<PostInfo>> {
