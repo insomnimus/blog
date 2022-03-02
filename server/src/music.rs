@@ -3,8 +3,6 @@ use crate::{
 	prelude::*,
 };
 
-pub static CACHE: Cache<MusicPage> = Cache::const_new();
-
 #[derive(Debug, Template)]
 #[template(path = "music.html")]
 pub struct Music {
@@ -21,10 +19,43 @@ pub struct MusicPage {
 	pub music: Vec<Music>,
 }
 
-impl Music {
-	pub fn short_comment(&'_ self, max: usize) -> Option<Cow<'_, str>> {
-		self.comment.as_deref().map(|s| s.first_line_words(max))
+pub async fn get_cache() -> DbResult<&'static RwLock<crate::CacheData<MusicPage>>> {
+	static CACHE: Cache<MusicPage> = Cache::const_new();
+
+	let cache = CACHE
+		.get_or_init(|| async { RwLock::new(Default::default()) })
+		.await;
+
+	let last = query!("SELECT music FROM cache")
+		.fetch_one(db())
+		.await?
+		.music;
+
+	if cache.read().await.time == last {
+		return Ok(cache);
 	}
+	debug!("updating music cache");
+
+	let music = query!(
+		"SELECT music_id AS id, comment, title, date_uploaded AS date FROM music ORDER BY date DESC"
+	)
+	.fetch(db())
+	.map_ok(|mut x| Music {
+		id: x.id,
+		title: x.title.take(),
+		comment: x.comment.take(),
+		media: Media::default(),
+		date: x.date,
+	})
+	.try_collect::<Vec<_>>()
+	.await?;
+
+	let mut cached = cache.write().await;
+	cached.data.music = music;
+	cached.time = last;
+	drop(cached);
+
+	Ok(cache)
 }
 
 pub async fn handle_music(Path(id): Path<i32>) -> HttpResponse<Music> {
@@ -56,48 +87,9 @@ pub async fn handle_music(Path(id): Path<i32>) -> HttpResponse<Music> {
 	}
 }
 
-async fn music_page() -> Result<String> {
-	let cache = CACHE
-		.get_or_init(|| async { RwLock::new(Default::default()) })
-		.await;
-
-	let last = query!("SELECT music FROM cache")
-		.fetch_one(db())
-		.await?
-		.music;
-
-	{
-		let cached = cache.read().await;
-		if cached.time == last {
-			return cached.data.render().map_err(|e| e.into());
-		}
-	}
-	debug!("updating music cache");
-
-	let music = query!(
-		"SELECT music_id AS id, comment, title, date_uploaded AS date FROM music ORDER BY date DESC"
-	)
-	.fetch(db())
-	.map_ok(|mut x| Music {
-		id: x.id,
-		title: x.title.take(),
-		comment: x.comment.take(),
-		media: Media::default(),
-		date: x.date,
-	})
-	.try_collect::<Vec<_>>()
-	.await?;
-
-	let page = MusicPage { music };
-	let html = page.render()?;
-
-	let mut cached = cache.write().await;
-	cached.data = page;
-	cached.time = last;
-
-	Ok(html)
-}
-
 pub async fn handle_music_page() -> HttpResponse<Html<String>> {
-	music_page().await.map(Html).map_err(|e| e500!(e))
+	match get_cache().await {
+		Ok(c) => c.read().await.data.render().html().map_err(|e| e500!(e)),
+		Err(e) => Err(e500!(e)),
+	}
 }

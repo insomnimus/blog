@@ -5,12 +5,15 @@
 	<title>{%- block title -%} {%- endblock -%} - Strange Aeons</title>
 	<meta name="description" content="{%- block description -%}Blog and short posts about programming, music and literature.{%- endblock -%}">
 	<meta name="keywords" content="Programming, Music, Literature">
-	{%- if crate::SITE_URL.initialized() -%} <link rel="alternate" type="application/rss+xml" href="/rss"/> {%- endif -%}
+	{% if crate::SITE_URL.initialized() -%}
+	<link rel="alternate" type="application/atom+xml" href="/feed"/>
+	<link rel="feed" type="application/atom+xml" href="/feed" title="Atom Feed">
+	{% endif -%}
 	<script src="/static/global.js" defer></script>
 	<link rel="stylesheet" href="/static/normalize.css">
 	<link rel="stylesheet" href="/static/sakura.css">
 	<link rel="stylesheet" href="/static/style.css">
-	{%- block head -%} {%- endblock -%}
+	{% block head -%} {%- endblock %}
 </head>
 
 <body>
@@ -26,12 +29,12 @@
 </nav>
 
 <main>
-{%- block content -%}{%- endblock -%}
+{% block content %}{% endblock %}
 </main>
 <footer>
-{%- if crate::SITE_URL.initialized() -%}
-	<p><a href="/rss"> <small>RSS Feed</small></a></p>
-{%- endif -%}
+{% if crate::SITE_URL.initialized() -%}
+	<p><a href="/feed"> <small>Atom Feed</small></a></p>
+{%- endif %}
 <p><small>&copy; Copyright {{- crate::prelude::current_year() -}} {{- crate::COPYRIGHT.get().unwrap() -}}</small></p>
 </footer>
 

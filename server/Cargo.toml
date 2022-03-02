@@ -1,6 +1,6 @@
 [package]
 name = "blog"
-version = "0.15.17"
+version = "0.16.0"
 edition = "2021"
 
 [[bin]]
@@ -9,8 +9,9 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.53"
-askama = { version = "0.11.0", features = ["with-axum"] }
+askama = { version = "0.11.1", features = ["with-axum"] }
 askama_axum = "0.1.0"
+atom_syndication = "0.11.0"
 axum = "0.4.5"
 chrono = "0.4.19"
 clap = { version = "3.0.14", features = ["env", "wrap_help", "unicode"] }
@@ -20,7 +21,6 @@ html-escape = "0.2.9"
 indexmap = "1.8.0"
 log = { version = "0.4.14", features = ["max_level_debug", "release_max_level_debug"] }
 mime_guess = "2.0.4"
-rss = "2.0.0"
 serde = { version = "1.0.136", features = ["derive"] }
 sqlx = { version = "0.5.10", features = ["runtime-tokio-rustls", "postgres", "chrono", "offline"] }
 tokio = { version = "1.16.1", features = ["full"] }

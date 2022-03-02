@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Music{% endblock %}
 
-{% block content %}
+{%- block content -%}
 <h1>Music</h1>
 <p>My shitty music, all in one page.</p>
 <table id="music-list">
@@ -12,9 +12,9 @@
 	<tr id="m{{ music.id }}">
 		<td><a href="/music/{{ music.id }}">{{ music.title.as_deref().unwrap_or("untitled") }}</a></td>
 		<td> {{ music.date|date|safe }} </td>
-		<td>{%- match music.short_comment(50) -%}
-		{%- when Some with (cmt) -%} <p>{{ cmt }}</p>
-		{%- when None -%} -
+		<td>{%- match music.comment -%}
+		{%- when Some with (cmt) -%} <p>{{- cmt|first_sentence(50) -}}</p>
+		{%- when None -%} <p>-</p>
 		{% endmatch %}
 		</td>
 	</tr>

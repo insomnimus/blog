@@ -9,7 +9,7 @@ use sqlx::types::chrono::{
 pub trait DateTimeExt {
 	type Output;
 	fn format_utc(&self) -> Self::Output;
-	fn format_rss(&self) -> Self::Output;
+	fn format_simple(&self) -> Self::Output;
 }
 
 impl DateTimeExt for DateTime<Utc> {
@@ -21,20 +21,8 @@ impl DateTimeExt for DateTime<Utc> {
 		// self.format("%Y-%m-%dT%H:%MZ").to_string()
 	}
 
-	fn format_rss(&self) -> String {
-		self.format("%a, %d %b %Y %T GMT").to_string()
-	}
-}
-
-impl DateTimeExt for Option<DateTime<Utc>> {
-	type Output = Option<String>;
-
-	fn format_utc(&self) -> Option<String> {
-		self.map(|d| d.format_utc())
-	}
-
-	fn format_rss(&self) -> Self::Output {
-		self.map(|d| d.format_rss())
+	fn format_simple(&self) -> String {
+		self.format("%Y-%m-%d").to_string()
 	}
 }
 
@@ -45,8 +33,8 @@ impl DateTimeExt for NaiveDateTime {
 		DateTime::from_utc(*self, Utc).format_utc()
 	}
 
-	fn format_rss(&self) -> String {
-		DateTime::from_utc(*self, Utc).format_rss()
+	fn format_simple(&self) -> String {
+		DateTime::from_utc(*self, Utc).format_simple()
 	}
 }
 
@@ -57,8 +45,18 @@ impl DateTimeExt for Option<NaiveDateTime> {
 		self.map(|d| DateTime::from_utc(d, Utc).format_utc())
 	}
 
-	fn format_rss(&self) -> Self::Output {
-		self.map(|d| d.format_rss())
+	fn format_simple(&self) -> Option<String> {
+		self.map(|x| x.format_simple())
+	}
+}
+
+pub trait ToUtc {
+	fn to_utc(&self) -> DateTime<Utc>;
+}
+
+impl ToUtc for NaiveDateTime {
+	fn to_utc(&self) -> DateTime<Utc> {
+		DateTime::from_utc(*self, Utc)
 	}
 }
 
@@ -102,3 +100,5 @@ pub trait SplitWords: AsRef<str> {
 }
 
 impl SplitWords for str {}
+impl SplitWords for String {}
+impl<'a> SplitWords for &'a String {}

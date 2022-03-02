@@ -3,6 +3,7 @@ mod app;
 mod article;
 mod db;
 mod ext;
+mod feed;
 mod filters;
 mod home;
 mod media;
@@ -10,7 +11,6 @@ mod music;
 mod post;
 mod prelude;
 mod response;
-mod rss;
 mod search;
 mod xml;
 
@@ -121,12 +121,12 @@ async fn main() -> anyhow::Result<()> {
 
 	let app = match &config.url {
 		None => {
-			warn!("no site url is set, the rss feed won't be available");
+			warn!("no site url is set, the atom feed won't be available");
 			app
 		}
 		Some(url) => {
 			SITE_URL.set(url.clone()).unwrap();
-			app.route("/rss", get(rss::handle_rss))
+			app.route("/feed", get(feed::handle_feed))
 		}
 	};
 

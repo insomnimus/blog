@@ -2,8 +2,8 @@
 <p>{{ music.date|date|safe }}</p>
 <p>
 
-{%- match music.short_comment(120) -%}
-{% when Some with (cmt) %} {{ cmt }}
+{%- match music.comment -%}
+{% when Some with (cmt) %} {{ cmt|first_sentence(120) }}
 {% when None %} <i>No description provided</i>
 {% endmatch %}
 </p>

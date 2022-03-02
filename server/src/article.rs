@@ -33,54 +33,6 @@ pub struct Article {
 	next: Option<ArticleInfo>,
 }
 
-pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> {
-	let (prev, next) = index::get_adjacent(&title)
-		.await
-		.map_err(|e| e500!(e))?
-		.or_404()?;
-
-	query!(
-		"SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,
-		ARRAY_AGG(t.tag_name) tags_array
-		FROM article a
-		LEFT JOIN article_tag t
-		ON a.article_id = t.article_id
-		WHERE url_title = $1
-		GROUP BY a.title, a.url_title",
-		&title,
-	)
-	.fetch_optional(db())
-	.await
-	.map_err(|e| e500!(e))?
-	.or_404()
-	.map(move |mut x| Article {
-		html: x.html.take(),
-		next,
-		prev,
-		info: ArticleInfo {
-			about: x.about.take(),
-			published: x.date_published,
-			updated: x.date_updated,
-			title: x.title.take(),
-			url_title: x.url_title.take(),
-			tags: x.tags_array.take().unwrap_or_default(),
-		},
-	})
-}
-
-pub async fn handle_articles() -> HttpResponse<Html<String>> {
-	match get_cache().await {
-		Ok(cached) => cached
-			.read()
-			.await
-			.data
-			.render()
-			.html()
-			.map_err(|e| e500!(e)),
-		Err(e) => Err(e500!(e)),
-	}
-}
-
 pub async fn get_cache() -> DbResult<&'static RwLock<crate::CacheData<ArticlesPage>>> {
 	let cache = CACHE
 		.get_or_init(|| async { RwLock::new(Default::default()) })
@@ -130,4 +82,52 @@ pub async fn get_cache() -> DbResult<&'static RwLock<crate::CacheData<ArticlesPa
 	drop(cached);
 
 	Ok(cache)
+}
+
+pub async fn handle_article(Path(title): Path<String>) -> HttpResponse<Article> {
+	let (prev, next) = index::get_adjacent(&title)
+		.await
+		.map_err(|e| e500!(e))?
+		.or_404()?;
+
+	query!(
+		"SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,
+		ARRAY_AGG(t.tag_name) tags_array
+		FROM article a
+		LEFT JOIN article_tag t
+		ON a.article_id = t.article_id
+		WHERE url_title = $1
+		GROUP BY a.title, a.url_title",
+		&title,
+	)
+	.fetch_optional(db())
+	.await
+	.map_err(|e| e500!(e))?
+	.or_404()
+	.map(move |mut x| Article {
+		html: x.html.take(),
+		next,
+		prev,
+		info: ArticleInfo {
+			about: x.about.take(),
+			published: x.date_published,
+			updated: x.date_updated,
+			title: x.title.take(),
+			url_title: x.url_title.take(),
+			tags: x.tags_array.take().unwrap_or_default(),
+		},
+	})
+}
+
+pub async fn handle_articles() -> HttpResponse<Html<String>> {
+	match get_cache().await {
+		Ok(cached) => cached
+			.read()
+			.await
+			.data
+			.render()
+			.html()
+			.map_err(|e| e500!(e)),
+		Err(e) => Err(e500!(e)),
+	}
 }
