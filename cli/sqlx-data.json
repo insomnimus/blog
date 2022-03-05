@@ -63,6 +63,19 @@
       "nullable": []
     }
   },
+  "06e314c96479158485723e2f59726481ce342e20ccdb87b465b13529b9437a81": {
+    "query": "INSERT INTO note_media(file_path, note_id) VALUES($1, $2)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "0904f220361c0c35c0d5f290a80104d6e71d3674e0425bbdb6dfd5e4b620d9b2": {
     "query": "SELECT\n\ttitle,\n\t(CASE WHEN NOT $1 THEN raw END) AS raw,\n\t(CASE WHEN $1 THEN html END) AS html,\n\tsyntax AS \"syntax: Syntax\"\n\tFROM article\n\tWHERE article_id = $2\n\t",
     "describe": {
@@ -175,6 +188,16 @@
       "nullable": []
     }
   },
+  "2cecd0e355734c3d2ae3528f3cdeec220b718cab6b5f392f032017481eb96d31": {
+    "query": "INSERT INTO cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome = CURRENT_TIMESTAMP,\n\t\tnotes = CURRENT_TIMESTAMP",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": []
+    }
+  },
   "33169c63d60199717517d44489874b159d74fe9b646353c0cc820337abdbff67": {
     "query": "SELECT raw, syntax AS \"syntax: Syntax\" FROM about",
     "describe": {
@@ -210,30 +233,22 @@
       ]
     }
   },
-  "3649f230f670d7323e2951e977e3d01eacb9bd0f8ef6952b759d34730c4c65ca": {
-    "query": "UPDATE post SET raw = $1, content = $2,  syntax = $3 WHERE post_id = $4",
+  "38c7f5befa32f98ae49e45dfe0691b89594653e7c8f94b8b231edad895286d74": {
+    "query": "SELECT m.file_path\nFROM media m\nWHERE NOT EXISTS (\n\tSELECT other.file_path FROM(\n\t\tSELECT file_path FROM music mu\n\t\tUNION\n\t\tSELECT file_path FROM note_media n\n\t) other\n\tWHERE m.file_path = other.file_path\n)",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "file_path",
+          "type_info": "Text"
+        }
+      ],
       "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          {
-            "Custom": {
-              "name": "syntax",
-              "kind": {
-                "Enum": [
-                  "plain",
-                  "markdown",
-                  "html"
-                ]
-              }
-            }
-          },
-          "Int4"
-        ]
+        "Left": []
       },
-      "nullable": []
+      "nullable": [
+        false
+      ]
     }
   },
   "3c3a104c3d1a372b1c38bbf5c9c0a70b367ce9ce44850e938b32c98a86d4f8c5": {
@@ -278,6 +293,44 @@
         false,
         false,
         true,
+        false,
+        null
+      ]
+    }
+  },
+  "4681492176af282c476bd73e7608667c7692544dfd5c6ea124d0e9e9000fc7f2": {
+    "query": "SELECT\n\t\t\tn.note_id AS id,\n\t\t\tn.date_posted AS date,\n\t\t\tn.raw,\n\t\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\t\tFROM note n\n\t\t\tLEFT JOIN note_media m\n\t\t\tON n.note_id = m.note_id\n\t\t\tWHERE n.note_id = $1\n\t\t\tGROUP BY n.note_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 2,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments: Vec<Option<String>>",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
         false,
         null
       ]
@@ -369,6 +422,68 @@
       ]
     }
   },
+  "52e36cff7ca3d36ed9666645c7c36912d886dd5a95e981d76275a4ebda8c1e8b": {
+    "query": "UPDATE note SET raw = $1, content = $2,  syntax = $3 WHERE note_id = $4",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          },
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "5559fe8eddb9f52684194cd680634b3afeb4a720ba313da0af82b316ec6ef80c": {
+    "query": "SELECT\n\t\t\tn.note_id AS id,\n\t\t\tn.raw,\n\t\t\tn.date_posted AS date,\n\t\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\t\tFROM note n\n\t\t\tLEFT JOIN note_media m\n\t\t\tON n.note_id = m.note_id\n\t\t\tGROUP BY n.note_id\n\t\t\tORDER BY n.note_id DESC\n\t\t\tLIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments: Vec<Option<String>>",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        null
+      ]
+    }
+  },
   "5a529efa46752199760388b41abae0a266aff97e33a42cfcd4bd5d98f2b9239d": {
     "query": "INSERT INTO article_tag(article_id, tag_name) VALUES($1, $2)",
     "describe": {
@@ -401,19 +516,6 @@
       "parameters": {
         "Left": [
           "Text"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "6a68c4f301f6a5245b738fcf0c5b39b8362bd613f05944db77d1e09383593ed9": {
-    "query": "INSERT INTO post_media(file_path, post_id) VALUES($1, $2)",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Int4"
         ]
       },
       "nullable": []
@@ -556,8 +658,8 @@
       "nullable": []
     }
   },
-  "83c73dc093b0b65fc9a95b207f093cf7fed00c4cc6bb1023e0df5dbb0084f812": {
-    "query": "SELECT\n\t\t\tp.post_id AS id,\n\t\t\tp.date_posted AS date,\n\t\t\tp.raw,\n\t\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\t\tFROM post p\n\t\t\tLEFT JOIN post_media m\n\t\t\tON m.post_id = p.post_id\n\t\t\tWHERE p.post_id = $1\n\t\t\tGROUP BY p.post_id",
+  "7b7359758dc53a3150746e6a492325de703f5e5dc10dd6c5551bfb38f7c4d0db": {
+    "query": "SELECT\n\t\tn.note_id AS id,\n\t\tn.date_posted AS date,\n\t\tn.raw,\n\t\t(CASE WHEN $1 THEN n.content END) AS content,\n\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\tFROM note n\n\t\tLEFT JOIN note_media m\n\t\tON n.note_id = m.note_id\n\t\tGROUP BY n.note_id\n\t\tORDER BY\n\t\tCASE WHEN $2 THEN n.note_id END ASC,\n\t\tCASE WHEN NOT $2 THEN n.note_id END DESC\n\t\tLIMIT $3",
     "describe": {
       "columns": [
         {
@@ -577,19 +679,27 @@
         },
         {
           "ordinal": 3,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
           "name": "attachments: Vec<Option<String>>",
           "type_info": "TextArray"
         }
       ],
       "parameters": {
         "Left": [
-          "Int4"
+          "Bool",
+          "Bool",
+          "Int8"
         ]
       },
       "nullable": [
         false,
         false,
         false,
+        null,
         null
       ]
     }
@@ -656,6 +766,47 @@
       "nullable": []
     }
   },
+  "97541001e3cd5e3e6929e0bbd0a3f3b6441f1d85f7cb8234e31921039e96e0f2": {
+    "query": "SELECT note_id AS id, raw, syntax AS \"syntax: Syntax\" FROM note ORDER BY id DESC LIMIT 1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "raw",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "syntax: Syntax",
+          "type_info": {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "98a6951ea906678ddec5ae177723d9651799db1b121a78e70b1ef452ae7966c1": {
     "query": "SELECT title, file_path FROM music WHERE music_id = $1",
     "describe": {
@@ -679,70 +830,6 @@
       "nullable": [
         true,
         false
-      ]
-    }
-  },
-  "9cf08441db917a006e650fd2640c46b71c8842abdf26c8b58886feee934a1720": {
-    "query": "SELECT m.file_path\nFROM media m\nWHERE NOT EXISTS (\n\tSELECT other.file_path FROM(\n\t\tSELECT file_path FROM music mu\n\t\tUNION\n\t\tSELECT file_path FROM post_media p\n\t) other\n\tWHERE m.file_path = other.file_path\n)",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "file_path",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "a2400dc34ba7426058a0cfea0e40947d4d13c893f81c86e4302aa0873b3a7bd4": {
-    "query": "SELECT\n\t\tp.post_id AS id,\n\t\tp.date_posted AS date,\n\t\tp.raw,\n\t\t(CASE WHEN $1 THEN p.content END) AS content,\n\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\tFROM post p\n\t\tLEFT JOIN post_media m\n\t\tON p.post_id = m.post_id\n\t\tGROUP BY p.post_id\n\t\tORDER BY\n\t\tCASE WHEN $2 THEN p.post_id END ASC,\n\t\tCASE WHEN NOT $2 THEN p.post_id END DESC\n\t\tLIMIT $3",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 2,
-          "name": "raw",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 4,
-          "name": "attachments: Vec<Option<String>>",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Bool",
-          "Bool",
-          "Int8"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        null,
-        null
       ]
     }
   },
@@ -847,53 +934,6 @@
       ]
     }
   },
-  "b7cd59be98e358afbb4c886281d970444f5cb2df0a7e3964dce278cc7159418c": {
-    "query": "INSERT INTO cache(_instance)\n\t\tVALUES('TRUE')\n\t\tON CONFLICT(_instance) DO UPDATE SET\n\t\thome = CURRENT_TIMESTAMP,\n\t\tposts = CURRENT_TIMESTAMP",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": []
-    }
-  },
-  "be2319d083c6da2843b445ea6c19de2ed0806c22e33146a470a5db527304a959": {
-    "query": "SELECT raw, syntax AS \"syntax: Syntax\" FROM post WHERE post_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "raw",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "syntax: Syntax",
-          "type_info": {
-            "Custom": {
-              "name": "syntax",
-              "kind": {
-                "Enum": [
-                  "plain",
-                  "markdown",
-                  "html"
-                ]
-              }
-            }
-          }
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        false,
-        false
-      ]
-    }
-  },
   "c7509ccea8c87857edfc241dd08ece78740dda71aea7f08df883e9013b4ade11": {
     "query": "SELECT tag_name FROM article_tag WHERE article_id = $1 ORDER BY tag_name ASC",
     "describe": {
@@ -914,22 +954,29 @@
       ]
     }
   },
-  "c8615abae35ec02e7af068865c8445614dd6146b785c88de31e55794d5e9e796": {
-    "query": "SELECT post_id, raw, syntax AS \"syntax: Syntax\" FROM post ORDER BY post_id DESC LIMIT 1",
+  "c9680687afa139d3940a19cbffeff7baf7fc20599bd25d1b3088437b7c8893f9": {
+    "query": "DELETE FROM note WHERE note_id = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "d1680c0cd58ede2509d8fc8d798af496b966c526ea8235d647669b7f25e470b5": {
+    "query": "SELECT raw, syntax AS \"syntax: Syntax\" FROM note WHERE note_id = $1",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "post_id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
           "name": "raw",
           "type_info": "Text"
         },
         {
-          "ordinal": 2,
+          "ordinal": 1,
           "name": "syntax: Syntax",
           "type_info": {
             "Custom": {
@@ -946,48 +993,13 @@
         }
       ],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Int4"
+        ]
       },
       "nullable": [
-        false,
         false,
         false
-      ]
-    }
-  },
-  "d61b93af1450e421e8e0b9f0fc900f14ba6a286d42a7eba690cee415286f6eec": {
-    "query": "SELECT\n\t\t\tp.post_id AS id,\n\t\t\tp.raw,\n\t\t\tp.date_posted AS date,\n\t\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\t\tFROM post p\n\t\t\tLEFT JOIN post_media m\n\t\t\tON p.post_id = m.post_id\n\t\t\tGROUP BY p.post_id\n\t\t\tORDER BY p.post_id DESC\n\t\t\tLIMIT 1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "raw",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "attachments: Vec<Option<String>>",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        null
       ]
     }
   },
@@ -1006,6 +1018,39 @@
           "Text",
           "Text",
           "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "d899707a67b8cd04b3853a495d9e1f9e5cc92e48e25d70eb24d1227cf7a30543": {
+    "query": "INSERT INTO note(raw, content, syntax)\n\tVALUES($1, $2, $3)\n\tRETURNING note_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "note_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          {
+            "Custom": {
+              "name": "syntax",
+              "kind": {
+                "Enum": [
+                  "plain",
+                  "markdown",
+                  "html"
+                ]
+              }
+            }
+          }
         ]
       },
       "nullable": [
@@ -1035,39 +1080,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "e4b67c39fe7063ed7bc1627291db4bfc88410eb6e893d3173db1d5768d7726a6": {
-    "query": "INSERT INTO post(raw, content, syntax)\n\tVALUES($1, $2, $3)\n\tRETURNING post_id",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "post_id",
-          "type_info": "Int4"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          {
-            "Custom": {
-              "name": "syntax",
-              "kind": {
-                "Enum": [
-                  "plain",
-                  "markdown",
-                  "html"
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "nullable": [
-        false
-      ]
     }
   },
   "e77c4dc37b6f6812a38f769524179a32bca57de9fc5071dad015e205b7415268": {
@@ -1106,18 +1118,6 @@
       "nullable": [
         false
       ]
-    }
-  },
-  "efd0c2739be8b960d7980bd19792ad2e6fa582a6a51fec87c03efa161ceb5570": {
-    "query": "DELETE FROM post WHERE post_id = $1",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": []
     }
   },
   "f3de600572d464f6bc42b6f853579b7f9c27fb385d59ce1275e3b434979648e1": {

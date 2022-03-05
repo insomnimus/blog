@@ -6,8 +6,8 @@ mod list;
 use crate::prelude::*;
 
 pub fn app() -> App {
-	App::new("post")
-		.about("Manage short posts.")
+	App::new("note")
+		.about("Manage notes.")
 		.subcommand_required(true)
 		.arg_required_else_help(true)
 		.subcommands([create::app(), delete::app(), edit::app(), list::app()])

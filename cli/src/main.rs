@@ -8,7 +8,7 @@ mod ext;
 mod gc;
 mod media;
 mod music;
-mod post;
+mod note;
 mod prelude;
 mod render;
 mod utility;

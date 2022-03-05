@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub fn app() -> App {
-	App::new("create").about("Create a new post.").args(&[
+	App::new("create").about("Create a new note.").args(&[
 		arg!(-s --syntax [SYNTAX] "The markup format of the source text.")
 			.default_value("markdown")
 			.possible_values(Syntax::VALUES)
@@ -52,16 +52,16 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let mut tx = db().begin().await?;
 	let id = query!(
-		"INSERT INTO post(raw, content, syntax)
+		"INSERT INTO note(raw, content, syntax)
 	VALUES($1, $2, $3)
-	RETURNING post_id",
+	RETURNING note_id",
 		&raw,
 		&content,
 		syntax as Syntax,
 	)
 	.fetch_one(&mut tx)
 	.await?
-	.post_id;
+	.note_id;
 
 	if let Some(files) = &files {
 		for f in files {
@@ -72,7 +72,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 				.await?;
 
 			query!(
-				"INSERT INTO post_media(file_path, post_id) VALUES($1, $2)",
+				"INSERT INTO note_media(file_path, note_id) VALUES($1, $2)",
 				&path,
 				id,
 			)
@@ -85,10 +85,10 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		}
 	}
 
-	clear!(posts).execute(&mut tx).await?;
+	clear!(notes).execute(&mut tx).await?;
 	tx.commit().await?;
 
-	println!("✓ created new post (id = {id})");
+	println!("✓ created new note (id = {id})");
 
 	Ok(())
 }

@@ -2,10 +2,10 @@ use super::Post;
 use crate::prelude::*;
 
 pub fn app() -> App {
-	App::new("list").about("List posts.").args(&[
+	App::new("list").about("List notes.").args(&[
 		arg!(--oldest "Show oldest posts first."),
 		arg!(--rendered "Include the rendered HTML in the output."),
-		arg!(n: -n [N] "Show first N posts, 0 for all.")
+		arg!(n: -n [N] "Show first N notes, 0 for all.")
 			.default_value("10")
 			.validator(validate::<u32>("the value must be a positive integer or 0")),
 		arg!(-f --format [FORMAT] "The output format.")
@@ -24,18 +24,18 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	let mut results = query!(
 		r#"SELECT
-		p.post_id AS id,
-		p.date_posted AS date,
-		p.raw,
-		(CASE WHEN $1 THEN p.content END) AS content,
+		n.note_id AS id,
+		n.date_posted AS date,
+		n.raw,
+		(CASE WHEN $1 THEN n.content END) AS content,
 		ARRAY_AGG(m.file_path) AS "attachments: Vec<Option<String>>"
-		FROM post p
-		LEFT JOIN post_media m
-		ON p.post_id = m.post_id
-		GROUP BY p.post_id
+		FROM note n
+		LEFT JOIN note_media m
+		ON n.note_id = m.note_id
+		GROUP BY n.note_id
 		ORDER BY
-		CASE WHEN $2 THEN p.post_id END ASC,
-		CASE WHEN NOT $2 THEN p.post_id END DESC
+		CASE WHEN $2 THEN n.note_id END ASC,
+		CASE WHEN NOT $2 THEN n.note_id END DESC
 		LIMIT $3"#,
 		rendered,
 		oldest,
@@ -43,8 +43,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	)
 	.fetch(db());
 
-	while let Some(res) = results.next().await {
-		let mut x = res?;
+	while let Some(mut x) = results.next().await.transpose()? {
 		let p = Post {
 			id: x.id,
 			date: x.date.to_local(),

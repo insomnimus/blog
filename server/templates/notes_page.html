@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Posts{% endblock %}
+{% block title %}Notes{% endblock %}
 {%- block head -%}
-	<script src="/static/posts.js"> </script>
+	<script src="/static/notes.js"> </script>
 	{% endblock %}
 
 {%- block content -%}
-<h1>Posts</h1>
-<article id="posts">
-{%- for post in self.posts -%}
+<h1>Notes</h1>
+<article id="notes">
+{%- for note in self.notes -%}
 	{% if !loop.first %} <hr> {% endif %}
-	{{ post|safe }}
+	{{ note|safe }}
 {% endfor %}
 </article>
 <button type="button" id="loadmore">Load More</button>

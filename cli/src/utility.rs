@@ -17,12 +17,12 @@ macro_rules! clear {
 		home = CURRENT_TIMESTAMP,
 		articles = CURRENT_TIMESTAMP")
 	};
-	(posts) => {
+	(notes) => {
 		sqlx::query!("INSERT INTO cache(_instance)
 		VALUES('TRUE')
 		ON CONFLICT(_instance) DO UPDATE SET
 		home = CURRENT_TIMESTAMP,
-		posts = CURRENT_TIMESTAMP")
+		notes = CURRENT_TIMESTAMP")
 	};
 		(music) => {
 		sqlx::query!("INSERT INTO cache(_instance)
@@ -37,7 +37,7 @@ macro_rules! clear {
 		ON CONFLICT(_instance) DO UPDATE SET
 		home = CURRENT_TIMESTAMP,
 		articles = CURRENT_TIMESTAMP,
-		posts = CURRENT_TIMESTAMP,
+		notes = CURRENT_TIMESTAMP,
 		music = CURRENT_TIMESTAMP")
 	};
 }

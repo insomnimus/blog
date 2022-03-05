@@ -8,7 +8,7 @@ mod filters;
 mod home;
 mod media;
 mod music;
-mod post;
+mod note;
 mod prelude;
 mod response;
 mod search;
@@ -102,15 +102,15 @@ async fn main() -> anyhow::Result<()> {
 		},
 	);
 
-	let api = Router::new().route("/posts", get(post::handle_api));
+	let api = Router::new().route("/notes", get(note::handle_api));
 
 	let app = Router::new()
 		.nest("/media", media_handler)
 		.nest("/api", api)
 		.nest("/static", static_handler)
 		.route("/", get(home::handle_home))
-		.route("/posts", get(post::handle_posts))
-		.route("/posts/:id", get(post::handle_post))
+		.route("/notes", get(note::handle_notes))
+		.route("/notes/:id", get(note::handle_note))
 		.route("/articles", get(article::handle_articles))
 		.route("/articles/:article", get(article::handle_article))
 		.route("/search", get(search::handle_search))

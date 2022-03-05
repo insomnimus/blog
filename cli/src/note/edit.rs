@@ -5,15 +5,15 @@ use crate::prelude::*;
 
 pub fn app() -> App {
 	App::new("edit")
-		.about("Edit an existing post.")
+		.about("Edit a note.")
 		.group(ArgGroup::new("handle").required(true).args(&["id", "last"]))
 		.args(&[
 			arg!(-s --syntax [SYNTAX] "The markup format of the post.")
 				.possible_values(Syntax::VALUES)
 				.ignore_case(true),
-			arg!(id: [ID] "The post id.")
+			arg!(id: [ID] "The note id.")
 				.validator(validate::<i32>("the value must be an integer")),
-			arg!(--last "Edit the last post."),
+			arg!(--last "Edit the last note."),
 			arg!(content: [CONTENT] "The new psot content. Omit to edit the psot interactively.")
 				.validator(validate_post),
 		])
@@ -22,19 +22,19 @@ pub fn app() -> App {
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	let (id, raw, syntax) = match m.value_of_t::<i32>("id") {
 		Ok(id) => query!(
-			r#"SELECT raw, syntax AS "syntax: Syntax" FROM post WHERE post_id = $1"#,
+			r#"SELECT raw, syntax AS "syntax: Syntax" FROM note WHERE note_id = $1"#,
 			id
 		)
 		.fetch_optional(db())
 		.await?
 		.map(|mut x| (id, x.raw.take(), x.syntax))
-		.ok_or_else(|| anyhow!("no post found with the id {id}"))?,
+		.ok_or_else(|| anyhow!("no note found with the id {id}"))?,
 		Err(_) => query!(
-			r#"SELECT post_id, raw, syntax AS "syntax: Syntax" FROM post ORDER BY post_id DESC LIMIT 1"#
+			r#"SELECT note_id AS id, raw, syntax AS "syntax: Syntax" FROM note ORDER BY id DESC LIMIT 1"#
 		)
 		.fetch_optional(db())
 		.await?
-		.map(|mut x| (x.post_id, x.raw.take(), x.syntax))
+		.map(|mut x| (x.id, x.raw.take(), x.syntax))
 		.ok_or_else(|| anyhow!("there are no posts in the database"))?,
 	};
 
@@ -47,13 +47,11 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	};
 
 	let syntax = m.value_of_t("syntax").unwrap_or(syntax);
-
 	let content = syntax.render(&raw);
-
 	let mut tx = db().begin().await?;
 
 	query!(
-		"UPDATE post SET raw = $1, content = $2,  syntax = $3 WHERE post_id = $4",
+		"UPDATE note SET raw = $1, content = $2,  syntax = $3 WHERE note_id = $4",
 		&raw,
 		&content,
 		syntax as Syntax,
@@ -62,9 +60,9 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	.execute(&mut tx)
 	.await?;
 
-	clear!(posts).execute(&mut tx).await?;
+	clear!(notes).execute(&mut tx).await?;
 	tx.commit().await?;
 
-	println!("✓ updated post #{id}");
+	println!("✓ updated note #{id}");
 	Ok(())
 }

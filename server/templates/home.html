@@ -17,20 +17,18 @@
 {%- endfor %}
 </section>
 
-<section id="recent-posts">
-<h1> Recent Posts </h1>
-{% for post in self.posts -%}
-	<div class="post-preview">
-	<a href="/posts/{{ post.id }}">
-	<time datetime="{{ post.date }}"> {{ post.date }} </time>
-	</a>
-	{% if !post.content.is_empty() -%}
-	{{- post.content|safe -}}
-	{%- endif -%}
-	{%- if post.n_attachments == 1 -%}
+<section id="recent-notes">
+<h1> Recent Notes</h1>
+{% for note in self.notes -%}
+	<div class="note-preview">
+	<a href="/notes/{{ note.id }}">{{ note.date|date|safe }}</a>
+	{% if !note.content.is_empty() -%}
+	{{- note.content|safe -}}
+	{%- endif %}
+	{%- if note.n_attachments == 1 -%}
 	<p>(Has 1 attachment)</p>
-	{%- else if post.n_attachments != 0 -%}
-	<p> (Has {{ post.n_attachments }} attachments) </p>
+	{%- else if note.n_attachments != 0 -%}
+	<p> (Has {{ note.n_attachments }} attachments) </p>
 	{% endif -%}
 	</div>
 {%- endfor %}

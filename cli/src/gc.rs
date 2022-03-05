@@ -59,7 +59,7 @@ WHERE NOT EXISTS (
 	SELECT other.file_path FROM(
 		SELECT file_path FROM music mu
 		UNION
-		SELECT file_path FROM post_media p
+		SELECT file_path FROM note_media n
 	) other
 	WHERE m.file_path = other.file_path
 )"

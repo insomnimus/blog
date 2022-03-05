@@ -4,61 +4,61 @@ use crate::{
 };
 
 #[derive(Template)]
-#[template(path = "post.html")]
-pub struct Post {
+#[template(path = "note.html")]
+pub struct Note {
 	id: i32,
 	content: String,
 	date: String,
 	attachments: Vec<Media>,
 }
 
-pub struct PostInfo {
+pub struct NoteInfo {
 	pub id: i32,
 	pub content: String,
-	pub date: String,
+	pub date: NaiveDateTime,
 	pub n_attachments: i64,
 }
 
 #[derive(Template)]
-#[template(path = "single_post.html")]
-pub struct PostPage {
-	post: Post,
+#[template(path = "note_page.html")]
+pub struct NotePage {
+	note: Note,
 }
 
 #[derive(Template)]
-#[template(path = "posts_page.html")]
-pub struct PostsPage {
-	posts: Vec<Post>,
+#[template(path = "notes_page.html")]
+pub struct NotesPage {
+	notes: Vec<Note>,
 }
 
 #[derive(Serialize)]
-pub struct PostsJson {
-	posts: Vec<String>,
+pub struct NotesJson {
+	notes: Vec<String>,
 }
 
 #[derive(Deserialize)]
-pub struct PostParams {
+pub struct NoteParams {
 	cursor: i32,
 }
 
-async fn get_posts(last_id: i32) -> DbResult<Vec<Post>> {
+async fn get_notes(last_id: i32) -> DbResult<Vec<Note>> {
 	query!(
 		r#"SELECT
-	p.post_id AS id,
-	p.content,
-	p.date_posted AS date,
+	n.note_id id,
+	n.content,
+	n.date_posted AS date,
 	ARRAY_AGG(m.file_path) AS "attachments: Vec<Option<String>>"
-	FROM post p
-	LEFT JOIN post_media m
-	ON p.post_id = m.post_id
-	WHERE $1 = 1 OR p.post_id < $1
-	GROUP BY p.post_id
-	ORDER BY p.date_posted DESC
-	LIMIT 25"#,
+	FROM note n
+	LEFT JOIN note_media m
+	ON n.note_id = m.note_id
+	WHERE $1 = 1 OR n.note_id < $1
+	GROUP BY n.note_id
+	ORDER BY n.date_posted DESC
+	LIMIT 50"#,
 		last_id,
 	)
 	.fetch(db())
-	.map_ok(|mut x| Post {
+	.map_ok(|mut x| Note {
 		id: x.id,
 		content: x.content.take(),
 		date: x.date.format_utc(),
@@ -75,7 +75,7 @@ async fn get_posts(last_id: i32) -> DbResult<Vec<Post>> {
 	.await
 }
 
-pub async fn handle_posts() -> HttpResponse {
+pub async fn handle_notes() -> HttpResponse {
 	static CACHE: Cache = Cache::const_new();
 
 	async fn inner() -> Result<Html<String>> {
@@ -83,10 +83,10 @@ pub async fn handle_posts() -> HttpResponse {
 			.get_or_init(|| async { RwLock::new(Default::default()) })
 			.await;
 
-		let last_updated = query!("SELECT posts FROM cache")
+		let last_updated = query!("SELECT notes FROM cache")
 			.fetch_one(db())
 			.await?
-			.posts;
+			.notes;
 
 		{
 			let cached = cache.read().await;
@@ -94,10 +94,10 @@ pub async fn handle_posts() -> HttpResponse {
 				return Ok(Html(cached.data.clone()));
 			}
 		}
-		debug!("updating posts cache");
+		debug!("updating notes cache");
 
-		let posts = get_posts(1).await?;
-		let html = PostsPage { posts }.render()?;
+		let notes = get_notes(1).await?;
+		let html = NotesPage { notes }.render()?;
 
 		let mut cached = cache.write().await;
 		cached.data.clear();
@@ -110,37 +110,37 @@ pub async fn handle_posts() -> HttpResponse {
 	inner().await.map_err(|e| e500!(e))
 }
 
-pub async fn handle_api(Query(params): Query<PostParams>) -> HttpResponse<Json<PostsJson>> {
-	get_posts(params.cursor)
+pub async fn handle_api(Query(params): Query<NoteParams>) -> HttpResponse<Json<NotesJson>> {
+	get_notes(params.cursor)
 		.await
 		.map_err(|e| e500!(e))?
 		.into_iter()
-		.map(|p| p.render())
+		.map(|n| n.render())
 		.collect::<Result<Vec<_>, _>>()
 		.map_err(|e| e500!(e))
-		.map(|posts| Json(PostsJson { posts }))
+		.map(|notes| Json(NotesJson { notes }))
 }
 
-pub async fn handle_post(Path(id): Path<i32>) -> HttpResponse<PostPage> {
+pub async fn handle_note(Path(id): Path<i32>) -> HttpResponse<NotePage> {
 	query!(
 		r#"SELECT
-	p.post_id AS id,
-	p.content,
-	p.date_posted AS date,
+	n.note_id AS id,
+	n.content,
+	n.date_posted AS date,
 	ARRAY_AGG(m.file_path) AS "attachments?: Vec<Option<String>>"
-	FROM post p
-	LEFT JOIN post_media m
-	ON p.post_id = m.post_id
-	WHERE p.post_id = $1
-	GROUP BY p.post_id"#,
+	FROM note n
+	LEFT JOIN note_media m
+	ON n.note_id = m.note_id
+	WHERE n.note_id = $1
+	GROUP BY n.note_id"#,
 		id
 	)
 	.fetch_optional(db())
 	.await
 	.map_err(|e| e500!(e))?
 	.or_404()
-	.map(|mut x| PostPage {
-		post: Post {
+	.map(|mut x| NotePage {
+		note: Note {
 			id: x.id,
 			content: x.content.take(),
 			date: x.date.format_utc(),

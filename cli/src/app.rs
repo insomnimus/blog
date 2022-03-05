@@ -22,7 +22,7 @@ use crate::{
 	gc,
 	media,
 	music,
-	post,
+	note,
 	prelude::*,
 };
 
@@ -51,7 +51,7 @@ pub fn app() -> App {
 			article::app(),
 			gc::app(),
 			music::app(),
-			post::app(),
+			note::app(),
 		])
 }
 
@@ -65,7 +65,7 @@ pub async fn run() -> Result<()> {
 		("about", m) => about::run(m).await,
 		("article", m) => article::run(m).await,
 		("gc", m) => gc::run(m).await,
-		("post", m) => post::run(m).await,
+		("note", m) => note::run(m).await,
 		("music", m) => music::run(m).await,
 		_ => unreachable!(),
 	}?;

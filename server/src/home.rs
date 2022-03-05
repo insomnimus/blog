@@ -4,7 +4,7 @@ use crate::{
 		ArticleInfo,
 	},
 	music::Music,
-	post::PostInfo,
+	note::NoteInfo,
 	prelude::*,
 };
 
@@ -12,7 +12,7 @@ use crate::{
 #[template(path = "home.html")]
 struct Home {
 	articles: Vec<ArticleInfo>,
-	posts: Vec<PostInfo>,
+	notes: Vec<NoteInfo>,
 	music: Vec<Music>,
 }
 
@@ -21,25 +21,25 @@ async fn get_articles() -> DbResult<Vec<ArticleInfo>> {
 	Ok(cache.data.articles.values().take(5).cloned().collect())
 }
 
-async fn get_posts() -> DbResult<Vec<PostInfo>> {
+async fn get_notes() -> DbResult<Vec<NoteInfo>> {
 	query!(
-		r#"SELECT p.post_id AS id,
-		p.content,
-		p.date_posted AS date,
+		r#"SELECT n.note_id AS id,
+		n.content,
+		n.date_posted AS date,
 		COALESCE(COUNT(m.file_path), 0) AS "n_attachments!"
-	FROM post p
-	LEFT JOIN post_media m
-	ON m.post_id = p.post_id
-	GROUP BY p.post_id
-	ORDER BY p.post_id DESC
+	FROM note n
+	LEFT JOIN note_media m
+	ON n.note_id = m.note_id
+	GROUP BY n.note_id
+	ORDER BY n.note_id DESC
 	LIMIT 10"#
 	)
 	.fetch(db())
-	.map_ok(|mut x| PostInfo {
+	.map_ok(|mut x| NoteInfo {
 		id: x.id,
 		content: x.content.take(),
 		n_attachments: x.n_attachments,
-		date: x.date.format_utc(),
+		date: x.date,
 	})
 	.try_collect()
 	.await
@@ -78,12 +78,12 @@ pub async fn handle_home() -> HttpResponse {
 		debug!("updating home cache");
 
 		let articles = get_articles().await?;
-		let posts = get_posts().await?;
+		let notes = get_notes().await?;
 		let music = get_music().await?;
 
 		let home = Home {
 			articles,
-			posts,
+			notes,
 			music,
 		};
 		let html = home.render()?;

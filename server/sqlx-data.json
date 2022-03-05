@@ -56,8 +56,8 @@
       ]
     }
   },
-  "3651dc586bc10c5b6c48558e6abe203c005ce2af4e3ad5a9484c358078a93f50": {
-    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE p.post_id = $1\n\tGROUP BY p.post_id",
+  "37b670a98cee212880aaabe854a6b2205c31f4fb2e6fe6233cbb9da2053d7db2": {
+    "query": "SELECT\n\tn.note_id id,\n\tn.content,\n\tn.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tWHERE $1 = 1 OR n.note_id < $1\n\tGROUP BY n.note_id\n\tORDER BY n.date_posted DESC\n\tLIMIT 50",
     "describe": {
       "columns": [
         {
@@ -77,7 +77,7 @@
         },
         {
           "ordinal": 3,
-          "name": "attachments?: Vec<Option<String>>",
+          "name": "attachments: Vec<Option<String>>",
           "type_info": "TextArray"
         }
       ],
@@ -172,24 +172,6 @@
       ]
     }
   },
-  "5023cf5c6fd968ba0aa9ca75f3c48591d0d8ca3582e7c93884f7643d91606dea": {
-    "query": "SELECT posts FROM cache",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "posts",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
   "54dd3774e0f333dd960e200f81d9e279155dc80352c9fd6e3681bf34cf4e645b": {
     "query": "SELECT home FROM cache",
     "describe": {
@@ -223,6 +205,44 @@
       },
       "nullable": [
         false
+      ]
+    }
+  },
+  "60f2f66544498374ccc052a2cc9fd8215c8b8e4e82cb7b1d590286a9fd0822a4": {
+    "query": "SELECT\n\tn.note_id AS id,\n\tn.content,\n\tn.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tWHERE n.note_id = $1\n\tGROUP BY n.note_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "attachments?: Vec<Option<String>>",
+          "type_info": "TextArray"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        null
       ]
     }
   },
@@ -262,41 +282,21 @@
       ]
     }
   },
-  "989381b9d980bd3f568274b5115aedd7e9bceb9157d3fc5acde45ccfd2e6d58e": {
-    "query": "SELECT\n\tp.post_id AS id,\n\tp.content,\n\tp.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON p.post_id = m.post_id\n\tWHERE $1 = 1 OR p.post_id < $1\n\tGROUP BY p.post_id\n\tORDER BY p.date_posted DESC\n\tLIMIT 25",
+  "9b963bc99a404ae13508ef17ca61e95b68b92a1a610aa693feb4c87a4caebb3d": {
+    "query": "SELECT notes FROM cache",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
+          "name": "notes",
           "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "attachments: Vec<Option<String>>",
-          "type_info": "TextArray"
         }
       ],
       "parameters": {
-        "Left": [
-          "Int4"
-        ]
+        "Left": []
       },
       "nullable": [
-        false,
-        false,
-        false,
-        null
+        false
       ]
     }
   },
@@ -374,6 +374,42 @@
       ]
     }
   },
+  "bb47ec08c61b78428b48033a24bd4bad21513b7f0f12e92575bf60514bfee6e6": {
+    "query": "SELECT n.note_id AS id,\n\t\tn.content,\n\t\tn.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tGROUP BY n.note_id\n\tORDER BY n.note_id DESC\n\tLIMIT 10",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "date",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 3,
+          "name": "n_attachments!",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        null
+      ]
+    }
+  },
   "bf47e2e0e2c899fa293f024fb03f53460f39d45acaec5416df9c2e062ce40dab": {
     "query": "SELECT\n\ta.url_title,\n\ta.title,\n\ta.about,\n\ta.date_published AS published,\n\ta.date_updated AS updated,\n\tARRAY_AGG(t.tag_name) AS \"tags?: Vec<Option<String>>\"\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON a.article_id = t.article_id\n\tGROUP BY a.article_id, a.url_title, a.title\n\tORDER BY COALESCE(a.date_updated, a.date_published) DESC",
     "describe": {
@@ -418,42 +454,6 @@
         false,
         false,
         true,
-        null
-      ]
-    }
-  },
-  "d656941d05f7ba9b5d253b192e38838915840c2519fa9bc2e3c0837081b27e40": {
-    "query": "SELECT p.post_id AS id,\n\t\tp.content,\n\t\tp.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM post p\n\tLEFT JOIN post_media m\n\tON m.post_id = p.post_id\n\tGROUP BY p.post_id\n\tORDER BY p.post_id DESC\n\tLIMIT 10",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "n_attachments!",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
         null
       ]
     }
