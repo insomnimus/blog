@@ -8,7 +8,7 @@ use crate::{
 pub struct Note {
 	id: i32,
 	content: String,
-	date: String,
+	date: NaiveDateTime,
 	attachments: Vec<Media>,
 }
 
@@ -61,7 +61,7 @@ async fn get_notes(last_id: i32) -> DbResult<Vec<Note>> {
 	.map_ok(|mut x| Note {
 		id: x.id,
 		content: x.content.take(),
-		date: x.date.format_utc(),
+		date: x.date,
 		attachments: x
 			.attachments
 			.take()
@@ -143,7 +143,7 @@ pub async fn handle_note(Path(id): Path<i32>) -> HttpResponse<NotePage> {
 		note: Note {
 			id: x.id,
 			content: x.content.take(),
-			date: x.date.format_utc(),
+			date: x.date,
 			attachments: x
 				.attachments
 				.take()

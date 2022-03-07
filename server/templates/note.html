@@ -1,6 +1,6 @@
-<article id="p{{ self.id }}">
-<a href="/notes/{{ self.id }}"> <time datetime="{{ self.date }}"> {{ self.date }} </time> </a>
-<div class="post-body">
+<article id="n{{ self.id }}">
+<a href="/notes/{{ self.id }}">{{ self.date|date|safe }}</a>
+<div class="note-body">
 {{ self.content|safe }}
 </div>
 {% if !self.attachments.is_empty() %}
