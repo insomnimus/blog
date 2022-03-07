@@ -16,6 +16,7 @@ use crate::prelude::*;
 
 pub fn app() -> App {
 	App::new("article")
+		.visible_alias("post")
 		.about("Manage articles.")
 		.subcommand_required(true)
 		.arg_required_else_help(true)
