@@ -2,17 +2,9 @@ localize_dates();
 tags_to_links();
 
 function dates_callback(muts, _observer) {
-	for (const mut of muts) {
-		if (mut.type !== "childList") {
-			continue;
-		}
-		for (const n of mut.nodeList) {
-			for (const d of n.querySelectorAll("time")) {
-				const dt = n.getAttribute("datetime");
-				if (dt) {
-					d.textContent = time_since(new Date(dt));
-				}
-			}
+	for (const mut of muts.filter((mut) => mut.type === "childList")) {
+		for (const n of mut.addedNodes) {
+			localize_node_dates(n);
 		}
 	}
 }
@@ -91,4 +83,20 @@ function tags_to_links() {
 			tag.innerHTML = `<a href="/search?${params}"> ${content} </a>`;
 		}
 	}
+}
+
+function localize_node_dates(node) {
+	if (!node) return;
+	function inner(n) {
+		if (n.nodeName === "TIME") {
+			const dt = n.getAttribute("datetime");
+			if (dt) {
+				n.textContent = format_since(new Date(dt));
+			}
+		}
+		for (let c = n.firstChild; c; c = c.nextSibling) {
+			inner(c);
+		}
+	}
+	inner(node);
 }

@@ -111,6 +111,7 @@ pub async fn handle_notes() -> HttpResponse {
 }
 
 pub async fn handle_api(Query(params): Query<NoteParams>) -> HttpResponse<Json<NotesJson>> {
+	debug!("notes api called with cursor={}", params.cursor);
 	get_notes(params.cursor)
 		.await
 		.map_err(|e| e500!(e))?
