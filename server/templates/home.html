@@ -42,7 +42,7 @@
 	{{- music.title.as_deref().unwrap_or("untitled") -}} - {{ music.date|date|safe -}}
 	</a>
 	{% match music.comment -%}
-	{%- when Some with (cmt) -%} <p>{{ cmt|first_sentence(50) }}</p>
+	{%- when Some with (cmt) -%} <p>{{ cmt|first_sentence(100) }}</p>
 	{%- when None -%}
 	{%- endmatch %}
 	</div>
