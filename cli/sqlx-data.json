@@ -658,6 +658,18 @@
       "nullable": []
     }
   },
+  "761e6e8fcf5fdcc795a4ddb74d92b700a94e88eae0e664c8eb93a823caa8b868": {
+    "query": "DELETE FROM note WHERE note_id = ANY($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4Array"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "7b7359758dc53a3150746e6a492325de703f5e5dc10dd6c5551bfb38f7c4d0db": {
     "query": "SELECT\n\t\tn.note_id AS id,\n\t\tn.date_posted AS date,\n\t\tn.raw,\n\t\t(CASE WHEN $1 THEN n.content END) AS content,\n\t\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\t\tFROM note n\n\t\tLEFT JOIN note_media m\n\t\tON n.note_id = m.note_id\n\t\tGROUP BY n.note_id\n\t\tORDER BY\n\t\tCASE WHEN $2 THEN n.note_id END ASC,\n\t\tCASE WHEN NOT $2 THEN n.note_id END DESC\n\t\tLIMIT $3",
     "describe": {
@@ -1058,6 +1070,26 @@
       ]
     }
   },
+  "d8cf637fb2becaa1bcff7008b08b74a192daec8f155e221c69c8e8972e75e904": {
+    "query": "SELECT note_id FROM note WHERE note_id = ANY($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "note_id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4Array"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "e027f412da4ef0b9bf42e6a8f48d0873cac9613983f17e58543696eaa6340bca": {
     "query": "DELETE FROM media WHERE file_path = ANY($1)",
     "describe": {
@@ -1080,6 +1112,26 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "e323e4db3f0abf0728144a8b6fbe18b443428607cb71a0ad20f51653da9a4ad9": {
+    "query": "SELECT file_path FROM note_media WHERE note_id = ANY($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "file_path",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4Array"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   },
   "e77c4dc37b6f6812a38f769524179a32bca57de9fc5071dad015e205b7415268": {

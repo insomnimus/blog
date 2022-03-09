@@ -1,3 +1,4 @@
+mod batch_delete;
 mod create;
 mod delete;
 mod edit;
@@ -10,11 +11,18 @@ pub fn app() -> App {
 		.about("Manage notes.")
 		.subcommand_required(true)
 		.arg_required_else_help(true)
-		.subcommands([create::app(), delete::app(), edit::app(), list::app()])
+		.subcommands([
+			batch_delete::app(),
+			create::app(),
+			delete::app(),
+			edit::app(),
+			list::app(),
+		])
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
 	match m.subcommand().unwrap() {
+		("batch-delete", m) => batch_delete::run(m).await,
 		("create", m) => create::run(m).await,
 		("delete", m) => delete::run(m).await,
 		("edit", m) => edit::run(m).await,
