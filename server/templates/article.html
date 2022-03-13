@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {%- block title -%}{{ self.info.title }}{%- endblock -%}
 {%- block description -%} {{ self.info.about }} {% endblock %}
+{%- block keywords -%}
+	{%- for tag in self.info.tags -%} {{- tag -}}, {%- endfor -%}
+{%- endblock -%}
+
 {%- block content -%}
 <article>
 <h1>{{ self.info.title }}</h1>

@@ -4,7 +4,11 @@
 	<meta charset="utf-8">
 	<title>{% block title %} {% endblock %} - Strange Aeons</title>
 	<meta name="description" content="{%- block description -%}Blog and short posts about programming, music and literature.{%- endblock -%}">
-	<meta name="keywords" content="Programming, Music, Literature">
+	<meta name="keywords" content="blog,
+	{%- block keywords -%}
+	programming, music, literature
+	{%- endblock -%}
+	">
 	{% if crate::SITE_URL.initialized() -%}
 	<link rel="alternate" type="application/atom+xml" href="/feed"/>
 	<link rel="feed" type="application/atom+xml" href="/feed" title="Atom Feed">
