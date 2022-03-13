@@ -37,7 +37,7 @@ pub(crate) use crate::{
 	app::Config,
 	display::*,
 	ext::*,
-	render::*,
+	syntax::*,
 	utility::*,
 };
 

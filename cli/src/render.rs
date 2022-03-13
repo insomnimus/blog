@@ -1,89 +1,57 @@
-use std::borrow::Cow;
+use std::{
+	fs,
+	io::{
+		self,
+		Read,
+	},
+};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, sqlx::Type)]
-#[sqlx(type_name = "syntax", rename_all = "lowercase")]
-pub enum Syntax {
-	Plain,
-	Markdown,
-	Html,
+use crate::prelude::*;
+
+pub fn app() -> App {
+	App::new("render")
+	.about("Render a document to html.")
+	.args(&[
+	arg!(-o --out [FILE] "Write the output to a file (- for stdout)")
+	.default_value("-")
+	.hide_default_value(true),
+	arg!(input: [FILE] "Input file. Omit to read from stdin."),
+	arg!(-s --syntax [SYNTAX] "Input document syntax. If can't be inferred, defautls to markdown.")
+	.possible_values(Syntax::VALUES)
+	.ignore_case(true),
+	])
 }
 
-impl std::str::FromStr for Syntax {
-	type Err = &'static str;
+fn run_(m: &ArgMatches) -> io::Result<()> {
+	let (input, syntax) = match m.value_of("input") {
+		None => {
+			let mut buf = String::with_capacity(2048);
+			io::stdin().lock().read_to_string(&mut buf)?;
+			(buf, m.value_of_t("syntax").unwrap_or(Syntax::Markdown))
+		}
+		Some(p) => {
+			let input = fs::read_to_string(p)?;
+			let syntax = m.value_of_t("syntax").unwrap_or_else(|_| {
+				p.rsplit_once('.')
+					.and_then(|(_, e)| Syntax::from_ext(e))
+					.unwrap_or(Syntax::Markdown)
+			});
+			(input, syntax)
+		}
+	};
 
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		if s.eq_ignore_ascii_case("plain") {
-			Ok(Self::Plain)
-		} else if s.eq_ignore_ascii_case("markdown") {
-			Ok(Self::Markdown)
-		} else if s.eq_ignore_ascii_case("html") {
-			Ok(Self::Html)
-		} else {
-			Err("value must be one of [plain, markdown, html]")
+	let rendered = syntax.render(&input);
+	match m.value_of("out").unwrap() {
+		"-" => print!("{rendered}"),
+		file => {
+			fs::write(file, &input)?;
+			println!("✓ wrote to {file}");
 		}
 	}
+
+	Ok(())
 }
 
-impl Syntax {
-	pub const VALUES: &'static [&'static str] = &["plain", "markdown", "html"];
-
-	pub fn render(self, s: &'_ str) -> Cow<'_, str> {
-		match self {
-			Self::Plain => html_escape::encode_text(s),
-			Self::Html => Cow::Borrowed(s),
-			Self::Markdown => {
-				use comrak::{
-					markdown_to_html,
-					ComrakExtensionOptions,
-					ComrakOptions,
-					ComrakParseOptions,
-					ComrakRenderOptions,
-				};
-				let opts = ComrakOptions {
-					extension: ComrakExtensionOptions {
-						strikethrough: true,
-						tagfilter: true,
-						table: true,
-						autolink: true,
-						tasklist: true,
-						superscript: true,
-						header_ids: None,
-						footnotes: true,
-						description_lists: true,
-						front_matter_delimiter: Some("---".into()),
-					},
-					parse: ComrakParseOptions {
-						smart: true,
-						default_info_string: None,
-					},
-					render: ComrakRenderOptions {
-						hardbreaks: false,
-						github_pre_lang: true,
-						unsafe_: true,
-						escape: false,
-						..Default::default()
-					},
-				};
-
-				markdown_to_html(s, &opts).into()
-			}
-		}
-	}
-
-	pub fn from_ext(ext: &str) -> Option<Self> {
-		match &ext.to_lowercase()[..] {
-			".txt" | "txt" => Some(Self::Plain),
-			".md" | "md" => Some(Self::Markdown),
-			".html" | "html" | ".htm" | "htm" => Some(Self::Html),
-			_ => None,
-		}
-	}
-
-	pub const fn ext(self) -> &'static str {
-		match self {
-			Self::Plain => ".txt",
-			Self::Markdown => ".md",
-			Self::Html => ".html",
-		}
-	}
+pub async fn run(m: &ArgMatches) -> Result<()> {
+	task::block_in_place(move || run_(m)).map_err(|e| e.into())
 }

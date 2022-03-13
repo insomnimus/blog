@@ -24,6 +24,7 @@ use crate::{
 	music,
 	note,
 	prelude::*,
+	render,
 };
 
 pub fn app() -> App {
@@ -52,14 +53,17 @@ pub fn app() -> App {
 			gc::app(),
 			music::app(),
 			note::app(),
+			render::app(),
 		])
 }
 
 pub async fn run() -> Result<()> {
 	let m = app().get_matches();
-	let db = Config::database(&m).await?;
-	run_hook!(pre_db, m).await?;
-	init_db(db).await?;
+	if m.subcommand_name() != Some("render") {
+		let db = Config::database(&m).await?;
+		run_hook!(pre_db, m).await?;
+		init_db(db).await?;
+	}
 
 	match m.subcommand().unwrap() {
 		("about", m) => about::run(m).await,
@@ -67,6 +71,7 @@ pub async fn run() -> Result<()> {
 		("gc", m) => gc::run(m).await,
 		("note", m) => note::run(m).await,
 		("music", m) => music::run(m).await,
+		("render", m) => render::run(m).await,
 		_ => unreachable!(),
 	}?;
 

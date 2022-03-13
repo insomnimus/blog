@@ -11,6 +11,7 @@ mod music;
 mod note;
 mod prelude;
 mod render;
+mod syntax;
 mod utility;
 
 #[tokio::main]
