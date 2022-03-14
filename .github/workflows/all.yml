@@ -189,7 +189,7 @@
         },
         {
           "name": "Setup | Release notes",
-          "run": "GO111MODULE=on go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.1 git-chglog -c .github/chglog/release.yml \"$(git describe --tags)\" > RELEASE.md"
+          "run": "GO111MODULE=on go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.1\ngit-chglog -c .github/chglog/release.yml \"$(git describe --tags)\" > RELEASE.md"
         },
         {
           "name": "Deploy | Publish",
