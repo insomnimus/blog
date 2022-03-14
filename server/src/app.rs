@@ -4,6 +4,8 @@ use clap::{
 };
 
 pub struct Config {
+	pub site_name: String,
+	pub description: String,
 	pub db_url: String,
 	pub listen: String,
 	pub media_dir: String,
@@ -16,9 +18,12 @@ impl Config {
 		let m = Command::new("blog")
 			.about("The blog webserver.")
 			.args(&[
+			arg!(--name <NAME> "The site name in human readable form.")
+			.env("BLOG_SITE_NAME"),
+			arg!(--description <DESCRIPTION> "A very brief description of the website like 'Blog and short posts about programming'.")
+			.env("BLOG_SITE_DESCRIPTION"),
 				arg!(-d --database <URL> "The database url, must be postgresql.")
-					.env("BLOG_SERVER_DB_URL")
-					.validator(validate_url),
+					.env("BLOG_SERVER_DB_URL"),
 					arg!(--copyright [NAME] "The copyright holder name.")
 					.env("BLOG_COPYRIGHT_NAME"),
 				arg!(-l --listen [ADDRESS] "Listen on the given address.")
@@ -27,13 +32,14 @@ impl Config {
 					arg!(-m --"media-dir" [MEDIA_DIR] "The media directory that will be served on /media.")
 					.default_value("media")
 					.env("BLOG_MEDIA_DIR"),
-				arg!(--url [URL] "The URL of this website, including the protocol. Used in the RSS feed.")
-				.env("BLOG_URL")
-				.validator(validate_url),
+				arg!(--url [URL] "The URL of this website, including the protocol. Used in the Atom feed.")
+				.env("BLOG_URL"),
 			])
 			.get_matches();
 
 		Self {
+			site_name: m.value_of("name").unwrap().into(),
+			description: m.value_of("description").unwrap().into(),
 			db_url: m.value_of("database").unwrap().into(),
 			listen: m.value_of("listen").unwrap().into(),
 			media_dir: m.value_of("media-dir").unwrap().into(),
@@ -43,10 +49,4 @@ impl Config {
 				.map(|s| s.trim_end_matches('/').to_string()),
 		}
 	}
-}
-
-fn validate_url(s: &str) -> Result<(), String> {
-	s.parse::<url::Url>()
-		.map_err(|e| format!("invalid url: {e}"))
-		.map(|_| {})
 }

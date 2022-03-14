@@ -1,6 +1,6 @@
 [package]
 name = "blog"
-version = "0.17.3"
+version = "0.18.0"
 edition = "2021"
 
 [[bin]]
@@ -26,5 +26,4 @@ sqlx = { version = "0.5.11", features = ["runtime-tokio-rustls", "postgres", "ch
 tokio = { version = "1.17.0", features = ["full"] }
 # tower = { version = "0.4.11", features = ["timeout"], default-features = false }
 tower-http = { version = "0.2.4", features = ["full"] }
-url = "2.2.2"
 url-escape = "0.1.0"

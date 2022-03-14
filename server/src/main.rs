@@ -43,6 +43,8 @@ use tower_http::services::ServeDir;
 
 static COPYRIGHT: OnceCell<String> = OnceCell::const_new();
 static SITE_URL: OnceCell<String> = OnceCell::const_new();
+static SITE_NAME: OnceCell<String> = OnceCell::const_new();
+static SITE_DESCRIPTION: OnceCell<String> = OnceCell::const_new();
 
 async fn robots_txt() -> &'static str {
 	"User-agent: *
@@ -85,6 +87,8 @@ async fn main() -> anyhow::Result<()> {
 
 	let config = app::Config::from_args();
 	COPYRIGHT.set(config.copyright.clone()).unwrap();
+	SITE_NAME.set(config.site_name.clone()).unwrap();
+	SITE_DESCRIPTION.set(config.description.clone()).unwrap();
 
 	db::init(&config.db_url).await?;
 	info!("connected to the database");
