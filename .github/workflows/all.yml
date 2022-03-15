@@ -146,12 +146,12 @@
         {
           "name": "PostBuild | Prepare",
           "if": "matrix.os != 'windows-latest'",
-          "run": "cd target/${{ matrix.target }}/release\nstrip blog blog-server || true\ntar czvf ../../../${{ matrix.name }} blog blog-server\ncd -"
+          "run": "cd target/${{ matrix.target }}/release\nstrip blog blog-server || true\ntar czvf ../../../${{ matrix.name }} blog blog-server ../../../static\ncd -"
         },
         {
           "if": "matrix.os == 'windows-latest'",
           "name": "PostBuild | Prepare",
-          "run": "cd target/${{ matrix.target }}/release\n7z a ../../../${{ matrix.name }} blog.exe blog-server.exe\ncd -"
+          "run": "cd target/${{ matrix.target }}/release\n7z a ../../../${{ matrix.name }} blog.exe blog-server.exe ../../../static\ncd -"
         },
         {
           "name": "Deploy | Upload Artifacts",
