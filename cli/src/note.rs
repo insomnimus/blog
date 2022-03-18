@@ -34,7 +34,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 fn validate_post(s: &str) -> StdResult<(), String> {
 	match s.trim().chars().count() {
 		0..=4 => Err("the post is too short; it must be at least 5 characters".into()),
-		5..=400 => Ok(()),
+		5..=800 => Ok(()),
 		_ => Err("post is too long; it can't exceed 400 characters".into()),
 	}
 }
