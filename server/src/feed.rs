@@ -1,5 +1,6 @@
 use atom_syndication::{
 	CategoryBuilder,
+	PersonBuilder,
 	EntryBuilder,
 	FeedBuilder,
 	LinkBuilder,
@@ -34,6 +35,7 @@ async fn gen_feed() -> anyhow::Result<String> {
 		}
 	}
 	let home = crate::SITE_URL.get().unwrap();
+	let author = crate::COPYRIGHT.get().unwrap();
 
 	let entries = articles
 		.data
@@ -50,10 +52,12 @@ async fn gen_feed() -> anyhow::Result<String> {
 					url_title = &a.url_title
 				))
 				.summary(Some(a.about.as_str().into()))
+				.author(PersonBuilder::default().name(author).build())
 				.build()
 		})
 		.chain(music.data.music.iter().take(15).map(|x| {
 			EntryBuilder::default()
+			.author(PersonBuilder::default().name(author).build())
 			.title(x.title.clone().unwrap_or_else(|| String::from("Untitled")))
 			.summary(x.comment.as_deref().map(|s| s.into()))
 			.id(format!("{home}/music/{id}", id = x.id))
