@@ -35,4 +35,13 @@ ul.tags {
 
 blockquote {
 	background-color: #1d7484;
+	color: white;
+}
+
+blockquote a {
+	color: #26d5fc;
+}
+
+blockquote a:visited {
+	color: #26d5fc;
 }
