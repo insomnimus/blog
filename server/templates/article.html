@@ -14,7 +14,7 @@
 <span> Published {{ self.info.published|date|safe }} </span>
 {%- match self.info.updated -%}
 {%- when Some with (updated) -%}
-<br><span> {{ updated|date|safe }} </span>
+<br><span>Updated {{ updated|date|safe }} </span>
 {%- when None -%}
 {%- endmatch -%}
 </p></div>
