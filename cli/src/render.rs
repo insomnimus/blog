@@ -44,7 +44,7 @@ fn run_(m: &ArgMatches) -> io::Result<()> {
 	match m.value_of("out").unwrap() {
 		"-" => print!("{rendered}"),
 		file => {
-			fs::write(file, &input)?;
+			fs::write(file, rendered.as_bytes())?;
 			println!("✓ wrote to {file}");
 		}
 	}
