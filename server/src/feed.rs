@@ -1,9 +1,10 @@
 use atom_syndication::{
 	CategoryBuilder,
-	PersonBuilder,
+	ContentBuilder,
 	EntryBuilder,
 	FeedBuilder,
 	LinkBuilder,
+	PersonBuilder,
 };
 
 use crate::{
@@ -52,6 +53,14 @@ async fn gen_feed() -> anyhow::Result<String> {
 					url_title = &a.url_title
 				))
 				.summary(Some(a.about.as_str().into()))
+				.content(
+					ContentBuilder::default()
+						.src(format!(
+							"{home}/articles/{url_title}",
+							url_title = &a.url_title
+						))
+						.build(),
+				)
 				.author(PersonBuilder::default().name(author).build())
 				.build()
 		})
@@ -61,6 +70,10 @@ async fn gen_feed() -> anyhow::Result<String> {
 			.title(x.title.clone().unwrap_or_else(|| String::from("Untitled")))
 			.summary(x.comment.as_deref().map(|s| s.into()))
 			.id(format!("{home}/music/{id}", id = x.id))
+			.content(ContentBuilder::default()
+			.src(format!("{home}/music/{id}", id = x.id))
+			.build()
+			)
 			// .link(Some(format!("{home}/music/{id}", id = x.id)))
 		.published(Some(x.date.to_utc().into()))
 		.updated(x.date.to_utc())
