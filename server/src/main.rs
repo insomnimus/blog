@@ -16,6 +16,7 @@ mod xml;
 
 use std::{
 	env,
+	future::Future,
 	io::Write,
 };
 
@@ -67,6 +68,29 @@ impl<T: Default> Default for CacheData<T> {
 
 pub type Cache<T = String> = OnceCell<RwLock<CacheData<T>>>;
 
+fn termination() -> anyhow::Result<impl Future<Output = ()>> {
+	#[cfg(unix)]
+	{
+		use tokio::signal::unix::{
+			signal,
+			SignalKind,
+		};
+		let mut sigterm = signal(SignalKind::terminate())?;
+		let mut sigint = signal(SignalKind::interrupt())?;
+		Ok(async move {
+			tokio::select! {
+				biased;
+				_ = sigterm.recv() => (),
+				_ = sigint.recv() => (),
+			};
+		})
+	}
+	#[cfg(not(unix))]
+	Ok(async {
+		tokio::signal::ctrl_c().await.unwrap();
+	})
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
 	if env::var_os("BLOG_LOG").is_none() {
@@ -85,7 +109,7 @@ async fn main() -> anyhow::Result<()> {
 		})
 		.init();
 
-	let config = app::Config::from_args();
+	let config = app::Config::parse()?;
 	COPYRIGHT.set(config.copyright.clone()).unwrap();
 	SITE_NAME.set(config.site_name.clone()).unwrap();
 	SITE_DESCRIPTION.set(config.description.clone()).unwrap();
@@ -138,6 +162,7 @@ async fn main() -> anyhow::Result<()> {
 
 	axum::Server::bind(&config.listen.parse()?)
 		.serve(app.into_make_service())
+		.with_graceful_shutdown(termination()?)
 		.await?;
 
 	Ok(())

@@ -11,10 +11,7 @@ pub use axum::{
 		Query,
 	},
 	http::StatusCode,
-	response::{
-		Headers,
-		Html,
-	},
+	response::Html,
 	Json,
 };
 pub use futures::{
