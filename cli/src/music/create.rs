@@ -17,14 +17,14 @@ pub fn app() -> App {
 }
 
 pub async fn run(m: &ArgMatches) -> Result<()> {
-	let root = Config::media_dir(m).await?;
+	let root = Config::media_dir()?;
 	let title = m.value_of("title");
 	let comment = m.value_of("comment");
 	let media = m.value_of_t_or_exit::<SendFile>("path");
 
 	let dir = rand_filename("music_");
 	let path = format!("{dir}/{remote}", remote = media.remote());
-	run_hook!(pre_media, m).await?;
+	run_hook!(pre_media).await?;
 	media::send_files(&root.join(&dir), &[media]).await?;
 
 	println!("✓ copied the file to the media directory");

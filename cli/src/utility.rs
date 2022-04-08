@@ -61,10 +61,10 @@ macro_rules! confirm{
 }
 
 macro_rules! run_hook {
-	(pre_media, $matches:expr) => {{
+	(pre_media) => {{
 		$crate::media::ACCESSED.store(true, std::sync::atomic::Ordering::Relaxed);
 		async {
-			let conf = $crate::app::Config::get_or_init($matches.value_of("config")).await?;
+			let conf = $crate::app::Config::get();
 			if let Some(hook) = &conf.hooks.pre_media {
 				let stat = tokio::task::block_in_place(|| hook.to_std().status())?;
 				anyhow::ensure!(stat.success(), "the pre_media hook exited with {stat}");
@@ -72,9 +72,9 @@ macro_rules! run_hook {
 			Ok::<_, anyhow::Error>(())
 		}
 	}};
-	($hook:ident, $matches:expr) => {
+	($hook:ident) => {
 		async {
-			let conf = $crate::app::Config::get_or_init($matches.value_of("config")).await?;
+			let conf = $crate::app::Config::get();
 			if let Some(hook) = &conf.hooks.$hook {
 				let stat = tokio::task::block_in_place(|| hook.to_std().status())?;
 				anyhow::ensure!(
@@ -98,7 +98,7 @@ pub async fn edit_buf(prefix: &str, ext: &str, buf: &str) -> anyhow::Result<Opti
 
 	let edited = tokio::task::block_in_place(move || {
 		println!("waiting for you to finish editing");
-		let edt = Config::try_get().and_then(|c| c.editor.as_ref());
+		let edt = Config::get().editor.as_ref();
 		editor::edit_with_builder(buf, &b, edt)
 	})?;
 

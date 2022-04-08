@@ -6,14 +6,16 @@ use std::{
 	sync::atomic::Ordering,
 };
 
-use anyhow::Context;
 use clap::crate_version;
+use config::{
+	ConfigError,
+	Environment,
+	File,
+	FileFormat,
+};
 use directories::ProjectDirs;
 use serde::Deserialize;
-use tokio::{
-	fs,
-	sync::OnceCell,
-};
+use tokio::sync::OnceCell;
 
 use crate::{
 	about,
@@ -36,16 +38,12 @@ pub fn app() -> App {
 		.propagate_version(true)
 		.infer_subcommands(true)
 		.args(&[
-			arg!(-C --config [PATH] "Path to the config file.")
-				.env("BLOG_CONFIG_PATH")
-				.global(true),
+			arg!(-C --config [PATH] "Path to the config file.").env("BLOG_CONFIG_PATH"),
 			arg!(-D --database [URL] "Database URL.")
-				.global(true)
-				.env("BLOG_DB_URL")
+				.env("BLOG_CLI_DB_URL")
 				.hide_env_values(true),
 			arg!(-M --"media-dir" [DIR] "The path of the media directory for the attachments.")
-				.env("BLOG_MEDIA_DIR")
-				.global(true),
+				.env("BLOG_CLI_MEDIA_DIR"),
 		])
 		.subcommands([
 			about::app(),
@@ -59,9 +57,11 @@ pub fn app() -> App {
 
 pub async fn run() -> Result<()> {
 	let m = app().get_matches();
+	task::block_in_place(|| Config::init(&m))?;
+
 	if m.subcommand_name() != Some("render") {
-		let db = Config::database(&m).await?;
-		run_hook!(pre_db, m).await?;
+		let db = Config::database()?;
+		run_hook!(pre_db).await?;
 		init_db(db).await?;
 	}
 
@@ -76,7 +76,7 @@ pub async fn run() -> Result<()> {
 	}?;
 
 	if media::ACCESSED.load(Ordering::Relaxed) {
-		run_hook!(post_media, m).await?;
+		run_hook!(post_media).await?;
 	}
 
 	Ok(())
@@ -110,65 +110,67 @@ struct AppConfig {
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
 impl Config {
-	pub fn try_get() -> Option<&'static Self> {
-		CONFIG.get()
+	pub fn get() -> &'static Self {
+		CONFIG
+			.get()
+			.expect("Config::get called without initialization")
 	}
 
-	pub async fn get_or_init<P: AsRef<Path>>(path: Option<P>) -> Result<&'static Self> {
-		if let Some(c) = CONFIG.get() {
-			return Ok(c);
-		}
+	fn database() -> Result<&'static str> {
+		CONFIG
+			.get()
+			.and_then(|c| c.db.as_deref())
+			.ok_or_else(|| anyhow!("missing the database connection string"))
+	}
 
-		match path {
+	pub fn media_dir() -> Result<&'static Path> {
+		CONFIG
+			.get()
+			.and_then(|c| c.media_dir.as_deref().map(Path::new))
+			.ok_or_else(|| anyhow!("missing the media directory path"))
+	}
+
+	fn init(m: &ArgMatches) -> StdResult<&'static Self, ConfigError> {
+		let mut config = config::Config::builder()
+			.set_override_option("cli.db-url", m.value_of("database"))?
+			.set_override_option("cli.media-dir", m.value_of("media-dir"))?
+			.add_source(
+				Environment::with_prefix("BLOG")
+					.prefix_separator("_")
+					.separator("_")
+					.ignore_empty(true)
+					.source(Some(normalize_env())),
+			);
+
+		match m.value_of("config") {
 			Some(p) => {
-				let data = fs::read_to_string(p.as_ref()).await?;
-				let config: AppConfig =
-					toml::from_str(&data).context("failed to parse the config file")?;
-				CONFIG
-					.set(config.cli)
-					.expect("config was already initialized");
+				config = config.add_source(File::new(p, FileFormat::Toml));
 			}
 			None => {
-				if let Some(proj) = ProjectDirs::from("", "", "blog") {
-					match fs::read_to_string(&proj.config_dir().join("config.toml")).await {
-						Err(_) => {
-							CONFIG.set(Self::default()).ok();
-						}
-						Ok(data) => {
-							let config: AppConfig =
-								toml::from_str(&data).context("failed to parse the config file")?;
-							CONFIG
-								.set(config.cli)
-								.expect("config was already initialized");
-						}
-					}
+				if let Some(Ok(base)) = ProjectDirs::from("", "", "blog").map(|proj| {
+					proj.config_dir()
+						.join("config")
+						.into_os_string()
+						.into_string()
+				}) {
+					config = config.add_source(File::with_name(&base).required(false));
 				}
 			}
-		};
+		}
 
+		let config: AppConfig = config.build()?.try_deserialize()?;
+		CONFIG.set(config.cli).unwrap();
 		Ok(CONFIG.get().unwrap())
 	}
+}
 
-	pub async fn database(m: &ArgMatches) -> Result<&str> {
-		match m.value_of("database") {
-			Some(db) => Ok(db),
-			None => Self::get_or_init(m.value_of("config"))
-				.await?
-				.db
-				.as_deref()
-				.ok_or_else(|| anyhow!("the database url is missing")),
-		}
-	}
-
-	pub async fn media_dir(m: &ArgMatches) -> Result<&Path> {
-		match m.value_of("media-dir") {
-			Some(x) => Ok(Path::new(x)),
-			None => {
-				let c = Self::get_or_init(m.value_of("config")).await?;
-				c.media_dir
-					.as_deref()
-					.ok_or_else(|| anyhow!("media-dir is required but not specified"))
+fn normalize_env() -> std::collections::HashMap<String, String> {
+	std::env::vars()
+		.map(|(mut k, v)| {
+			if k.to_lowercase().starts_with("blog_cli_") {
+				k = format!("BLOG_CLI_{}", k["BLOG_CLI_".len()..].replace('_', "-"));
 			}
-		}
-	}
+			(k, v)
+		})
+		.collect()
 }

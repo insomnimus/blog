@@ -76,7 +76,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		return Ok(());
 	}
 
-	let root = Config::media_dir(m).await?;
+	let root = Config::media_dir()?;
 	let n_deleted = query!("DELETE FROM note WHERE note_id = ANY($1)", &ids)
 		.execute(&mut tx)
 		.await?
@@ -89,7 +89,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 
 	print_deleted(n_deleted as _, "note");
 
-	run_hook!(pre_media, m).await?;
+	run_hook!(pre_media).await?;
 	media::remove_files(root, &media).await?;
 	print_deleted(media.len(), "media file");
 

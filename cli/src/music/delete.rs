@@ -25,7 +25,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let root = if keep_media {
 		None
 	} else {
-		Some(Config::media_dir(m).await?)
+		Some(Config::media_dir()?)
 	};
 
 	let (id, title, media) = match m.value_of_t::<i32>("id") {
@@ -58,7 +58,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.await?;
 
 	if let Some(root) = &root {
-		run_hook!(pre_media, m).await?;
+		run_hook!(pre_media).await?;
 		match media::remove_files(root, &[&media]).await {
 			Err(e) if dirty => {
 				eprintln!("warning: failed to delete the file: {e}");

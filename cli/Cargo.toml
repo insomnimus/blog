@@ -1,6 +1,6 @@
 [package]
 name = "blog-cli"
-version = "0.31.2"
+version = "0.32.0"
 edition = "2021"
 
 [[bin]]
@@ -25,3 +25,4 @@ rand = "0.8.5"
 shell-words = "1.1.0"
 which = "4.2.5"
 tempfile = "3.3.0"
+config = { version = "0.13.0", features = ["toml"] }

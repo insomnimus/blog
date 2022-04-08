@@ -90,8 +90,8 @@ WHERE NOT EXISTS (
 
 async fn gc_media(m: &ArgMatches) -> Result<()> {
 	let dry = m.is_present("dry");
-	let root = Config::media_dir(m).await?;
-	run_hook!(pre_media, m).await?;
+	let root = Config::media_dir()?;
+	run_hook!(pre_media).await?;
 	let mut dirs = task::block_in_place(|| {
 		let mut dirs = HashMap::new();
 		for res in root.read_dir()? {

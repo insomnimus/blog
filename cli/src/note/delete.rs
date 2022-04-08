@@ -91,7 +91,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let root = if note.attachments.is_empty() || keep_attachments {
 		None
 	} else {
-		Some(Config::media_dir(m).await?)
+		Some(Config::media_dir()?)
 	};
 
 	if !yes {
@@ -116,7 +116,7 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 		.await?;
 
 	if let Some(root) = root {
-		run_hook!(pre_media, m).await?;
+		run_hook!(pre_media).await?;
 		match media::remove_files(root, &note.attachments).await {
 			Ok(_) => {
 				println!("✓ deleted attachments from the media directory");

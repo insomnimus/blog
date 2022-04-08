@@ -26,8 +26,8 @@ pub async fn run(m: &ArgMatches) -> Result<()> {
 	let files = m.values_of_t::<SendFile>("attachment").ok();
 	let dir = rand_filename("post_");
 	if let Some(files) = &files {
-		let root = Config::media_dir(m).await?;
-		run_hook!(pre_media, m).await?;
+		let root = Config::media_dir()?;
+		run_hook!(pre_media).await?;
 		media::send_files(&root.join(&dir), files).await?;
 	}
 
