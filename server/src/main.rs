@@ -113,6 +113,7 @@ async fn main() -> anyhow::Result<()> {
 	COPYRIGHT.set(config.copyright.clone()).unwrap();
 	SITE_NAME.set(config.site_name.clone()).unwrap();
 	SITE_DESCRIPTION.set(config.description.clone()).unwrap();
+	info!("blog version {}", clap::crate_version!());
 
 	db::init(&config.db_url).await?;
 	info!("connected to the database");
