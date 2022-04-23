@@ -13,21 +13,21 @@ You don't have to specify the database url or the media directory each time you 
 The keys are documented below.
 
 ### cli.db-url
-Env: `BLOG_CLI_DB_URL`
+Env: `BLOG_CLI_DB_URL`\
 Type: string
 
 This key specifies the database connection string used in the blog cli.
 It must start with `postgres://` or `postgresql://`.
 
 ### cli.media-dir
-Env: `BLOG_CLI_MEDIA_DIR`
+Env: `BLOG_CLI_MEDIA_DIR`\
 Type: path (string)
 
 This key specifies the media directory which the media uploads will be copied to.
 
 ### cli.editor
-Env: `BLOG_CLI_EDITOR`
-Type: command
+Env: `BLOG_CLI_EDITOR`\
+Type: [command](#the-command-type)
 
 The editor field specifies what command to run to launch the text editor while editing articles, notes and more.
 If not specified, the `EDITOR` environment variable will be used or a system default editor will be launched.
@@ -38,17 +38,17 @@ If not specified, the `EDITOR` environment variable will be used or a system def
 The `cli.hooks` table stores various hooks for the blog cli.
 
 #### cli.hooks.pre-db
-Type: command
+Type: [command](#the-command-type)
 
 The hook to run before attempting to connect to the database.
 
 #### cli.hooks.pre-media
-Type: command
+Type: [command](#the-command-type)
 
 The hook to run before attempting any media operation, including uploading, deleting or renaming files.
 
 #### cli.hooks.post-media
-Type: command
+Type: [command](#the-command-type)
 
 The hook to run after all the media operations are done, before the command exits.
 
@@ -56,13 +56,13 @@ The hook to run after all the media operations are done, before the command exit
 All server configuration can be done through the config file or by setting environment variables.
 
 ### server.site-name
-Env: `BLOG_SERVER_SITE_NAME`
+Env: `BLOG_SERVER_SITE_NAME`\
 Type: string
 
 The name of the site. This will be used in page titles and must not include HTML.
 
 ### server.description
-Env: `BLOG_SERVER_DESCRIPTION`
+Env: `BLOG_SERVER_DESCRIPTION`\
 Type: string
 
 A brief description of the site. This is used in the `<meta description...>` tag included in every page. Keep it brief and do nto use HTML.
@@ -72,34 +72,34 @@ The database connection string for the web server.
 It must start with `postgres://` or `postgresql://`.
 
 ### server.listen
-Env: `BLOG_SERVER_LISTEN`
+Env: `BLOG_SERVER_LISTEN`\
 Type: string
 
 The interface address the server will serve on. E.g `0.0.0.0:80`
 
 ### server.media-dir
-Env: `BLOG_SERVER_MEDIA_DIR`
+Env: `BLOG_SERVER_MEDIA_DIR`\
 Type: path (string)
 
 The media directory to be served on `/media`.
 It defaults to `$PWD/media`.
 
 ### server.copyright-holder
-Env: `BLOG_SERVER_COPYRIGHT_HOLDER`
+Env: `BLOG_SERVER_COPYRIGHT_HOLDER`\
 Type: string
 
 The name of the copyright holder.
 This will be used in the site footer.
 
 ### server.site-url
-Env: `BLOG_SERVER_SITE_URL`
+Env: `BLOG_SERVER_SITE_URL`\
 Type: string
 
 The full URL, including the protocol, of the website.
 The Atom feed will be disabled if this field is not set.
 Example: `https://www.example.com`
 
-# The `command` Type
+# The command Type
 In some places, a configuration keys value is of the `command` type.
 This translates to a bash style command string or an array of strings representing a command and its arguments.
 For example, both below represent the same command:
