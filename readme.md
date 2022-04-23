@@ -2,9 +2,22 @@
 This is the source code of Strange Aeons ([strangeaeons.blog)](https://strangeaeons.blog), a blog about programming, music and literature.
 
 ## Disclaimer
-This project is not meant to be a general solution and is mainly for showcasing and sharing code for the sake of it; in short, it's personal (for now).
+This project is not meant to be a general solution for everyone and is mainly for showcasing and sharing code for the sake of it; in short, it's personal.
+
+## Documentation
+[Visit this page](doc/index.md).
 
 ## Building it
-Because the project changes so often in breaking ways, currently no build instructions are provided.
+Get a recent rust toolchain installed on your system and follow the instructions below.
 
-Once the project is stable, I will update the readme with a detailed build instructions section.
+1. Clone the repository.
+  `$ git clone --depth 1 https://github.com/insomnimus/blog && cd blog`
+2. Build the project.
+  `$ cargo build --release`
+
+Two binaries will be generated in `target/release/`: `blog-server` and `blog`.
+On windows they will also have a `.exe` extension.
+
+The `blog` binary is the command line content management utility and the `blog-server` binary is the web server.
+
+For more information see the [documentation](doc/index.md).
