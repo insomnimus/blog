@@ -2,7 +2,7 @@ localize_dates();
 tags_to_links();
 
 function dates_callback(muts, _observer) {
-	for (const mut of muts.filter((mut) => mut.type === "childList")) {
+	for (const mut of muts.filter(mut => mut.type === "childList")) {
 		for (const n of mut.addedNodes) {
 			localize_node_dates(n);
 		}

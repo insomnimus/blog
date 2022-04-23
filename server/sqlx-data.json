@@ -1,499 +1,423 @@
 {
-  "db": "PostgreSQL",
-  "15d45446dc71daf8d0205fa496d15e7ef6d84ce8c2d6c2e573bb82eb22f33acc": {
-    "query": "SELECT articles FROM cache",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "articles",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "33bf19e731f24f8f2eabfd66162cb137c7fe8fb061269dcb1a481c3687f57c11": {
-    "query": "SELECT title, comment, file_path, date_uploaded FROM music WHERE music_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "comment",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "file_path",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "date_uploaded",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        true,
-        true,
-        false,
-        false
-      ]
-    }
-  },
-  "37b670a98cee212880aaabe854a6b2205c31f4fb2e6fe6233cbb9da2053d7db2": {
-    "query": "SELECT\n\tn.note_id id,\n\tn.content,\n\tn.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tWHERE $1 = 1 OR n.note_id < $1\n\tGROUP BY n.note_id\n\tORDER BY n.date_posted DESC\n\tLIMIT 50",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "attachments: Vec<Option<String>>",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        null
-      ]
-    }
-  },
-  "42f2a7e9b221b79f67d058d14042023c6cd623beecec954533cd77565399067e": {
-    "query": "SELECT\n\turl_title,\n\ttitle,\n\tabout,\n\t-- article_id AS id,\n\tdate_published AS published,\n\tdate_updated AS updated\n\tFROM article\n\tORDER BY published ASC",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "about",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "published",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true
-      ]
-    }
-  },
-  "49b12e5396808a9672cf051e619055ee0036dec77e2f188e486f8d16c6486a93": {
-    "query": "SELECT music_id AS id, comment, title, date_uploaded AS date FROM music ORDER BY date DESC",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "comment",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "date",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        true,
-        true,
-        false
-      ]
-    }
-  },
-  "54dd3774e0f333dd960e200f81d9e279155dc80352c9fd6e3681bf34cf4e645b": {
-    "query": "SELECT home FROM cache",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "home",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "604e7e96e26b4b4bdf13358f68fdf16cb2b8e9b7a2890d307c842cae6b81d95b": {
-    "query": "SELECT music FROM cache",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "music",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "60f2f66544498374ccc052a2cc9fd8215c8b8e4e82cb7b1d590286a9fd0822a4": {
-    "query": "SELECT\n\tn.note_id AS id,\n\tn.content,\n\tn.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tWHERE n.note_id = $1\n\tGROUP BY n.note_id",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "attachments?: Vec<Option<String>>",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        null
-      ]
-    }
-  },
-  "900e0f53c05121018ef206481fbf6e36371842828e6ca0b25ab05fd402d51492": {
-    "query": "SELECT music_id id, title, comment, date_uploaded date FROM music ORDER BY date DESC LIMIT 5",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "comment",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "date",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        true,
-        true,
-        false
-      ]
-    }
-  },
-  "9b963bc99a404ae13508ef17ca61e95b68b92a1a610aa693feb4c87a4caebb3d": {
-    "query": "SELECT notes FROM cache",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "notes",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "9f2de6ef9a950c53d6bea0ccade89d87e64eddd42e44e9cb0205873dfac8448b": {
-    "query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "about",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "date_published",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 4,
-          "name": "date_updated",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 5,
-          "name": "html",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 6,
-          "name": "tags_array",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        false,
-        null
-      ]
-    }
-  },
-  "b864caae4145d36b1e1ceefbb247beb7d15b75c19d1d8b643fdd3f212556b62b": {
-    "query": "SELECT html FROM about",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "html",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "bb47ec08c61b78428b48033a24bd4bad21513b7f0f12e92575bf60514bfee6e6": {
-    "query": "SELECT n.note_id AS id,\n\t\tn.content,\n\t\tn.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tGROUP BY n.note_id\n\tORDER BY n.note_id DESC\n\tLIMIT 10",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "n_attachments!",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        null
-      ]
-    }
-  },
-  "bf47e2e0e2c899fa293f024fb03f53460f39d45acaec5416df9c2e062ce40dab": {
-    "query": "SELECT\n\ta.url_title,\n\ta.title,\n\ta.about,\n\ta.date_published AS published,\n\ta.date_updated AS updated,\n\tARRAY_AGG(t.tag_name) AS \"tags?: Vec<Option<String>>\"\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON a.article_id = t.article_id\n\tGROUP BY a.article_id, a.url_title, a.title\n\tORDER BY COALESCE(a.date_updated, a.date_published) DESC",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "url_title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "about",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "published",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 4,
-          "name": "updated",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 5,
-          "name": "tags?: Vec<Option<String>>",
-          "type_info": "TextArray"
-        }
-      ],
-      "parameters": {
-        "Left": []
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        null
-      ]
-    }
-  },
-  "daea82f55a56939537daa2345d5de26cab35108caeaa16cce7f69106d2bc1c16": {
-    "query": "SELECT\n\ttitle,\n\tmusic_id AS id,\n\tdate_uploaded AS date,\n\tcomment\n\tFROM music\n\tWHERE LOWER(title) LIKE $1\n\tORDER BY date DESC",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "title",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 1,
-          "name": "id",
-          "type_info": "Int4"
-        },
-        {
-          "ordinal": 2,
-          "name": "date",
-          "type_info": "Timestamp"
-        },
-        {
-          "ordinal": 3,
-          "name": "comment",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      },
-      "nullable": [
-        true,
-        false,
-        false,
-        true
-      ]
-    }
-  }
+	"db": "PostgreSQL",
+	"15d45446dc71daf8d0205fa496d15e7ef6d84ce8c2d6c2e573bb82eb22f33acc": {
+		"query": "SELECT articles FROM cache",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "articles",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false]
+		}
+	},
+	"33bf19e731f24f8f2eabfd66162cb137c7fe8fb061269dcb1a481c3687f57c11": {
+		"query": "SELECT title, comment, file_path, date_uploaded FROM music WHERE music_id = $1",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 1,
+					"name": "comment",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "file_path",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 3,
+					"name": "date_uploaded",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": ["Int4"]
+			},
+			"nullable": [true, true, false, false]
+		}
+	},
+	"37b670a98cee212880aaabe854a6b2205c31f4fb2e6fe6233cbb9da2053d7db2": {
+		"query": "SELECT\n\tn.note_id id,\n\tn.content,\n\tn.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments: Vec<Option<String>>\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tWHERE $1 = 1 OR n.note_id < $1\n\tGROUP BY n.note_id\n\tORDER BY n.date_posted DESC\n\tLIMIT 50",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "id",
+					"type_info": "Int4"
+				},
+				{
+					"ordinal": 1,
+					"name": "content",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "date",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 3,
+					"name": "attachments: Vec<Option<String>>",
+					"type_info": "TextArray"
+				}
+			],
+			"parameters": {
+				"Left": ["Int4"]
+			},
+			"nullable": [false, false, false, null]
+		}
+	},
+	"42f2a7e9b221b79f67d058d14042023c6cd623beecec954533cd77565399067e": {
+		"query": "SELECT\n\turl_title,\n\ttitle,\n\tabout,\n\t-- article_id AS id,\n\tdate_published AS published,\n\tdate_updated AS updated\n\tFROM article\n\tORDER BY published ASC",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "url_title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 1,
+					"name": "title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "about",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 3,
+					"name": "published",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 4,
+					"name": "updated",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false, false, false, false, true]
+		}
+	},
+	"49b12e5396808a9672cf051e619055ee0036dec77e2f188e486f8d16c6486a93": {
+		"query": "SELECT music_id AS id, comment, title, date_uploaded AS date FROM music ORDER BY date DESC",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "id",
+					"type_info": "Int4"
+				},
+				{
+					"ordinal": 1,
+					"name": "comment",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 3,
+					"name": "date",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false, true, true, false]
+		}
+	},
+	"54dd3774e0f333dd960e200f81d9e279155dc80352c9fd6e3681bf34cf4e645b": {
+		"query": "SELECT home FROM cache",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "home",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false]
+		}
+	},
+	"604e7e96e26b4b4bdf13358f68fdf16cb2b8e9b7a2890d307c842cae6b81d95b": {
+		"query": "SELECT music FROM cache",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "music",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false]
+		}
+	},
+	"60f2f66544498374ccc052a2cc9fd8215c8b8e4e82cb7b1d590286a9fd0822a4": {
+		"query": "SELECT\n\tn.note_id AS id,\n\tn.content,\n\tn.date_posted AS date,\n\tARRAY_AGG(m.file_path) AS \"attachments?: Vec<Option<String>>\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tWHERE n.note_id = $1\n\tGROUP BY n.note_id",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "id",
+					"type_info": "Int4"
+				},
+				{
+					"ordinal": 1,
+					"name": "content",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "date",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 3,
+					"name": "attachments?: Vec<Option<String>>",
+					"type_info": "TextArray"
+				}
+			],
+			"parameters": {
+				"Left": ["Int4"]
+			},
+			"nullable": [false, false, false, null]
+		}
+	},
+	"900e0f53c05121018ef206481fbf6e36371842828e6ca0b25ab05fd402d51492": {
+		"query": "SELECT music_id id, title, comment, date_uploaded date FROM music ORDER BY date DESC LIMIT 5",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "id",
+					"type_info": "Int4"
+				},
+				{
+					"ordinal": 1,
+					"name": "title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "comment",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 3,
+					"name": "date",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false, true, true, false]
+		}
+	},
+	"9b963bc99a404ae13508ef17ca61e95b68b92a1a610aa693feb4c87a4caebb3d": {
+		"query": "SELECT notes FROM cache",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "notes",
+					"type_info": "Timestamp"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false]
+		}
+	},
+	"9f2de6ef9a950c53d6bea0ccade89d87e64eddd42e44e9cb0205873dfac8448b": {
+		"query": "SELECT a.title, a.url_title, a.about, a.date_published, a.date_updated, a.html,\n\t\tARRAY_AGG(t.tag_name) tags_array\n\t\tFROM article a\n\t\tLEFT JOIN article_tag t\n\t\tON a.article_id = t.article_id\n\t\tWHERE url_title = $1\n\t\tGROUP BY a.title, a.url_title",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 1,
+					"name": "url_title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "about",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 3,
+					"name": "date_published",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 4,
+					"name": "date_updated",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 5,
+					"name": "html",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 6,
+					"name": "tags_array",
+					"type_info": "TextArray"
+				}
+			],
+			"parameters": {
+				"Left": ["Text"]
+			},
+			"nullable": [false, false, false, false, true, false, null]
+		}
+	},
+	"b864caae4145d36b1e1ceefbb247beb7d15b75c19d1d8b643fdd3f212556b62b": {
+		"query": "SELECT html FROM about",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "html",
+					"type_info": "Text"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false]
+		}
+	},
+	"bb47ec08c61b78428b48033a24bd4bad21513b7f0f12e92575bf60514bfee6e6": {
+		"query": "SELECT n.note_id AS id,\n\t\tn.content,\n\t\tn.date_posted AS date,\n\t\tCOALESCE(COUNT(m.file_path), 0) AS \"n_attachments!\"\n\tFROM note n\n\tLEFT JOIN note_media m\n\tON n.note_id = m.note_id\n\tGROUP BY n.note_id\n\tORDER BY n.note_id DESC\n\tLIMIT 10",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "id",
+					"type_info": "Int4"
+				},
+				{
+					"ordinal": 1,
+					"name": "content",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "date",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 3,
+					"name": "n_attachments!",
+					"type_info": "Int8"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false, false, false, null]
+		}
+	},
+	"bf47e2e0e2c899fa293f024fb03f53460f39d45acaec5416df9c2e062ce40dab": {
+		"query": "SELECT\n\ta.url_title,\n\ta.title,\n\ta.about,\n\ta.date_published AS published,\n\ta.date_updated AS updated,\n\tARRAY_AGG(t.tag_name) AS \"tags?: Vec<Option<String>>\"\n\tFROM article a\n\tLEFT JOIN article_tag t\n\tON a.article_id = t.article_id\n\tGROUP BY a.article_id, a.url_title, a.title\n\tORDER BY COALESCE(a.date_updated, a.date_published) DESC",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "url_title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 1,
+					"name": "title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 2,
+					"name": "about",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 3,
+					"name": "published",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 4,
+					"name": "updated",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 5,
+					"name": "tags?: Vec<Option<String>>",
+					"type_info": "TextArray"
+				}
+			],
+			"parameters": {
+				"Left": []
+			},
+			"nullable": [false, false, false, false, true, null]
+		}
+	},
+	"daea82f55a56939537daa2345d5de26cab35108caeaa16cce7f69106d2bc1c16": {
+		"query": "SELECT\n\ttitle,\n\tmusic_id AS id,\n\tdate_uploaded AS date,\n\tcomment\n\tFROM music\n\tWHERE LOWER(title) LIKE $1\n\tORDER BY date DESC",
+		"describe": {
+			"columns": [
+				{
+					"ordinal": 0,
+					"name": "title",
+					"type_info": "Text"
+				},
+				{
+					"ordinal": 1,
+					"name": "id",
+					"type_info": "Int4"
+				},
+				{
+					"ordinal": 2,
+					"name": "date",
+					"type_info": "Timestamp"
+				},
+				{
+					"ordinal": 3,
+					"name": "comment",
+					"type_info": "Text"
+				}
+			],
+			"parameters": {
+				"Left": ["Text"]
+			},
+			"nullable": [true, false, false, true]
+		}
+	}
 }

@@ -4,8 +4,7 @@ function submit_search(event) {
 	}
 	const query = document.querySelector("#search-query").value.trim();
 	if (query) {
-		const kind =
-			document.querySelector('input[name="searchtype"]:checked').value;
+		const kind = document.querySelector('input[name="searchtype"]:checked').value;
 		const params = new URLSearchParams({
 			kind: kind,
 			query: query,
@@ -15,7 +14,6 @@ function submit_search(event) {
 		if (location.port) {
 			port = ":" + location.port;
 		}
-		window.location = location.protocol + "//" + location.hostname + port +
-			new_path;
+		window.location = location.protocol + "//" + location.hostname + port + new_path;
 	}
 }

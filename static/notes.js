@@ -20,8 +20,8 @@ more_button.addEventListener("click", function () {
 function load_posts(last_id) {
 	const addr = "/api/notes?cursor=" + last_id;
 	return fetch(addr)
-		.then((response) => response.json())
-		.then((data) => {
+		.then(response => response.json())
+		.then(data => {
 			for (const p of data.notes) {
 				container.innerHTML += p;
 				container.innerHTML += "\n<br>\n";

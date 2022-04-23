@@ -1,22 +1,19 @@
 {
   "version": "3.9",
-  "volumes": {
-    "blog-db": null
-  },
-  "services": {
-    "db": {
-      "build": ".",
-      "volumes": [
-        "blog-db:/var/lib/postgresql/data"
-      ],
-      "ports": [
-        "3001:5432"
-      ],
-      "environment": {
-        "POSTGRES_USER": "admin",
-        "POSTGRES_PASSWORD": "${BLOG_DB_PASSWORD?You need to set an administrator database password}",
-        "POSTGRES_DB": "blog"
-      }
-    }
-  }
+  "volumes": { "blog-db": null },
+  "services":
+    {
+      "db":
+        {
+          "build": ".",
+          "volumes": ["blog-db:/var/lib/postgresql/data"],
+          "ports": ["3001:5432"],
+          "environment":
+            {
+              "POSTGRES_USER": "admin",
+              "POSTGRES_PASSWORD": "${BLOG_DB_PASSWORD?You need to set an administrator database password}",
+              "POSTGRES_DB": "blog",
+            },
+        },
+    },
 }

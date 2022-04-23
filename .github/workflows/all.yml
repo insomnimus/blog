@@ -1,205 +1,186 @@
 {
   "name": "All",
-  "on": [
-    "push",
-    "pull_request"
-  ],
-  "env": {
-    "SQLX_OFFLINE": "1"
-  },
-  "jobs": {
-    "test": {
-      "strategy": {
-        "matrix": {
-          "include": [
+  "on": ["push", "pull_request"],
+  "env": { "SQLX_OFFLINE": "1" },
+  "jobs":
+    {
+      "test":
+        {
+          "strategy":
             {
-              "os": "ubuntu-latest",
-              "target": "x86_64-unknown-linux-gnu"
+              "matrix":
+                {
+                  "include":
+                    [
+                      { "os": "ubuntu-latest", "target": "x86_64-unknown-linux-gnu" },
+                      { "os": "macOS-11", "target": "x86_64-apple-darwin" },
+                      { "os": "windows-latest", "target": "x86_64-pc-windows-msvc" },
+                    ],
+                },
             },
+          "runs-on": "${{ matrix.os }}",
+          "steps":
+            [
+              { "name": "Setup | Checkout", "uses": "actions/checkout@v2" },
+              {
+                "name": "Setup | Rust",
+                "uses": "actions-rs/toolchain@v1.0.7",
+                "with":
+                  {
+                    "toolchain": "stable",
+                    "override": true,
+                    "profile": "minimal",
+                    "target": "${{ matrix.target }}",
+                  },
+              },
+              {
+                "name": "Check | Tests",
+                "uses": "actions-rs/cargo@v1.0.3",
+                "with": { "command": "test", "args": "--target ${{ matrix.target }}" },
+              },
+            ],
+        },
+      "build":
+        {
+          "name": "Build Release Binaries",
+          "needs": "test",
+          "if": "github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')",
+          "continue-on-error": true,
+          "strategy":
             {
-              "os": "macOS-11",
-              "target": "x86_64-apple-darwin"
+              "fail-fast": false,
+              "matrix":
+                {
+                  "include":
+                    [
+                      {
+                        "target": "x86_64-pc-windows-msvc",
+                        "name": "blog-x86_64-pc-windows-msvc.zip",
+                        "os": "windows-latest",
+                      },
+                      {
+                        "target": "i686-pc-windows-msvc",
+                        "name": "blog-i686-pc-windows-msvc.zip",
+                        "os": "windows-latest",
+                      },
+                      {
+                        "target": "x86_64-apple-darwin",
+                        "name": "blog-x86_64-apple-darwin.tar.gz",
+                        "os": "macos-11",
+                      },
+                      {
+                        "target": "aarch64-apple-darwin",
+                        "name": "blog-aarch64-apple-darwin.tar.gz",
+                        "os": "macos-11",
+                      },
+                      {
+                        "target": "aarch64-unknown-linux-musl",
+                        "name": "blog-aarch64-unknown-linux-musl.tar.gz",
+                        "os": "ubuntu-latest",
+                      },
+                      {
+                        "target": "aarch64-unknown-linux-gnu",
+                        "name": "blog-aarch64-unknown-linux-gnu.tar.gz",
+                        "os": "ubuntu-latest",
+                      },
+                      {
+                        "target": "x86_64-unknown-linux-musl",
+                        "name": "blog-x86_64-unknown-linux-musl.tar.gz",
+                        "os": "ubuntu-latest",
+                      },
+                      {
+                        "target": "x86_64-unknown-linux-gnu",
+                        "name": "blog-x86_64-unknown-linux-gnu.tar.gz",
+                        "os": "ubuntu-latest",
+                      },
+                      {
+                        "target": "armv7-unknown-linux-musleabihf",
+                        "name": "blog-armv7-unknown-linux-musleabihf.tar.gz",
+                        "os": "ubuntu-latest",
+                      },
+                    ],
+                },
             },
-            {
-              "os": "windows-latest",
-              "target": "x86_64-pc-windows-msvc"
-            }
-          ]
-        }
-      },
-      "runs-on": "${{ matrix.os }}",
-      "steps": [
-        {
-          "name": "Setup | Checkout",
-          "uses": "actions/checkout@v2"
+          "runs-on": "${{ matrix.os }}",
+          "steps":
+            [
+              { "name": "Setup | Checkout", "uses": "actions/checkout@v2" },
+              {
+                "name": "Setup | Cache Cargo",
+                "uses": "actions/cache@v2.1.6",
+                "with":
+                  {
+                    "path": "~/.cargo/registry\n~/.cargo/git\n",
+                    "key": "${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}",
+                  },
+              },
+              {
+                "name": "Setup | Rust",
+                "uses": "actions-rs/toolchain@v1.0.7",
+                "with":
+                  {
+                    "toolchain": "stable",
+                    "override": true,
+                    "profile": "minimal",
+                    "target": "${{ matrix.target }}",
+                  },
+              },
+              {
+                "name": "Build | Build",
+                "uses": "actions-rs/cargo@v1.0.3",
+                "with":
+                  {
+                    "command": "build",
+                    "args": "--release --target ${{ matrix.target }}",
+                    "use-cross": "${{ matrix.os == 'ubuntu-latest' && matrix.target != 'x86_64-unknown-linux-gnu' }}",
+                  },
+              },
+              {
+                "name": "PostBuild | Prepare",
+                "if": "matrix.os != 'windows-latest'",
+                "run": "cd target/${{ matrix.target }}/release\nstrip blog blog-server || true\ntar czvf ../../../${{ matrix.name }} blog blog-server ../../../static\ncd -",
+              },
+              {
+                "if": "matrix.os == 'windows-latest'",
+                "name": "PostBuild | Prepare",
+                "run": "cd target/${{ matrix.target }}/release\n7z a ../../../${{ matrix.name }} blog.exe blog-server.exe ../../../static\ncd -",
+              },
+              {
+                "name": "Deploy | Upload Artifacts",
+                "uses": "actions/upload-artifact@v2",
+                "with": { "name": "${{ matrix.name }}", "path": "${{ matrix.name }}" },
+              },
+            ],
         },
+      "release":
         {
-          "name": "Setup | Rust",
-          "uses": "actions-rs/toolchain@v1.0.7",
-          "with": {
-            "toolchain": "stable",
-            "override": true,
-            "profile": "minimal",
-            "target": "${{ matrix.target }}"
-          }
+          "name": "Create GitHub Release",
+          "needs": "build",
+          "if": "github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')",
+          "runs-on": "ubuntu-latest",
+          "steps":
+            [
+              {
+                "name": "Setup | Checkout",
+                "uses": "actions/checkout@v2.3.4",
+                "with": { "fetch-depth": 0 },
+              },
+              {
+                "name": "Setup | go",
+                "uses": "actions/setup-go@v2",
+                "with": { "go-version": "^1.15.7" },
+              },
+              { "name": "Setup | Artifacts", "uses": "actions/download-artifact@v2" },
+              {
+                "name": "Setup | Release notes",
+                "run": "GO111MODULE=on go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.1\ngit-chglog -c .github/chglog/release.yml \"$(git describe --tags)\" > RELEASE.md",
+              },
+              {
+                "name": "Deploy | Publish",
+                "uses": "softprops/action-gh-release@v1",
+                "with": { "files": "blog-*/blog-*", "body_path": "RELEASE.md" },
+              },
+            ],
         },
-        {
-          "name": "Check | Tests",
-          "uses": "actions-rs/cargo@v1.0.3",
-          "with": {
-            "command": "test",
-            "args": "--target ${{ matrix.target }}"
-          }
-        }
-      ]
     },
-    "build": {
-      "name": "Build Release Binaries",
-      "needs": "test",
-      "if": "github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')",
-      "continue-on-error": true,
-      "strategy": {
-        "fail-fast": false,
-        "matrix": {
-          "include": [
-            {
-              "target": "x86_64-pc-windows-msvc",
-              "name": "blog-x86_64-pc-windows-msvc.zip",
-              "os": "windows-latest"
-            },
-            {
-              "target": "i686-pc-windows-msvc",
-              "name": "blog-i686-pc-windows-msvc.zip",
-              "os": "windows-latest"
-            },
-            {
-              "target": "x86_64-apple-darwin",
-              "name": "blog-x86_64-apple-darwin.tar.gz",
-              "os": "macos-11"
-            },
-            {
-              "target": "aarch64-apple-darwin",
-              "name": "blog-aarch64-apple-darwin.tar.gz",
-              "os": "macos-11"
-            },
-            {
-              "target": "aarch64-unknown-linux-musl",
-              "name": "blog-aarch64-unknown-linux-musl.tar.gz",
-              "os": "ubuntu-latest"
-            },
-            {
-              "target": "aarch64-unknown-linux-gnu",
-              "name": "blog-aarch64-unknown-linux-gnu.tar.gz",
-              "os": "ubuntu-latest"
-            },
-            {
-              "target": "x86_64-unknown-linux-musl",
-              "name": "blog-x86_64-unknown-linux-musl.tar.gz",
-              "os": "ubuntu-latest"
-            },
-            {
-              "target": "x86_64-unknown-linux-gnu",
-              "name": "blog-x86_64-unknown-linux-gnu.tar.gz",
-              "os": "ubuntu-latest"
-            },
-            {
-              "target": "armv7-unknown-linux-musleabihf",
-              "name": "blog-armv7-unknown-linux-musleabihf.tar.gz",
-              "os": "ubuntu-latest"
-            }
-          ]
-        }
-      },
-      "runs-on": "${{ matrix.os }}",
-      "steps": [
-        {
-          "name": "Setup | Checkout",
-          "uses": "actions/checkout@v2"
-        },
-        {
-          "name": "Setup | Cache Cargo",
-          "uses": "actions/cache@v2.1.6",
-          "with": {
-            "path": "~/.cargo/registry\n~/.cargo/git\n",
-            "key": "${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}"
-          }
-        },
-        {
-          "name": "Setup | Rust",
-          "uses": "actions-rs/toolchain@v1.0.7",
-          "with": {
-            "toolchain": "stable",
-            "override": true,
-            "profile": "minimal",
-            "target": "${{ matrix.target }}"
-          }
-        },
-        {
-          "name": "Build | Build",
-          "uses": "actions-rs/cargo@v1.0.3",
-          "with": {
-            "command": "build",
-            "args": "--release --target ${{ matrix.target }}",
-            "use-cross": "${{ matrix.os == 'ubuntu-latest' && matrix.target != 'x86_64-unknown-linux-gnu' }}"
-          }
-        },
-        {
-          "name": "PostBuild | Prepare",
-          "if": "matrix.os != 'windows-latest'",
-          "run": "cd target/${{ matrix.target }}/release\nstrip blog blog-server || true\ntar czvf ../../../${{ matrix.name }} blog blog-server ../../../static\ncd -"
-        },
-        {
-          "if": "matrix.os == 'windows-latest'",
-          "name": "PostBuild | Prepare",
-          "run": "cd target/${{ matrix.target }}/release\n7z a ../../../${{ matrix.name }} blog.exe blog-server.exe ../../../static\ncd -"
-        },
-        {
-          "name": "Deploy | Upload Artifacts",
-          "uses": "actions/upload-artifact@v2",
-          "with": {
-            "name": "${{ matrix.name }}",
-            "path": "${{ matrix.name }}"
-          }
-        }
-      ]
-    },
-    "release": {
-      "name": "Create GitHub Release",
-      "needs": "build",
-      "if": "github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')",
-      "runs-on": "ubuntu-latest",
-      "steps": [
-        {
-          "name": "Setup | Checkout",
-          "uses": "actions/checkout@v2.3.4",
-          "with": {
-            "fetch-depth": 0
-          }
-        },
-        {
-          "name": "Setup | go",
-          "uses": "actions/setup-go@v2",
-          "with": {
-            "go-version": "^1.15.7"
-          }
-        },
-        {
-          "name": "Setup | Artifacts",
-          "uses": "actions/download-artifact@v2"
-        },
-        {
-          "name": "Setup | Release notes",
-          "run": "GO111MODULE=on go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.1\ngit-chglog -c .github/chglog/release.yml \"$(git describe --tags)\" > RELEASE.md"
-        },
-        {
-          "name": "Deploy | Publish",
-          "uses": "softprops/action-gh-release@v1",
-          "with": {
-            "files": "blog-*/blog-*",
-            "body_path": "RELEASE.md"
-          }
-        }
-      ]
-    }
-  }
 }

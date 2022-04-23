@@ -1,0 +1,6 @@
+printWidth = 100
+semi = true
+useTabs = true
+singleQuote = false
+quoteProps = "consistent"
+arrowParens = "avoid"
